@@ -8,7 +8,7 @@
 #undef _GNU_SOURCE
 #undef GNU_SOURCE
 
-#include "common/network/socket/liberror.h"
+#include "common/network/liberror.h"
 
 #include <cstdarg>
 #include <cstdio>
