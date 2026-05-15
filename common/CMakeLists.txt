@@ -6,3 +6,5 @@ target_sources(taller_common
     # .h files
     foo.h
     )
+
+add_subdirectory(network)
