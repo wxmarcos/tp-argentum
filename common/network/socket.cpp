@@ -5,7 +5,7 @@
  *
  * De acuerdo con la GPL v2, este código se mantiene bajo la misma licencia.
  */
-#include "common/network/socket/socket.h"
+#include "common/network/socket.h"
 
 #include <stdexcept>
 
@@ -17,8 +17,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "common/network/socket/liberror.h"
-#include "common/network/socket/resolver.h"
+#include "common/network/liberror.h"
+#include "common/network/resolver.h"
 
 #define STREAM_SEND_CLOSED 0x01
 #define STREAM_RECV_CLOSED 0x02
