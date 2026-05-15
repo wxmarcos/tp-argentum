@@ -8,3 +8,5 @@ target_sources(taller_common
     )
 
 add_subdirectory(network)
+
+target_include_directories(taller_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
