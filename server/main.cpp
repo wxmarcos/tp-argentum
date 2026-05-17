@@ -1,33 +1,16 @@
 #include <iostream>
 #include <stdexcept>
-#include "common/network/socket.h"
+#include "server.h"
 
-int main() {
-    try {
-        Socket listener("8080");
-        std::cout << "Servidor escuchando en puerto 8080...\n";
 
-        while (true) {
-            Socket client = listener.accept();
-            std::cout << "Cliente conectado\n";
-            char buffer[1024];
+int main(int argc, char const *argv[])
+{
+    if (argc != 2) return 1;
 
-            while (true) {
-                int received = client.recvsome(buffer, sizeof(buffer) - 1);
-                if (received == 0) {
-                    std::cout << "Cliente desconectado\n";
-                    break;
-                }
+    std::string port = argv[1];
 
-                buffer[received] = '\0';
-                std::cout << buffer;
-                std::cout.flush();
-            }
-        }
-    } catch (const std::exception& ex) {
-        std::cerr << "Error: " << ex.what() << "\n";
-        return 1;
-    }
+    Server server(port.c_str());
+    server.start();
 
     return 0;
 }

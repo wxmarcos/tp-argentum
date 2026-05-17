@@ -1,10 +1,13 @@
 target_sources(taller_common
     PRIVATE
     # .cpp files
-    foo.cpp
+    receiver.cpp
     PUBLIC
     # .h files
-    foo.h
+    thread.h
+    queue.h
+    receiver.h
+    sender.h
     )
 
 add_subdirectory(network)
