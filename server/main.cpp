@@ -10,7 +10,7 @@ int main(int argc, char const *argv[])
     std::string port = argv[1];
 
     Server server(port.c_str());
-    server.start();
+    server.run();
 
     return 0;
 }

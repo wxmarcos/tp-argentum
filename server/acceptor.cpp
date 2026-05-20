@@ -51,6 +51,11 @@ void Acceptor::close_listener() {
     }
 }
 
+void Acceptor::stop() {
+    close_listener();
+    Thread::stop();
+}
+
 Acceptor::~Acceptor() {
     close_listener();
 

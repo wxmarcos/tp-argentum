@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <iostream>
+#include "common/queue.h"
 #include "common/command.h"
 
 #include "client_handler.h"
@@ -37,39 +38,36 @@ public:
             clients) {}
 
     void start() {
-
         acceptor.start();
-
         gameloop.start();
+    }
 
-        std::cout
-            << "Servidor corriendo.\n";
+    void stop() {
+        acceptor.stop();
+        commands_queue.close();
+        gameloop.stop();
+    }
+
+    void join() {
+        acceptor.join();
+        gameloop.join();
+    }
+
+    void run() {
+        start();
+
+        std::cout << "Servidor corriendo.\n";
 
         std::string line;
-
         while (std::getline(std::cin, line)) {
-
-            if (
-                line == "q" ||
-                line == "quit" ||
-                line == "exit") {
-
+            if (line == "q" || line == "quit" || line == "exit") {
                 break;
             }
         }
 
-        std::cout
-            << "Deteniendo servidor...\n";
-
-        acceptor.stop();
-
-        commands_queue.close();
-
-        gameloop.stop();
-
-        acceptor.join();
-
-        gameloop.join();
+        std::cout << "Deteniendo servidor...\n";
+        stop();
+        join();
     }
 };
 

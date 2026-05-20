@@ -35,6 +35,7 @@ public:
         commands_queue(commands_queue) {}
 
     void run() override;
+    void stop() override;
 
     ~Acceptor() override;
 };
