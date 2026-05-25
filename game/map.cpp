@@ -1,5 +1,6 @@
-#include "map.h"
 #include <stdexcept>
+
+#include "map.h"
 
 Mapa::Mapa(int ancho, int alto)
     : ancho(ancho), alto(alto),
@@ -74,4 +75,42 @@ Character* Mapa::getPersonajeEnPosicion(int x, int y) const {
     auto it = personajesEnPosicion.find({x, y});
     if (it == personajesEnPosicion.end()) return nullptr;
     return it->second;
+}
+
+void Mapa::tirarItem(int x, int y, SlotInventario slot) {
+    if (!esPosicionValida(x, y)) return;
+
+    auto& pila = itemsEnPiso[{x, y}];
+
+    if (slot.item->esApilable()) {
+        for (auto& existente : pila) {
+            if (existente.item->getNombre() == slot.item->getNombre()) {
+                existente.cantidad += slot.cantidad;
+                return;
+            }
+        }
+    }
+
+    pila.push_back(std::move(slot));
+}
+
+std::optional<SlotInventario> Mapa::tomarItemEnPosicion(int x, int y, int indice) {
+    auto it = itemsEnPiso.find({x, y});
+    if (it == itemsEnPiso.end()) return std::nullopt;
+
+    auto& pila = it->second;
+    if (indice < 0 || indice >= static_cast<int>(pila.size())) return std::nullopt;
+
+    SlotInventario resultado = std::move(pila[indice]);
+    pila.erase(pila.begin() + indice);
+    
+    if (pila.empty()) itemsEnPiso.erase(it);
+
+    return resultado;
+}
+
+const std::vector<SlotInventario>* Mapa::getItemsEnPosicion(int x, int y) const {
+    auto it = itemsEnPiso.find({x, y});
+    if (it == itemsEnPiso.end()) return nullptr;
+    return &it->second;
 }

@@ -1,29 +1,37 @@
-#include "jugador.h"
+#include "characters/jugador.h"
+#include "items/item.h"
+#include "formulas.h"
+
 #include <algorithm>
-
-// vidaMax = suma de lo que aportan raza y clase
-// TODO: confirmar formula exacta entre todos
-static int calcularVidaMax(const Raza* raza, const CharClase* clase) {
-    return raza->getMaxVida() + clase->getMaxVida();
-}
-
-static int calcularManaMax(const Raza* raza, const CharClase* clase) {
-    return raza->getMaxMana() + clase->getMaxMana();
-}
+#include <optional>
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
                  const Raza* raza, const CharClase* clase)
-    : Character(nombre, posX, posY, calcularVidaMax(raza, clase)),
+    : Character(nombre, posX, posY, 1),
       raza(raza),
       clase(clase),
-      manaActual(calcularManaMax(raza, clase)),
-      manaMax(calcularManaMax(raza, clase)),
+      constitucion(raza->getConstitucionBase()),
+      inteligencia(raza->getInteligenciaBase()),
+      manaActual(0),
+      manaMax(0),
       nivel(1),
       experiencia(0),
-      oro(0) {}
+      oro(0),
+      meditando(false) {
+        recalcularStats();
+}
+
+void Jugador::recalcularStats() {
+    vidaMax = Formulas::calcularVidaMax(constitucion, clase->getFClaseVida(), raza->getFRazaVida(), nivel);
+    vidaActual = vidaMax;
+    manaMax = Formulas::calcularManaMax(inteligencia, clase->getFClaseMana(), raza->getFRazaMana(), nivel);
+    manaActual = manaMax;
+}
 
 const Raza* Jugador::getRaza() const { return raza; }
 const CharClase* Jugador::getClase() const { return clase; }
+int Jugador::getConstitucion() const { return constitucion; }
+int Jugador::getInteligencia() const { return inteligencia; }
 
 int Jugador::getManaActual() const { return manaActual; }
 int Jugador::getManaMax() const { return manaMax; }
@@ -42,18 +50,19 @@ int Jugador::getNivel() const { return nivel; }
 int Jugador::getExperiencia() const { return experiencia; }
 
 int Jugador::expParaSiguienteNivel() const {
-    return nivel * 1000;    // TODO: cargar formula desde Config 
+    return Formulas::calcularLimiteExp(nivel);
 }
 
 void Jugador::verificarSubidaNivel() {
     while (experiencia >= expParaSiguienteNivel()) {
         experiencia -= expParaSiguienteNivel();
         nivel++;
-        // TODO: recalcular vidaMax y manaMax al subir de nivel
+        recalcularStats();
     }
 }
 
 void Jugador::ganarExperiencia(int exp) {
+    if (exp <= 0) return;
     experiencia += exp;
     verificarSubidaNivel();
 }
@@ -70,11 +79,90 @@ bool Jugador::gastarOro(int cantidad) {
     return true;
 }
 
-void Jugador::recuperacionPeriodica() {
+void Jugador::iniciarMeditacion() {
+    if (!clase->puedeMeditar()) return;
     if (!vivo) return;
-    float factor = raza->getFRecuperacion();
-    int recuperacionVida = static_cast<int>(5 * factor);        // TODO: base desde Config
-    int recuperacionMana = static_cast<int>(5 * factor);        // TODO: base desde Config
-    curar(recuperacionVida);
-    recuperarMana(recuperacionMana);
+    meditando = true;
+}
+
+void Jugador::interrumpirMeditacion() {
+    meditando = false;
+}
+
+bool Jugador::estaMeditando() const { return meditando; }
+
+bool Jugador::agarrarItem(std::unique_ptr<Item> item, int cantidad) {
+    if (!vivo) return false;
+    interrumpirMeditacion();
+    return inventario.agregar(std::move(item), cantidad);
+}
+
+std::optional<SlotInventario> Jugador::soltarItem(int indice, int cantidad) {
+    interrumpirMeditacion();
+    return inventario.soltar(indice, cantidad);
+}
+
+std::vector<SlotInventario> Jugador::soltarTodosLosItems() {
+    return inventario.soltarTodo();
+}
+
+bool Jugador::equiparArma(int indice) {
+    interrumpirMeditacion();
+    return inventario.equiparArma(indice);
+}
+
+bool Jugador::equiparArmadura(int indice) { 
+    interrumpirMeditacion();
+    return inventario.equiparArmadura(indice); 
+}
+bool Jugador::equiparCasco(int indice) { 
+    interrumpirMeditacion();
+    return inventario.equiparCasco(indice); 
+}
+bool Jugador::equiparEscudo(int indice) { 
+    interrumpirMeditacion();
+    return inventario.equiparEscudo(indice); 
+}
+
+void Jugador::desequiparArma() { 
+    interrumpirMeditacion();
+    inventario.desequiparArma();
+}
+
+void Jugador::desequiparArmadura() { 
+    interrumpirMeditacion();
+    inventario.desequiparArmadura(); 
+}
+void Jugador::desequiparCasco() { 
+    interrumpirMeditacion();
+    inventario.desequiparCasco(); 
+}
+void Jugador::desequiparEscudo() { 
+    interrumpirMeditacion();
+    inventario.desequiparEscudo(); 
+}
+
+bool Jugador::usarPocion(int indice) {
+    if (!vivo) return false;
+    interrumpirMeditacion();
+    return inventario.usarPocion(indice, *this);
+}
+
+const Inventario& Jugador::getInventario() const { return inventario; }
+
+void Jugador::recuperacionPasiva(float dt) {
+    if (!vivo) return;
+
+    curar(Formulas::calcularRecuperacionVida(raza->getFRazaRecuperacion(), dt));
+
+    if (meditando) {
+        recuperarMana(Formulas::calcularRecuperacionManaMeditando(clase->getFClaseMeditacion(), inteligencia, dt));
+    } else {
+        recuperarMana(Formulas::calcularRecuperacionMana(raza->getFRazaRecuperacion(), dt));
+    }
+}
+
+void Jugador::morir() {
+    Character::morir();
+    interrumpirMeditacion();
 }

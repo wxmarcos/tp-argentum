@@ -1,19 +1,24 @@
 #pragma once
-#include "character.h"
+#include "characters/character.h"
 #include "razas/raza.h"
 #include "clases/charClase.h"
+#include "items/inventario.h"
 
 class Jugador : public Character {
 private:
     const Raza* raza;
     const CharClase* clase;
+    int constitucion;
+    int inteligencia;
     int manaActual;
     int manaMax;
     int nivel;
     int experiencia;
     int oro;
-    // Inventario* inventario; // TODO: agregar cuando este implementado
+    bool meditando;
+    Inventario inventario;
 
+    void recalcularStats();
     int expParaSiguienteNivel() const;
     void verificarSubidaNivel();
 
@@ -24,6 +29,8 @@ public:
 
     const Raza* getRaza() const;
     const CharClase* getClase() const;
+    int getConstitucion() const;
+    int getInteligencia() const;
 
     int getManaActual() const;
     int getManaMax() const;
@@ -38,5 +45,28 @@ public:
     void agregarOro(int cantidad);
     bool gastarOro(int cantidad);
 
-    void recuperacionPasiva();
+    void iniciarMeditacion();
+    void interrumpirMeditacion();
+    bool estaMeditando() const;
+
+    bool agarrarItem(std::unique_ptr<Item> item, int cantidad = 1);
+    std::optional<SlotInventario> soltarItem(int indice, int cantidad = -1);
+    std::vector<SlotInventario> soltarTodosLosItems();
+
+    bool equiparArma(int indice);
+    bool equiparArmadura(int indice);
+    bool equiparCasco(int indice);
+    bool equiparEscudo(int indice);
+    void desequiparArma();
+    void desequiparArmadura();
+    void desequiparCasco();
+    void desequiparEscudo();
+
+    bool usarPocion(int indice);
+
+    const Inventario& getInventario() const;
+
+    void recuperacionPasiva(float dt);
+
+    void morir() override;
 };
