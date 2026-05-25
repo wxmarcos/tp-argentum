@@ -70,7 +70,7 @@ bool Jugador::gastarOro(int cantidad) {
     return true;
 }
 
-void Jugador::recuperacionPeriodica() {
+void Jugador::recuperacionPasiva() {
     if (!vivo) return;
     float factor = raza->getFRecuperacion();
     int recuperacionVida = static_cast<int>(5 * factor);        // TODO: base desde Config

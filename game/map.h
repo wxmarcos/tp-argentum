@@ -4,7 +4,7 @@
 #include <utility>
 #include "characters/character.h"
 
-enum clase TipoTile {
+enum class TipoTile {
     PISO,
     AGUA,
     PARED,
@@ -46,4 +46,4 @@ public:
     bool moverPersonaje(Character* personaje, Direccion dir);
 
     Character* getPersonajeEnPosicion(int x, int y) const;
-}
+};

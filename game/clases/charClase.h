@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-class charClase {
+class CharClase {
 public:
     virtual std::string getNombre() const = 0;
     virtual int getMaxVida() const = 0;

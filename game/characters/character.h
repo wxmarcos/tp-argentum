@@ -17,7 +17,7 @@ public:
     Character(const std::string& nombre, int posX, int posY, int vidaMax);
     virtual ~Character() = default;
 
-    const = std::string& getNombre() const;
+    const std::string& getNombre() const;
     int getPosX() const;
     int getPosY() const;
     Direccion getDireccion() const;

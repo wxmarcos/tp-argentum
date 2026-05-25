@@ -1,7 +1,7 @@
 #pragma once
 #include "character.h"
-#include "razas/raza.h"
-#include "clases/charClase.h"
+#include "game/razas/raza.h"
+#include "game/clases/charClase.h"
 
 class Jugador : public Character {
 private:

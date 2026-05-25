@@ -6,5 +6,5 @@ public:
     std::string getNombre() const override;
     int getMaxVida() const override;
     int getMaxMana() const override;
-    int getFRecuperacion() const override;
+    float getFRecuperacion() const override;
 };

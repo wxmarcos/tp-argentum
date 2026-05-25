@@ -1,6 +1,6 @@
 #include "enano.h"
 
-std::string Enano::getRaza() { return "Enano"; }
-int Enano::getMaxVida() { return 600; }                 // TODO: cargar desde Config
-int Enano::getMaxMana() { return 100; }                 // TODO: cargar desde Config
-float Enano::getFRecuperacion() { return 0.8f; }        // TODO: cargar desde Config
+std::string Enano::getNombre() const { return "Enano"; }
+int Enano::getMaxVida() const { return 600; }                 // TODO: cargar desde Config
+int Enano::getMaxMana() const { return 100; }                 // TODO: cargar desde Config
+float Enano::getFRecuperacion() const { return 0.8f; }        // TODO: cargar desde Config
