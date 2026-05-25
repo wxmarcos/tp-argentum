@@ -1,6 +1,19 @@
-#include "gnomo.h"
+#include "razas/gnomo.h"
 
-std::string Gnomo::getNombre() { return "Gnomo"; }
-int Gnomo::getMaxVida() { return 350; }                 // TODO: cargar desde Config
-int Gnomo::getMaxMana() { return 450; }                 // TODO: cargar desde Config
-float Gnomo::getFRecuperacion() { return 0.9f; }        // TODO: cargar desde Config
+Gnomo::Gnomo(const Config& config)
+    : constitucionBase(config.getRazaConstitucionBase("gnomo")),
+      inteligenciaBase(config.getRazaInteligenciaBase("gnomo")),
+      fuerzaBase(config.getRazaFuerzaBase("gnomo")),
+      agilidadBase(config.getRazaAgilidadBase("gnomo")),
+      fRazaVida(config.getRazaFVida("gnomo")),
+      fRazaMana(config.getRazaFMana("gnomo")),
+      fRazaRecuperacion(config.getRazaFRecuperacion("gnomo")) {}
+
+std::string Gnomo::getNombre() const { return "Gnomo"; }
+int Gnomo::getConstitucionBase() const { return constitucionBase; }
+int Gnomo::getInteligenciaBase() const { return inteligenciaBase; }
+int Gnomo::getFuerzaBase() const { return fuerzaBase; }
+int Gnomo::getAgilidadBase() const { return agilidadBase; }
+float Gnomo::getFRazaVida() const { return fRazaVida; }
+float Gnomo::getFRazaMana() const { return fRazaMana; }
+float Gnomo::getFRazaRecuperacion() const { return fRazaRecuperacion; }

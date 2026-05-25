@@ -1,7 +1,13 @@
-#include "guerrero.h"
+#include "clases/guerrero.h"
+
+Guerrero::Guerrero(const Config& config)
+    : fClaseVida(config.getClaseFVida("guerrero")),
+      fClaseMana(config.getClaseFMana("guerrero")),
+      fClaseMeditacion(config.getClaseFMeditacion("guerrero")) {}
 
 std::string Guerrero::getNombre() const { return "Guerrero"; }
-int Guerrero::getMaxVida() const { return 800; }                        // TODO: cargar desde Config
-int Guerrero::getMaxMana() const { return 0; }                          // Guerrero siempre tiene mana 0
+float Guerrero::getFClaseVida() const { return fClaseVida; }
+float Guerrero::getFClaseMana() const { return fClaseMana; }
+float Guerrero::getFClaseMeditacion() const { return fClaseMeditacion; }
 bool Guerrero::puedeMeditar() const { return false; }
 bool Guerrero::puedeUsarMagia() const { return false; }
