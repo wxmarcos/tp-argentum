@@ -1,51 +1,57 @@
 target_sources(taller_game PRIVATE
+    # Config
+    config.cpp
+
+    # Formulas
+    formulas.cpp
+
     # Razas
-    game/razas/raza.cpp
-    game/razas/humano.cpp
-    game/razas/elfo.cpp
-    game/razas/enano.cpp
-    game/razas/gnomo.cpp
+    razas/raza.cpp
+    razas/humano.cpp
+    razas/elfo.cpp
+    razas/enano.cpp
+    razas/gnomo.cpp
 
     # Clases
-    game/clases/charClases.cpp
-    game/clases/mago.cpp
-    game/clases/clerigo.cpp
-    game/clases/paladin.cpp
-    game/clases/guerrero.cpp
+    clases/charClase.cpp
+    clases/mago.cpp
+    clases/clerigo.cpp
+    clases/paladin.cpp
+    clases/guerrero.cpp
 
     # Characters
-    game/characters/character.cpp
-    game/characters/jugador.cpp
+    characters/character.cpp
+    characters/jugador.cpp
 
     # NPCs (stubs por ahora)
-    game/characters/npcs/npc.cpp
-    game/characters/npcs/sacerdote.cpp
-    game/characters/npcs/comerciante.cpp
-    game/characters/npcs/banquero.cpp
+    characters/npcs/npc.cpp
+    characters/npcs/sacerdote.cpp
+    characters/npcs/comerciante.cpp
+    characters/npcs/banquero.cpp
 
     # Criaturas (stubs por ahora)
-    game/criaturas/creature.cpp
-    game/criaturas/goblin.cpp
-    game/criaturas/esqueleto.cpp
-    game/criaturas/zombie.cpp
-    game/criaturas/arana.cpp
-    game/criaturas/orco.cpp
-    game/criaturas/golem.cpp
+    criaturas/criatura.cpp
+    criaturas/goblin.cpp
+    criaturas/esqueleto.cpp
+    criaturas/zombie.cpp
+    criaturas/arana.cpp
+    criaturas/orco.cpp
+    criaturas/golem.cpp
 
     # Items (stubs por ahora)
-    game/items/item.cpp
-    game/items/arma.cpp
-    game/items/armadura.cpp
-    game/items/casco.cpp
-    game/items/escudo.cpp
-    game/items/pocion.cpp
-    game/items/inventario.cpp
+    items/item.cpp
+    items/arma.cpp
+    items/armadura.cpp
+    items/casco.cpp
+    items/escudo.cpp
+    items/pocion.cpp
+    items/inventario.cpp
 
     # Banco
-    game/banco/cuentaBanco.cpp
+    banco/cuentaBanco.cpp
 
     # Mapa y juego
-    game/map.cpp
-    game/clan.cpp
-    game/game.cpp
+    map.cpp
+    clan.cpp
+    game.cpp
 )

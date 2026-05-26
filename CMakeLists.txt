@@ -46,8 +46,18 @@ target_include_directories(taller_common PUBLIC .)
 add_library(taller_game STATIC)
 add_subdirectory(game/)
 set_project_warnings(taller_game ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
-target_include_directories(taller_game PUBLIC .)
-target_link_libraries(taller_game taller_common)
+target_include_directories(taller_game PUBLIC . game/)
+
+include(FetchContent)
+FetchContent_Declare(
+    tomlplusplus
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG        v3.4.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(tomlplusplus)
+
+target_link_libraries(taller_game taller_common tomlplusplus::tomlplusplus)
 
 # HEY!! TODO XXX: you need to install some runtime and dev libraries *before*
 # compiling the client/editor code.
@@ -150,6 +160,9 @@ if(TALLER_SERVER)
     # Link the taller_common lib target
     target_link_libraries(taller_server taller_common taller_game)
 endif()
+
+# Copiar config.toml al directorio de build
+configure_file(${CMAKE_SOURCE_DIR}/config.toml ${CMAKE_BINARY_DIR}/config.toml COPYONLY)
 
 if(TALLER_EDITOR)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!

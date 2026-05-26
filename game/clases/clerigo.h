@@ -1,11 +1,17 @@
 #pragma once
-#include "charClase.h"
+#include "clases/charClase.h"
+#include "config.h"
 
 class Clerigo : public CharClase {
+    float fClaseVida;
+    float fClaseMana;
+    float fClaseMeditacion;
 public:
+    explicit Clerigo(const Config& config);
     std::string getNombre() const override;
-    int getMaxVida() const override;
-    int getMaxMana() const override;
+    float getFClaseVida() const override;
+    float getFClaseMana() const override;
+    float getFClaseMeditacion() const override;
     bool puedeMeditar() const override;
     bool puedeUsarMagia() const override;
 };
