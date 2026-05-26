@@ -33,8 +33,19 @@ void WorldRenderer::draw_grid(int cam_offset_x, int cam_offset_y) {
 
     const int ts = config.tile_size;
 
-    renderer.SetDrawColor(50, 70, 50, 255);
+    for (int gy = 0; gy < config.map_height; ++gy) {
+        for (int gx = 0; gx < config.map_width; ++gx) {
+            if ((gx + gy) % 2 == 0) {
+                renderer.SetDrawColor(40, 58, 40, 255);
+            } else {
+                renderer.SetDrawColor(30, 46, 30, 255);
+            }
+            Rect cell(cam_offset_x + gx * ts, cam_offset_y + gy * ts, ts, ts);
+            renderer.FillRect(cell);
+        }
+    }
 
+    renderer.SetDrawColor(50, 70, 50, 255);
     for (int gx = 0; gx <= config.map_width; ++gx) {
         int sx = cam_offset_x + gx * ts;
         renderer.DrawLine(sx, cam_offset_y, sx,
