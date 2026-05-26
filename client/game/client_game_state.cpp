@@ -33,8 +33,10 @@ void ClientGameState::apply_move_echo(const std::string& raw) {
         if (token == protocol::wire::MOVE) {
             std::string dir_token;
             if (is >> dir_token) {
-                apply_move_confirmation(
-                    Protocol::direction_from_wire(dir_token));
+                auto dir = Protocol::direction_from_wire(dir_token);
+                if (dir.has_value()) {
+                    apply_move_confirmation(*dir);
+                }
             }
             return;
         }
