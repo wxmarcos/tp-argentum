@@ -1,7 +1,7 @@
 #pragma once
 #include "charClase.h"
 
-class Mago : public CharClase {
+class Mago : public charClase {
 public:
     std::string getNombre() const override;
     int getMaxVida() const override;

@@ -5,9 +5,11 @@ target_sources(taller_server
     client_handler.cpp
     acceptor.cpp
     game_loop.cpp
+    world.cpp
     PUBLIC
     # .h files
     client_handler.h
     acceptor.h
     game_loop.h
+    world.h
     )

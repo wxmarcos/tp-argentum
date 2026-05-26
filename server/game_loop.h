@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <memory>
-
+#include "world.h"
 #include "common/thread.h"
 #include "common/queue.h"
 #include "common/command.h"
@@ -14,11 +14,12 @@
 class GameLoop : public Thread {
 
 private:
-
+    
     Queue<Command>& commands_queue;
 
     std::vector<std::unique_ptr<ClientHandler>>& clients;
-
+    void process(const Command& cmd);
+    World world;
 public:
 
     GameLoop(
@@ -26,7 +27,8 @@ public:
         std::vector<std::unique_ptr<ClientHandler>>& clients)
         :
         commands_queue(commands_queue),
-        clients(clients) {}
+        clients(clients),
+        world() {}
 
     void run() override;
     void broadcast_snapshot(const Snapshot& snapshot);

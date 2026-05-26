@@ -3,16 +3,16 @@
 
 // vidaMax = suma de lo que aportan raza y clase
 // TODO: confirmar formula exacta entre todos
-static int calcularVidaMax(const Raza* raza, const CharClase* clase) {
+static int calcularVidaMax(const Raza* raza, const charClase* clase) {
     return raza->getMaxVida() + clase->getMaxVida();
 }
 
-static int calcularManaMax(const Raza* raza, const CharClase* clase) {
+static int calcularManaMax(const Raza* raza, const charClase* clase) {
     return raza->getMaxMana() + clase->getMaxMana();
 }
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
-                 const Raza* raza, const CharClase* clase)
+                 const Raza* raza, const charClase* clase)
     : Character(nombre, posX, posY, calcularVidaMax(raza, clase)),
       raza(raza),
       clase(clase),
@@ -23,7 +23,7 @@ Jugador::Jugador(const std::string& nombre, int posX, int posY,
       oro(0) {}
 
 const Raza* Jugador::getRaza() const { return raza; }
-const CharClase* Jugador::getClase() const { return clase; }
+const charClase* Jugador::getClase() const { return clase; }
 
 int Jugador::getManaActual() const { return manaActual; }
 int Jugador::getManaMax() const { return manaMax; }
@@ -70,7 +70,7 @@ bool Jugador::gastarOro(int cantidad) {
     return true;
 }
 
-void Jugador::recuperacionPeriodica() {
+void Jugador::recuperacionPasiva() {
     if (!vivo) return;
     float factor = raza->getFRecuperacion();
     int recuperacionVida = static_cast<int>(5 * factor);        // TODO: base desde Config

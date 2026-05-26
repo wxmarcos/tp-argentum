@@ -1,5 +1,6 @@
-target_sources(taller_game PRIVATE
-
+target_sources(taller_game 
+    PRIVATE
+    
     # Razas
 
     # game/razas/humano.cpp
@@ -9,16 +10,16 @@ target_sources(taller_game PRIVATE
 
     # Clases
 
-    # game/clases/charClases.cpp
-    # game/clases/mago.cpp
-    # game/clases/clerigo.cpp
-    # game/clases/paladin.cpp
-    # game/clases/guerrero.cpp
+    clases/charClase.cpp
+    clases/mago.cpp
+    clases/clerigo.cpp
+    clases/paladin.cpp
+    clases/guerrero.cpp
 
     # Characters
 
-    # game/characters/character.cpp
-    # game/characters/jugador.cpp
+    characters/character.cpp
+    characters/jugador.cpp
 
     # NPCs
 
@@ -56,4 +57,7 @@ target_sources(taller_game PRIVATE
     map.cpp
     #clan.cpp
     game.cpp
+    PUBLIC
+    map.h
+    game.h
 )
