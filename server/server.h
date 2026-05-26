@@ -50,18 +50,17 @@ public:
 
     void stop() {
 
-        acceptor.stop();
+        gameloop.stop();
 
         commands_queue.close();
 
-        gameloop.stop();
+        acceptor.stop();
     }
 
     void join() {
 
-        acceptor.join();
-
         gameloop.join();
+        acceptor.join();
     }
 
     void run() {

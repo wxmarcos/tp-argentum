@@ -39,6 +39,8 @@ public:
 
     void push(Snapshot element);
 
+    void stop() override;
+
     void run() override;
 };
 
