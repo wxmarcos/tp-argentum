@@ -8,5 +8,5 @@ public:
     virtual int getMaxMana() const = 0;
     virtual bool puedeMeditar() const = 0;
     virtual bool puedeUsarMagia() const = 0;
-    virtual ~CharClase() = default;
+    virtual ~charClase() = default;
 };

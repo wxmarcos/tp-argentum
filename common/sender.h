@@ -30,14 +30,17 @@ template <typename T>
 void Sender<T>::run() {
     try {
         T item;
+
         while (should_keep_running()) {
             try {
                 item = queue.pop();
+
                 if (item.is_disconnect()) {
                     break;
                 }
-                std::string response = item.text();
-                socket.sendall(response.c_str(), response.size());
+
+                item.send(socket);
+
             } catch (const ClosedQueue&) {
                 break;
             }

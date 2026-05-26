@@ -1,4 +1,5 @@
 #include "acceptor.h"
+
 #include <memory>
 #include <iostream>
 #include <thread>
@@ -12,16 +13,24 @@ void Acceptor::run() {
 
                 Socket client = listener.accept();
 
-                std::cout << "[Acceptor] Cliente conectado\n";
+                uint16_t player_id =
+                    next_player_id++;
+
+                std::cout
+                    << "[Acceptor] Cliente conectado. ID: "
+                    << player_id
+                    << "\n";
 
                 auto handler =
                     std::make_unique<ClientHandler>(
+                        player_id,
                         std::move(client),
                         commands_queue);
 
                 handler->start();
 
-                clients.push_back(std::move(handler));
+                clients.push_back(
+                    std::move(handler));
 
             } catch (const std::exception& ex) {
 
@@ -46,27 +55,38 @@ void Acceptor::run() {
 
 void Acceptor::close_listener() {
     try {
+
         listener.close();
+
     } catch (...) {
     }
 }
 
 void Acceptor::stop() {
+
     close_listener();
+
     Thread::stop();
 }
 
 Acceptor::~Acceptor() {
+
     close_listener();
 
     for (auto& client : clients) {
-        if (client && client->is_alive()) {
+
+        if (client &&
+            client->is_alive()) {
+
             client->stop();
         }
     }
 
     for (auto& client : clients) {
-        if (client && client->is_alive()) {
+
+        if (client &&
+            client->is_alive()) {
+
             client->join();
         }
     }

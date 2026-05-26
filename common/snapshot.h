@@ -1,26 +1,43 @@
-#ifndef COMMON_SNAPSHOT_H
-#define COMMON_SNAPSHOT_H
+#ifndef SNAPSHOT_H
+#define SNAPSHOT_H
 
-#include <string>
+#include <cstdint>
+
+class Socket;
 
 class Snapshot {
-    private:
-    std::string payload;
 
-    public:
-    Snapshot() = default;
-    explicit Snapshot(std::string payload)
-        : payload(std::move(payload)) {}
+private:
 
-    const std::string& text() const noexcept { return payload; }
-    std::string str() const { return payload; }
+    uint16_t player_id;
 
-    bool empty() const noexcept { return payload.empty(); }
-    bool operator==(const Snapshot& other) const noexcept {
-        return payload == other.payload;
-    }
+    uint16_t x;
+    uint16_t y;
 
-    bool is_disconnect() const noexcept { return payload == "__DISCONNECT__"; }
+    bool disconnect;
+
+public:
+
+    Snapshot(
+        uint16_t player_id,
+        uint16_t x,
+        uint16_t y);
+
+    Snapshot();
+
+    void send(
+        Socket& socket) const;
+
+    static Snapshot recv(
+        Socket& socket);
+
+    bool is_disconnect() const;
+
+    uint16_t get_player_id() const;
+
+    uint16_t get_x() const;
+
+    uint16_t get_y() const;
 };
 
 #endif

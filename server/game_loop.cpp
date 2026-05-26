@@ -10,36 +10,43 @@ void GameLoop::run() {
 
         try {
 
-            Command cmd =
-                commands_queue.pop();
+            Command cmd = commands_queue.pop();
 
-            std::cout
-                << "[GameLoop] comando: "
-                << cmd.text()
-                << "\n";
-
-            if (cmd.is_shutdown()) {
+            if (cmd.is_disconnect()) {
+                std::cout
+                    << "[Receiver] Player "
+                    << cmd.get_player_id()
+                    << " disconnected\n";
                 break;
             }
-            // Aquí se procesaría el comando y se actualizaría el estado del mundo.
-            // update_world(cmd);
 
-            Snapshot snapshot("[Snapshot]: " + cmd.text() + "\n");
-            broadcast_snapshot(snapshot);
+            switch (cmd.get_type()) {
+
+                case CommandType::Move:
+                    std::cout
+                        << "[Receiver] MOVE dir="
+                        << cmd.get_direction()
+                        << "\n";
+                    break;
+
+                case CommandType::Attack:
+                    std::cout
+                        << "[Receiver] ATTACK target="
+                        << cmd.get_target()
+                        << "\n";
+                    break;
+                case CommandType::Disconnect:
+                    std::cout
+                        << "[Receiver] Player "
+                        << cmd.get_player_id()
+                        << " disconnected\n";
+                    break;
+            }
 
         } catch (const ClosedQueue&) {
-
             break;
         }
     }
 
     std::cout << "[GameLoop] finalizado\n";
-}
-
-void GameLoop::broadcast_snapshot(const Snapshot& snapshot) {
-    for (auto& client : clients) {
-        if (client && client->is_alive()) {
-            client->push(snapshot);
-        }
-    }
 }

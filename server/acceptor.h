@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <cstdint>
 
 #include "common/thread.h"
 #include "common/network/socket.h"
@@ -20,6 +21,8 @@ private:
     std::vector<std::unique_ptr<ClientHandler>>& clients;
 
     Queue<Command>& commands_queue;
+
+    uint16_t next_player_id = 1;
 
     void close_listener();
 

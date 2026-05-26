@@ -1,12 +1,12 @@
 #pragma once
 #include "character.h"
-#include "razas/raza.h"
-#include "clases/charClase.h"
+#include "../razas/raza.h"
+#include "../clases/charClase.h"
 
 class Jugador : public Character {
 private:
     const Raza* raza;
-    const CharClase* clase;
+    const charClase* clase;
     int manaActual;
     int manaMax;
     int nivel;
@@ -19,11 +19,11 @@ private:
 
 public:
     Jugador(const std::string& nombre, int posX, int posY,
-            const Raza* raza, const CharClase* clase);
+            const Raza* raza, const charClase* clase);
 
 
     const Raza* getRaza() const;
-    const CharClase* getClase() const;
+    const charClase* getClase() const;
 
     int getManaActual() const;
     int getManaMax() const;

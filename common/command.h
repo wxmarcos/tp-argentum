@@ -1,27 +1,58 @@
-#ifndef COMMON_COMMAND_H
-#define COMMON_COMMAND_H
+#pragma once
 
-#include <string>
+#include <cstdint>
+#include <arpa/inet.h>
 
-class Command {
-    private:
-    std::string payload;
+class Socket;
 
-    public:
-    Command() = default;
-    explicit Command(std::string payload)
-        : payload(std::move(payload)) {}
-
-    const std::string& text() const noexcept { return payload; }
-    std::string str() const { return payload; }
-
-    bool empty() const noexcept { return payload.empty(); }
-    bool operator==(const Command& other) const noexcept {
-        return payload == other.payload;
-    }
-
-    bool is_disconnect() const noexcept { return payload == "__DISCONNECT__"; }
-    bool is_shutdown() const noexcept { return payload == "__SHUTDOWN__"; }
+enum class CommandType : uint8_t {
+    Move = 1,
+    Attack = 2,
+    Disconnect = 255
 };
 
-#endif
+class Command {
+private:
+    uint16_t player_id;
+    CommandType type;
+
+    // x reutilizado:
+    // MOVE -> direction
+    // ATTACK -> target_id
+    uint16_t x;
+
+public:
+    Command(uint16_t player_id,
+            CommandType type,
+            uint16_t x = 0)
+        : player_id(player_id),
+          type(type),
+          x(x) {}
+
+    static Command recv(Socket& socket);
+    void send(Socket& socket) const;
+
+    bool is_disconnect() const {
+        return type == CommandType::Disconnect;
+    }
+
+    CommandType get_type() const {
+        return type;
+    }
+
+    uint16_t get_player_id() const {
+        return player_id;
+    }
+
+    uint16_t get_x() const {
+        return x;
+    }
+
+    uint16_t get_direction() const {
+        return x; // MOVE
+    }
+
+    uint16_t get_target() const {
+        return x; // ATTACK
+    }
+};
