@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <optional>
 
 std::string Protocol::direction_to_wire(protocol::Direction dir) {
     switch (dir) {
@@ -14,14 +15,17 @@ std::string Protocol::direction_to_wire(protocol::Direction dir) {
     throw std::runtime_error("Direccion invalida");
 }
 
-protocol::Direction Protocol::direction_from_wire(const std::string& token) {
+std::optional<protocol::Direction> Protocol::direction_from_wire(
+    const std::string& token) {
     if (token == protocol::wire::DIR_NORTH)
         return protocol::Direction::NORTH;
     if (token == protocol::wire::DIR_EAST)
         return protocol::Direction::EAST;
+    if (token == protocol::wire::DIR_SOUTH)
+        return protocol::Direction::SOUTH;
     if (token == protocol::wire::DIR_WEST)
         return protocol::Direction::WEST;
-    return protocol::Direction::SOUTH;
+    return std::nullopt;
 }
 
 std::string Protocol::serialize(const ClientCommand& cmd) {
@@ -58,7 +62,10 @@ GameUpdate Protocol::parse(const std::string& message) {
             PlayerView pv;
             std::string dir_token;
             if (is >> pv.id >> pv.x >> pv.y >> dir_token) {
-                pv.direction = direction_from_wire(dir_token);
+                auto dir = direction_from_wire(dir_token);
+                if (dir.has_value()) {
+                    pv.direction = *dir;
+                }
                 update.players.push_back(pv);
             }
         }
