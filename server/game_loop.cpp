@@ -4,16 +4,17 @@
 #include <iostream>
 #include <thread>
 
-#include "config.h"
+#include "server_config.h"
 
 GameLoop::GameLoop(
     Queue<Command>& commands_queue,
     std::vector<std::unique_ptr<ClientHandler>>& clients,
+    Config& config,
     int anchoMapa,
     int altoMapa)
     : commands_queue(commands_queue),
       clients(clients),
-      game(anchoMapa, altoMapa) {}
+      game(config, anchoMapa, altoMapa) {}
 
 void GameLoop::run() {
 
@@ -21,7 +22,7 @@ void GameLoop::run() {
 
     const auto tick_duration =
         std::chrono::milliseconds(
-            1000 / Config::TICKS_PER_SECOND);
+            1000 / ServerConfig::TICKS_PER_SECOND);
 
     while (should_keep_running()) {
 
@@ -38,7 +39,8 @@ void GameLoop::run() {
         }
 
         // update lógica del juego
-        game.tick();
+        float dt = std::chrono::duration<float>(tick_duration).count();
+        game.tick(dt);
 
         // snapshot futuro
         // Snapshot snapshot = game.build_snapshot();

@@ -1,23 +1,25 @@
-#include "config.h"
+#include "server_config.h"
 
 #include <iostream>
 
 #include <toml++/toml.h>
 
-int Config::MAP_WIDTH = 100;
-int Config::MAP_HEIGHT = 100;
+int ServerConfig::MAP_WIDTH = 100;
+int ServerConfig::MAP_HEIGHT = 100;
 
-int Config::TICKS_PER_SECOND = 30;
+int ServerConfig::TICKS_PER_SECOND = 30;
 
-int Config::MAX_CLIENTS = 100;
+int ServerConfig::MAX_CLIENTS = 100;
 
-void Config::load(const std::string& filename) {
+void ServerConfig::load(const std::string& filename) {
 
     try {
 
-        auto config = toml::parse_file(filename);
+        auto serverconfig =
+            toml::parse_file(filename);
 
-        auto server = config["server"];
+        auto server =
+            serverconfig["server"];
 
         MAP_WIDTH =
             server["map_width"].value_or(100);

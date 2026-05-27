@@ -2,7 +2,7 @@
 
 #include <string>
 
-class Config {
+class ServerConfig {
 
 public:
 

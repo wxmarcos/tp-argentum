@@ -11,24 +11,22 @@
 
 #include "acceptor.h"
 #include "client_handler.h"
-#include "config.h"
+#include "server_config.h"
 #include "game_loop.h"
+
+#include "game/config.h"
 
 class Server {
 
 private:
-
     std::vector<std::unique_ptr<ClientHandler>> clients;
-
     Queue<Command> commands_queue;
 
     Acceptor acceptor;
-
     GameLoop gameloop;
 
 public:
-
-    explicit Server(const char* port)
+    Server(const char* port, Config& game_config)
         :
         acceptor(
             port,
@@ -38,42 +36,34 @@ public:
         gameloop(
             commands_queue,
             clients,
-            Config::MAP_WIDTH,
-            Config::MAP_HEIGHT) {}
+            game_config,
+            ServerConfig::MAP_WIDTH,
+            ServerConfig::MAP_HEIGHT) {}
 
     void start() {
-
         acceptor.start();
-
         gameloop.start();
     }
 
     void stop() {
-
         gameloop.stop();
-
         commands_queue.close();
-
         acceptor.stop();
     }
 
     void join() {
-
         gameloop.join();
         acceptor.join();
     }
 
     void run() {
-
         start();
 
-        std::cout
-            << "Servidor corriendo.\n";
+        std::cout << "Servidor corriendo.\n";
 
         std::string line;
 
         while (std::getline(std::cin, line)) {
-
             if (line == "q" ||
                 line == "quit" ||
                 line == "exit") {
@@ -81,11 +71,9 @@ public:
             }
         }
 
-        std::cout
-            << "Deteniendo servidor...\n";
+        std::cout << "Deteniendo servidor...\n";
 
         stop();
-
         join();
     }
 };

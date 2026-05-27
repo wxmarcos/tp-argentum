@@ -2,7 +2,8 @@
 #include <stdexcept>
 
 #include "server.h"
-#include "config.h"
+#include "server_config.h"
+#include "game/config.h"
 
 int main(int argc, char const *argv[]) {
 
@@ -18,12 +19,12 @@ int main(int argc, char const *argv[]) {
 
     try {
 
-        // cargar configuración TOML
-        Config::load("config/server.toml");
-
+        // cargar configuración TOML del servidor
+        ServerConfig::load("config/server.toml");
         std::string port = argv[1];
+        Config game_config("config.toml");
 
-        Server server(port.c_str());
+        Server server(port.c_str(), game_config);
 
         server.run();
 

@@ -1,8 +1,12 @@
 #pragma once
+
 #include <vector>
 #include <map>
 #include <utility>
+#include <optional>
+
 #include "characters/character.h"
+#include "items/inventario.h"
 
 enum class TipoTile {
     PISO,
@@ -25,6 +29,7 @@ private:
     int alto;
     std::vector<std::vector<Tile>> grilla;
     std::map<std::pair<int, int>, Character*> personajesEnPosicion;
+    std::map<std::pair<int, int>, std::vector<SlotInventario>> itemsEnPiso;
 
     std::pair<int, int> calcularNuevaPosicion(int x, int y, Direccion dir) const;
 
@@ -46,4 +51,8 @@ public:
     bool moverPersonaje(Character* personaje, Direccion dir);
 
     Character* getPersonajeEnPosicion(int x, int y) const;
+
+    void tirarItem(int x, int y, SlotInventario slot);
+    std::optional<SlotInventario> tomarItemEnPosicion(int x, int y, int indice);
+    const std::vector<SlotInventario>* getItemsEnPosicion(int x, int y) const;
 };

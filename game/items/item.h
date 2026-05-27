@@ -1,0 +1,12 @@
+#pragma once
+#include <string>
+
+enum class TipoItem { ARMA, ARMADURA, CASCO, ESCUDO, POCION };
+
+class Item {
+public:
+    virtual std::string getNombre() const = 0;
+    virtual TipoItem getTipo() const = 0;
+    virtual bool esApilable() const { return false; }
+    virtual ~Item() = default;
+};
