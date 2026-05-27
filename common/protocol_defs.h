@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstdint>
+inline constexpr uint8_t OPCODE_SIZE = 1;
+inline constexpr uint8_t PAYLOAD_SIZE_SIZE = 2;
+inline constexpr uint16_t MAX_PAYLOAD_SIZE = 4096;
 
 namespace protocol {
 

@@ -9,7 +9,7 @@
 #include "common/queue.h"
 #include "common/command.h"
 #include "common/snapshot.h"
-#include "common/receiver.h"
+#include "receiver.h"
 #include "common/sender.h"
 
 class ClientHandler: public Thread {

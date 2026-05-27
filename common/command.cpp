@@ -104,7 +104,13 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
             return Command(player_id, CommandType::Disconnect);
         }
     }
+    std::cout << "[Protocol] payload hex: ";
 
+    for (uint8_t b : payload) {
+        printf("%02X ", b);
+    }
+
+    std::cout << "\n";
     auto type = static_cast<CommandType>(opcode_raw);
 
     Command cmd(player_id, type);
@@ -161,6 +167,10 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
             break;
 
         default:
+            //DEBUG
+            std::cout << "[Command] OPCODE DESCONOCIDO: "
+                 << static_cast<int>(type)
+                 << "\n";
             throw std::runtime_error("opcode desconocido");
     }
 

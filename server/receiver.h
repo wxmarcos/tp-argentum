@@ -3,10 +3,10 @@
 
 #include <cstdint>
 
-#include "thread.h"
-#include "network/socket.h"
-#include "queue.h"
-#include "command.h"
+#include "common/thread.h"
+#include "common/network/socket.h"
+#include "common/queue.h"
+#include "common/command.h"
 
 class Receiver: public Thread {
 
