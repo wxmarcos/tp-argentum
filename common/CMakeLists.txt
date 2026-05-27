@@ -12,6 +12,7 @@ target_sources(taller_common
     sender.h
     snapshot.h
     command.h
+    protocol_defs.h
     )
 
 add_subdirectory(network)

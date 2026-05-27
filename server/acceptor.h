@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include <sys/socket.h>
 
 #include "common/thread.h"
 #include "common/network/socket.h"
