@@ -1,15 +1,18 @@
-target_sources(taller_game 
-    PRIVATE
-    
-    # Razas
+target_sources(taller_game PRIVATE
+    # Config
+    config.cpp
 
-    # game/razas/humano.cpp
-    # game/razas/elfo.cpp
-    # game/razas/enano.cpp
-    # game/razas/gnomo.cpp
+    # Formulas
+    formulas.cpp
+
+    # Razas
+    razas/raza.cpp
+    razas/humano.cpp
+    razas/elfo.cpp
+    razas/enano.cpp
+    razas/gnomo.cpp
 
     # Clases
-
     clases/charClase.cpp
     clases/mago.cpp
     clases/clerigo.cpp
@@ -17,47 +20,38 @@ target_sources(taller_game
     clases/guerrero.cpp
 
     # Characters
-
     characters/character.cpp
     characters/jugador.cpp
 
-    # NPCs
+    # NPCs (stubs por ahora)
+    characters/npcs/npc.cpp
+    characters/npcs/sacerdote.cpp
+    characters/npcs/comerciante.cpp
+    characters/npcs/banquero.cpp
 
-    # game/characters/npcs/npc.cpp
-    # game/characters/npcs/sacerdote.cpp
-    # game/characters/npcs/comerciante.cpp
-    # game/characters/npcs/banquero.cpp
+    # Criaturas (stubs por ahora)
+    criaturas/criatura.cpp
+    criaturas/goblin.cpp
+    criaturas/esqueleto.cpp
+    criaturas/zombie.cpp
+    criaturas/arana.cpp
+    criaturas/orco.cpp
+    criaturas/golem.cpp
 
-    # Criaturas
-
-    # game/criaturas/creature.cpp
-    # game/criaturas/goblin.cpp
-    # game/criaturas/esqueleto.cpp
-    # game/criaturas/zombie.cpp
-    # game/criaturas/arana.cpp
-    # game/criaturas/orco.cpp
-    # game/criaturas/golem.cpp
-
-    # Items
-
-    # game/items/item.cpp
-    # game/items/arma.cpp
-    # game/items/armadura.cpp
-    # game/items/casco.cpp
-    # game/items/escudo.cpp
-    # game/items/pocion.cpp
-    # game/items/inventario.cpp
+    # Items (stubs por ahora)
+    items/item.cpp
+    items/arma.cpp
+    items/armadura.cpp
+    items/casco.cpp
+    items/escudo.cpp
+    items/pocion.cpp
+    items/inventario.cpp
 
     # Banco
-
-    # game/banco/cuentaBanco.cpp
+    banco/cuentaBanco.cpp
 
     # Mapa y juego
-
     map.cpp
-    #clan.cpp
+    clan.cpp
     game.cpp
-    PUBLIC
-    map.h
-    game.h
 )

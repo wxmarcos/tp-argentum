@@ -1,10 +1,11 @@
 #include "acceptor.h"
 
-#include <memory>
 #include <iostream>
+#include <memory>
 #include <thread>
 
 void Acceptor::run() {
+
     try {
 
         while (should_keep_running()) {
@@ -51,45 +52,54 @@ void Acceptor::run() {
             << ex.what()
             << "\n";
     }
+
+    std::cout << "[Acceptor] finalizado\n";
 }
 
 void Acceptor::close_listener() {
+
     try {
+        listener.shutdown(SHUT_RDWR);
+    } catch (...) {
+    }
 
+    try {
         listener.close();
-
     } catch (...) {
     }
 }
 
-void Acceptor::stop() {
-
-    close_listener();
-
-    Thread::stop();
-}
-
-Acceptor::~Acceptor() {
-
-    close_listener();
+void Acceptor::stop_clients() {
 
     for (auto& client : clients) {
 
-        if (client &&
-            client->is_alive()) {
-
+        if (client) {
             client->stop();
         }
     }
 
     for (auto& client : clients) {
 
-        if (client &&
-            client->is_alive()) {
-
+        if (client) {
             client->join();
         }
     }
 
     clients.clear();
+}
+
+void Acceptor::stop() {
+
+    Thread::stop();
+
+    close_listener();
+
+    stop_clients();
+}
+
+Acceptor::~Acceptor() {
+
+    close_listener();
+
+    stop_clients();
 }

@@ -29,6 +29,6 @@ public:
     void setDireccion(Direccion dir);
     void recibirDanio(int danio);
     void curar(int cantidad);
-    void morir();
+    virtual void morir();
     void revivir(int vidaInicial);
 };

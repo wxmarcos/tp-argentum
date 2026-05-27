@@ -14,7 +14,7 @@ Receiver::~Receiver() = default;
 void Receiver::run() {
     try {
         while (should_keep_running()) {
-            Command cmd = Command::recv(socket);
+            Command cmd = Command::recv(socket, player_id);
             queue.push(std::move(cmd));
         }
     } catch (...) {}

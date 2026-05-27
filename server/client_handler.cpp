@@ -17,7 +17,32 @@ ClientHandler::ClientHandler(
         this->client,
         sender_queue)) {}
 
-ClientHandler::~ClientHandler() = default;
+ClientHandler::~ClientHandler() {
+    stop();
+}
+
+void ClientHandler::stop() {
+
+    try {
+        client.close();
+    } catch (...) {
+    }
+
+    try {
+        sender_queue.close();
+    } catch (...) {
+    }
+
+    if (receiver) {
+        receiver->stop();
+    }
+
+    if (sender) {
+        sender->stop();
+    }
+
+    Thread::stop();
+}
 
 void ClientHandler::run() {
 
@@ -29,7 +54,6 @@ void ClientHandler::run() {
             << "] Iniciado\n";
 
         receiver->start();
-
         sender->start();
 
         receiver->join();
@@ -39,7 +63,11 @@ void ClientHandler::run() {
             << player_id
             << "] Receiver terminado\n";
 
-        sender_queue.close();
+        try {
+            sender_queue.close();
+        } catch (...) {
+            // ya estaba cerrada, no pasa nada
+        }
 
         sender->join();
 
@@ -53,15 +81,17 @@ void ClientHandler::run() {
         std::cerr
             << "[ClientHandler "
             << player_id
-            << "] Error: "
+            << "] Cerrando: "
             << ex.what()
             << "\n";
     }
 }
 
-void ClientHandler::push(
-    Snapshot element) {
+void ClientHandler::push(Snapshot element) {
 
-    sender_queue.push(
-        std::move(element));
+    try {
+        sender_queue.push(std::move(element));
+    } catch (const ClosedQueue&) {
+    } catch (const std::runtime_error&) {
+    }
 }

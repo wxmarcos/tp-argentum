@@ -1,16 +1,28 @@
 #include "game_loop.h"
 
-#include <iostream>
 #include <chrono>
+#include <iostream>
 #include <thread>
 
-static constexpr int TICKS_PER_SECOND = 30;
-static constexpr auto TICK_DURATION =
-    std::chrono::milliseconds(1000 / TICKS_PER_SECOND);
+#include "server_config.h"
+
+GameLoop::GameLoop(
+    Queue<Command>& commands_queue,
+    std::vector<std::unique_ptr<ClientHandler>>& clients,
+    Config& config,
+    int anchoMapa,
+    int altoMapa)
+    : commands_queue(commands_queue),
+      clients(clients),
+      game(config, anchoMapa, altoMapa) {}
 
 void GameLoop::run() {
 
     std::cout << "[GameLoop] iniciado\n";
+
+    const auto tick_duration =
+        std::chrono::milliseconds(
+            1000 / ServerConfig::TICKS_PER_SECOND);
 
     while (should_keep_running()) {
 
@@ -18,25 +30,29 @@ void GameLoop::run() {
 
         try {
 
-            while (true) {
-                Command cmd = commands_queue.pop();
-                process(cmd);
-            }
+            Command cmd = commands_queue.pop();
+
+            process(cmd);
 
         } catch (const ClosedQueue&) {
             break;
         }
 
-        world.update();
+        // update lógica del juego
+        float dt = std::chrono::duration<float>(tick_duration).count();
+        game.tick(dt);
 
-        Snapshot snapshot = world.build_snapshot();
-        broadcast_snapshot(snapshot);
+        // snapshot futuro
+        // Snapshot snapshot = game.build_snapshot();
+        // broadcast_snapshot(snapshot);
 
         auto tick_end = std::chrono::steady_clock::now();
+
         auto elapsed = tick_end - tick_start;
 
-        if (elapsed < TICK_DURATION) {
-            std::this_thread::sleep_for(TICK_DURATION - elapsed);
+        if (elapsed < tick_duration) {
+            std::this_thread::sleep_for(
+                tick_duration - elapsed);
         }
     }
 
@@ -58,9 +74,8 @@ void GameLoop::process(const Command& cmd) {
         case CommandType::Move:
             std::cout
                 << "[GameLoop] MOVE dir="
-                << cmd.get_direction()
+                << static_cast<int>(cmd.get_direction())
                 << "\n";
-            world.process_command(cmd);
             break;
 
         case CommandType::Attack:
@@ -68,7 +83,127 @@ void GameLoop::process(const Command& cmd) {
                 << "[GameLoop] ATTACK target="
                 << cmd.get_target()
                 << "\n";
-            world.process_command(cmd);
+            break;
+
+        case CommandType::Meditate:
+            std::cout << "[GameLoop] MEDITATE\n";
+            break;
+
+        case CommandType::Resurrect:
+            std::cout << "[GameLoop] RESURRECT\n";
+            break;
+
+        case CommandType::Heal:
+            std::cout << "[GameLoop] HEAL\n";
+            break;
+
+        case CommandType::PickItem:
+            std::cout << "[GameLoop] PICK_ITEM\n";
+            break;
+
+        case CommandType::DropItem:
+            std::cout
+                << "[GameLoop] DROP_ITEM item="
+                << cmd.get_item_id()
+                << "\n";
+            break;
+
+        case CommandType::EquipItem:
+            std::cout
+                << "[GameLoop] EQUIP_ITEM item="
+                << cmd.get_item_id()
+                << "\n";
+            break;
+
+        case CommandType::BuyItem:
+            std::cout
+                << "[GameLoop] BUY_ITEM item="
+                << cmd.get_item_id()
+                << "\n";
+            break;
+
+        case CommandType::SellItem:
+            std::cout
+                << "[GameLoop] SELL_ITEM item="
+                << cmd.get_item_id()
+                << "\n";
+            break;
+
+        case CommandType::DepositItem:
+            std::cout
+                << "[GameLoop] DEPOSIT_ITEM item="
+                << cmd.get_item_id()
+                << " amount="
+                << cmd.get_amount()
+                << "\n";
+            break;
+
+        case CommandType::WithdrawItem:
+            std::cout
+                << "[GameLoop] WITHDRAW_ITEM item="
+                << cmd.get_item_id()
+                << " amount="
+                << cmd.get_amount()
+                << "\n";
+            break;
+
+        case CommandType::PrivateMessage:
+            std::cout
+                << "[GameLoop] PRIVATE_MESSAGE to="
+                << cmd.get_nick()
+                << " text="
+                << cmd.get_text()
+                << "\n";
+            break;
+
+        case CommandType::ClanCreate:
+            std::cout
+                << "[GameLoop] CLAN_CREATE name="
+                << cmd.get_clan_name()
+                << "\n";
+            break;
+
+        case CommandType::ClanJoin:
+            std::cout
+                << "[GameLoop] CLAN_JOIN name="
+                << cmd.get_clan_name()
+                << "\n";
+            break;
+
+        case CommandType::ClanReview:
+            std::cout << "[GameLoop] CLAN_REVIEW\n";
+            break;
+
+        case CommandType::ClanAccept:
+            std::cout
+                << "[GameLoop] CLAN_ACCEPT nick="
+                << cmd.get_nick()
+                << "\n";
+            break;
+
+        case CommandType::ClanReject:
+            std::cout
+                << "[GameLoop] CLAN_REJECT nick="
+                << cmd.get_nick()
+                << "\n";
+            break;
+
+        case CommandType::ClanBan:
+            std::cout
+                << "[GameLoop] CLAN_BAN nick="
+                << cmd.get_nick()
+                << "\n";
+            break;
+
+        case CommandType::ClanKick:
+            std::cout
+                << "[GameLoop] CLAN_KICK nick="
+                << cmd.get_nick()
+                << "\n";
+            break;
+
+        case CommandType::ClanLeave:
+            std::cout << "[GameLoop] CLAN_LEAVE\n";
             break;
 
         case CommandType::Disconnect:
@@ -77,5 +212,16 @@ void GameLoop::process(const Command& cmd) {
                 << cmd.get_player_id()
                 << "\n";
             break;
+    }
+}
+
+void GameLoop::broadcast_snapshot(
+    const Snapshot& snapshot) {
+
+    for (auto& client : clients) {
+
+        if (client) {
+            client->push(snapshot);
+        }
     }
 }
