@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 
+#include "game/game.h"
+
 #include "common/thread.h"
 #include "common/queue.h"
 #include "common/command.h"
@@ -19,16 +21,21 @@ private:
 
     std::vector<std::unique_ptr<ClientHandler>>& clients;
 
+    Game game;
+
+    void process(const Command& cmd);
+
 public:
 
     GameLoop(
         Queue<Command>& commands_queue,
-        std::vector<std::unique_ptr<ClientHandler>>& clients)
-        :
-        commands_queue(commands_queue),
-        clients(clients) {}
+        std::vector<std::unique_ptr<ClientHandler>>& clients,
+        Config& config,
+        int anchoMapa,
+        int altoMapa);
 
     void run() override;
+
     void broadcast_snapshot(const Snapshot& snapshot);
 };
 

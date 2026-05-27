@@ -15,7 +15,7 @@ private:
     Config& config;
 
     std::map<std::string, std::unique_ptr<Raza>> razas;
-    std::map<std::string, std::unique_ptr<CharClase>> clases;
+    std::map<std::string, std::unique_ptr<charClase>> clases;
 
     Mapa mapa;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;

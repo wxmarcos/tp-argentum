@@ -1,8 +1,10 @@
 #ifndef ACCEPTOR_H
 #define ACCEPTOR_H
 
-#include <vector>
+#include <cstdint>
 #include <memory>
+#include <vector>
+#include <sys/socket.h>
 
 #include "common/thread.h"
 #include "common/network/socket.h"
@@ -21,7 +23,11 @@ private:
 
     Queue<Command>& commands_queue;
 
+    uint16_t next_player_id = 1;
+
     void close_listener();
+
+    void stop_clients();
 
 public:
 
@@ -35,6 +41,7 @@ public:
         commands_queue(commands_queue) {}
 
     void run() override;
+
     void stop() override;
 
     ~Acceptor() override;

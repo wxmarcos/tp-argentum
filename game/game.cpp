@@ -49,17 +49,31 @@ bool Game::agregarJugador(const std::string& nombre, int posX, int posY,
     return true;
 }
 
-void Game::removerJugador(const std::string& nombre) {
-    auto it = jugadores.find(nombre);
-    if (it == jugadores.end()) return;
+void Game::removerJugador(
+    const std::string& nombre) {
+
+    auto it =
+        jugadores.find(nombre);
+
+    if (it == jugadores.end())
+        return;
+
+    mapa.removerPersonaje(
+        it->second.get());
 
     mapa.removerPersonaje(it->second.get());
     jugadores.erase(it);
 }
 
-Jugador* Game::getJugador(const std::string& nombre) {
-    auto it = jugadores.find(nombre);
-    if (it == jugadores.end()) return nullptr;
+Jugador* Game::getJugador(
+    const std::string& nombre) {
+
+    auto it =
+        jugadores.find(nombre);
+
+    if (it == jugadores.end())
+        return nullptr;
+
     return it->second.get();
 }
 
@@ -75,7 +89,8 @@ void Game::tick(float dt) {
         jugador->recuperacionPasiva(dt);
     }
 
-    // TODO: tick de criaturas (movimiento, ataque)
+    // TODO:
+    // tick de criaturas
 }
 
 const Mapa& Game::getMapa() const { return mapa; }
