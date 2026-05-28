@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cstdint>
+
+namespace protocol {
+
 inline constexpr uint8_t OPCODE_SIZE = 1;
 inline constexpr uint8_t PAYLOAD_SIZE_SIZE = 2;
 inline constexpr uint16_t MAX_PAYLOAD_SIZE = 4096;
-
-namespace protocol {
 
 enum class Direction : uint8_t {
     NORTH = 0,
