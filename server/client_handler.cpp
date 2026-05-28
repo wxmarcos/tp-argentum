@@ -57,12 +57,6 @@ void ClientHandler::run() {
         sender->start();
 
         receiver->join();
-
-        std::cout
-            << "[ClientHandler "
-            << player_id
-            << "] Receiver terminado\n";
-
         try {
             sender_queue.close();
         } catch (...) {

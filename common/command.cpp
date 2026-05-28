@@ -89,7 +89,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
     uint16_t payload_size = ntohs(net_payload_size);
     // DEBUG
     std::cout
-    << "[Protocol] opcode="
+    << "[Command] opcode="
     << static_cast<int>(opcode_raw)
     << " payload_size="
     << payload_size
@@ -104,7 +104,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
             return Command(player_id, CommandType::Disconnect);
         }
     }
-    std::cout << "[Protocol] payload hex: ";
+    std::cout << "[Command] payload hex: ";
 
     for (uint8_t b : payload) {
         printf("%02X ", b);
@@ -118,7 +118,18 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
     size_t offset = 0;
 
     switch (type) {
+        case CommandType::CreateCharacter:
 
+            cmd.nick =
+                read_string(payload, offset);
+
+            cmd.raza =
+                read_string(payload, offset);
+
+            cmd.clase =
+                read_string(payload, offset);
+
+            break;
         case CommandType::Move:
             cmd.direction = read_u8(payload, offset);
             break;
@@ -217,7 +228,11 @@ void Command::send(Socket& socket) const {
     };
 
     switch (type) {
-
+        case CommandType::CreateCharacter:
+            push_string(nick);
+            push_string(raza);
+            push_string(clase);
+            break;
         case CommandType::Move:
             push_u8(direction);
             break;
@@ -340,4 +355,12 @@ const std::string& Command::get_text() const {
 
 const std::string& Command::get_clan_name() const {
     return clan_name;
+}
+
+const std::string& Command::get_raza() const {
+    return raza;
+}
+
+const std::string& Command::get_clase() const {
+    return clase;
 }

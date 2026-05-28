@@ -57,17 +57,15 @@ void Game::inicializarClases() {
 std::string Game::getNombreJugadorPorComando(
     const Command& cmd) const {
 
-    // Temporal:
-    // Más adelante:
-    // player_id -> nick
+    auto it =
+        player_id_to_nick.find(
+            cmd.get_player_id());
 
-    (void) cmd;
-
-    if (jugadores.empty()) {
+    if (it == player_id_to_nick.end()) {
         return "";
     }
 
-    return jugadores.begin()->first;
+    return it->second;
 }
 
 Snapshot Game::build_entity_move_snapshot(
@@ -89,11 +87,34 @@ Snapshot Game::build_entity_move_snapshot(
         static_cast<uint8_t>(
             jugador->getDireccion()));
 }
-
+// TODO : mandar snapshots que tengan sentido con cada accion
 std::vector<Snapshot> Game::process(
     const Command& cmd) {
 
     std::vector<Snapshot> snapshots;
+
+    if (cmd.get_type() == CommandType::CreateCharacter) {
+
+        bool creado =
+            agregarJugador(
+                cmd.get_nick(),
+                10,
+                10,
+                cmd.get_raza(),
+                cmd.get_clase());
+
+        if (creado) {
+
+            player_id_to_nick[cmd.get_player_id()] =
+                cmd.get_nick();
+
+            snapshots.push_back(
+                build_entity_move_snapshot(
+                    cmd.get_nick()));
+        }
+
+        return snapshots;
+    }
 
     if (cmd.is_disconnect()) {
 
@@ -103,6 +124,9 @@ std::vector<Snapshot> Game::process(
         if (!nombre.empty()) {
 
             removerJugador(nombre);
+
+            player_id_to_nick.erase(
+                cmd.get_player_id());
 
             snapshots.push_back(
                 Snapshot::entity_remove(nombre));
@@ -120,44 +144,39 @@ std::vector<Snapshot> Game::process(
 
     switch (cmd.get_type()) {
 
-        // TODO
-        case CommandType::Move:
+        case CommandType::Move: {
 
-            moverJugador(
-                nombre,
-                static_cast<Direccion>(
-                    cmd.get_direction()));
+            bool moved =
+                moverJugador(
+                    nombre,
+                    static_cast<Direccion>(
+                        cmd.get_direction()));
 
-            snapshots.push_back(
-                build_entity_move_snapshot(nombre));
+            if (moved) {
+                snapshots.push_back(
+                    build_entity_move_snapshot(nombre));
+            }
 
             break;
+        }
 
         case CommandType::PickItem:
 
-            tomarItem(nombre, 0);
-
-            snapshots.push_back(
-                build_entity_move_snapshot(nombre));
+            if (tomarItem(nombre, 0)) {
+                // TODO: devolver INVENTORY_UPDATE
+            }
 
             break;
 
         case CommandType::DropItem:
 
-            tirarItem(
-                nombre,
-                cmd.get_item_id());
-
-            snapshots.push_back(
-                build_entity_move_snapshot(nombre));
+            if (tirarItem(nombre, cmd.get_item_id())) {
+                // TODO: devolver INVENTORY_UPDATE
+            }
 
             break;
 
         default:
-
-            snapshots.push_back(
-                build_entity_move_snapshot(nombre));
-
             break;
     }
 

@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+#include <unordered_map>
 #include "config.h"
 #include "map.h"
 #include "characters/jugador.h"
@@ -17,13 +17,13 @@
 class Game {
 private:
     Config& config;
-
+    
     std::map<std::string, std::unique_ptr<Raza>> razas;
     std::map<std::string, std::unique_ptr<charClase>> clases;
 
     Mapa mapa;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;
-
+    std::unordered_map<uint16_t, std::string> player_id_to_nick;
     void inicializarRazas();
     void inicializarClases();
 

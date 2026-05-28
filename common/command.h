@@ -8,6 +8,7 @@
 class Socket;
 
 enum class CommandType : uint8_t {
+    CreateCharacter = 0,
     Move = 1,
     Attack = 2,
     Meditate = 3,
@@ -50,6 +51,8 @@ private:
     std::string nick;
     std::string text;
     std::string clan_name;
+    std::string raza;
+    std::string clase;
 
 public:
     explicit Command(uint16_t player_id, CommandType type);
@@ -75,4 +78,6 @@ public:
     const std::string& get_nick() const;
     const std::string& get_text() const;
     const std::string& get_clan_name() const;
+    const std::string& get_raza() const;
+    const std::string& get_clase() const;
 };
