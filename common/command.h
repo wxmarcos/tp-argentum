@@ -55,7 +55,12 @@ public:
     explicit Command(uint16_t player_id, CommandType type);
 
     static Command recv(Socket& socket, uint16_t player_id);
+    void send(Socket& socket) const;
 
+    static Command move(uint8_t direction);
+    static Command attack(uint32_t target_id);
+    static Command disconnect();
+    
     bool is_disconnect() const;
 
     CommandType get_type() const;

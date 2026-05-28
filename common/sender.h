@@ -4,15 +4,15 @@
 #include "thread.h"
 #include "network/socket.h"
 #include "queue.h"
-#include <string>
 
 template <typename T>
 class Sender: public Thread {
-    private:
+
+private:
     Socket& socket;
     Queue<T>& queue;
 
-    public:
+public:
     Sender(Socket& socket, Queue<T>& queue);
     ~Sender() override;
 
@@ -21,30 +21,25 @@ class Sender: public Thread {
 
 template <typename T>
 Sender<T>::Sender(Socket& socket, Queue<T>& queue)
-    : socket(socket), queue(queue) {}
+    : socket(socket),
+      queue(queue) {}
 
 template <typename T>
 Sender<T>::~Sender() = default;
 
 template <typename T>
 void Sender<T>::run() {
+
     try {
-        T item;
 
         while (should_keep_running()) {
-            try {
-                item = queue.pop();
 
-                if (item.is_disconnect()) {
-                    break;
-                }
+            T item = queue.pop();
 
-                item.send(socket);
-
-            } catch (const ClosedQueue&) {
-                break;
-            }
+            item.send(socket);
         }
+
+    } catch (const ClosedQueue&) {
     } catch (const std::exception&) {
     }
 }

@@ -26,29 +26,37 @@ void GameLoop::run() {
 
     while (should_keep_running()) {
 
-        auto tick_start = std::chrono::steady_clock::now();
+        auto tick_start =
+            std::chrono::steady_clock::now();
 
         try {
 
-            Command cmd = commands_queue.pop();
+            Command cmd =
+                commands_queue.pop();
 
-            process(cmd);
+            std::vector<Snapshot> snapshots =
+                game.process(cmd);
+
+            for (const Snapshot& snapshot : snapshots) {
+                broadcast_snapshot(snapshot);
+            }
 
         } catch (const ClosedQueue&) {
             break;
         }
 
         // update lógica del juego
-        float dt = std::chrono::duration<float>(tick_duration).count();
+        float dt =
+            std::chrono::duration<float>(
+                tick_duration).count();
+
         game.tick(dt);
 
-        // snapshot futuro
-        // Snapshot snapshot = game.build_snapshot();
-        // broadcast_snapshot(snapshot);
+        auto tick_end =
+            std::chrono::steady_clock::now();
 
-        auto tick_end = std::chrono::steady_clock::now();
-
-        auto elapsed = tick_end - tick_start;
+        auto elapsed =
+            tick_end - tick_start;
 
         if (elapsed < tick_duration) {
             std::this_thread::sleep_for(
