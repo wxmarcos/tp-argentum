@@ -40,7 +40,8 @@ void Sender<T>::run() {
         }
 
     } catch (const ClosedQueue&) {
-    } catch (const std::exception&) {
+    } catch (const std::exception& ex) {
+        std::cerr << "[Sender] " << ex.what() << "\n";
     }
 }
 
