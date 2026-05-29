@@ -2,15 +2,16 @@
 
 #include <exception>
 #include <iostream>
+#include <utility>
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
 #include "audio/audio_manager.h"
+#include "common/command.h"
 #include "game/client_game_state.h"
 #include "input/input_handler.h"
 #include "net/server_connection.h"
-#include "protocol/client_command.h"
 #include "protocol/game_update.h"
 #include "render/world_renderer.h"
 
@@ -89,7 +90,7 @@ bool ClientApp::process_input(ServerConnection& connection,
             if (event.key.keysym.sym == SDLK_ESCAPE) {
                 return false;
             }
-            ClientCommand cmd;
+            Command cmd(0, CommandType::Disconnect);
             if (input.process_key(event.key, cmd)) {
                 connection.send(cmd);
             }

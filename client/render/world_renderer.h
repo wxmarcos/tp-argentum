@@ -5,7 +5,6 @@
 
 #include "config/client_config.h"
 #include "game/client_game_state.h"
-#include "protocol/protocol_defs.h"
 
 class WorldRenderer {
     private:

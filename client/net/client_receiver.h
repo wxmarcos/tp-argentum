@@ -1,7 +1,8 @@
 #ifndef CLIENT_CLIENT_RECEIVER_H
 #define CLIENT_CLIENT_RECEIVER_H
 
-#include <string>
+#include <cstdint>
+#include <vector>
 
 #include "common/network/socket.h"
 #include "common/queue.h"
@@ -14,10 +15,10 @@ class ClientReceiver: public Thread {
     Socket& socket;
     Queue<GameUpdate>& updates_queue;
 
-    void feed(std::string& acc, char c);
+    bool read_message(uint8_t& opcode, std::vector<uint8_t>& payload);
+    void process_message(uint8_t opcode, const std::vector<uint8_t>& payload);
 
     void push_update(GameUpdate update);
-
     void push_disconnect();
 
     public:

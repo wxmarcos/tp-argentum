@@ -2,10 +2,9 @@
 #define CLIENT_GAME_UPDATE_H
 
 #include <cstdint>
-#include <string>
 #include <vector>
 
-#include "protocol/protocol_defs.h"
+#include "common/protocol_defs.h"
 
 struct PlayerView {
     uint32_t id = 0;
@@ -16,10 +15,9 @@ struct PlayerView {
 
 struct GameUpdate {
     std::vector<PlayerView> players;
-    std::string raw;
     bool disconnect = false;
 
-    bool empty() const { return players.empty() && raw.empty(); }
+    bool empty() const { return players.empty(); }
 };
 
 #endif

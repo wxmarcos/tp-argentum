@@ -1,10 +1,8 @@
 #ifndef CLIENT_CLIENT_GAME_STATE_H
 #define CLIENT_CLIENT_GAME_STATE_H
 
-#include <string>
-
+#include "common/protocol_defs.h"
 #include "protocol/game_update.h"
-#include "protocol/protocol_defs.h"
 
 class ClientGameState {
     private:
@@ -14,10 +12,6 @@ class ClientGameState {
 
     int map_width;
     int map_height;
-
-    void apply_move_echo(const std::string& raw);
-
-    void apply_move_confirmation(protocol::Direction dir);
 
     void apply_snapshot(const GameUpdate& update);
 
