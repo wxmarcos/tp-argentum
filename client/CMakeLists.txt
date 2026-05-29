@@ -6,7 +6,6 @@ target_sources(taller_client
     net/client_sender.cpp
     net/client_receiver.cpp
     net/server_connection.cpp
-    protocol/protocol.cpp
     game/client_game_state.cpp
     input/input_handler.cpp
     render/world_renderer.cpp
@@ -18,9 +17,6 @@ target_sources(taller_client
     net/client_sender.h
     net/client_receiver.h
     net/server_connection.h
-    protocol/protocol.h
-    protocol/protocol_defs.h
-    protocol/client_command.h
     protocol/game_update.h
     game/client_game_state.h
     input/input_handler.h

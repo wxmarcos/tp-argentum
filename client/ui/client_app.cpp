@@ -91,8 +91,6 @@ bool ClientApp::process_input(ServerConnection& connection,
             }
             ClientCommand cmd;
             if (input.process_key(event.key, cmd)) {
-                // El cliente NO mueve al personaje: solo manda el comando.
-                // La posicion cambia cuando el server confirma.
                 connection.send(cmd);
             }
         }

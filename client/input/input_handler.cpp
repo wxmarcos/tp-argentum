@@ -2,6 +2,7 @@
 
 InputHandler::InputHandler() {
     load_default_bindings();
+    load_move_directions();
 }
 
 void InputHandler::load_default_bindings() {
@@ -18,27 +19,15 @@ void InputHandler::load_default_bindings() {
     bindings[SDLK_a] = KeyAction::MOVE_WEST;
 }
 
-bool InputHandler::action_to_command(KeyAction action,
-                                     ClientCommand& out_cmd) const {
-    switch (action) {
-        case KeyAction::MOVE_NORTH:
-            out_cmd = ClientCommand::move(protocol::Direction::NORTH);
-            return true;
-        case KeyAction::MOVE_SOUTH:
-            out_cmd = ClientCommand::move(protocol::Direction::SOUTH);
-            return true;
-        case KeyAction::MOVE_EAST:
-            out_cmd = ClientCommand::move(protocol::Direction::EAST);
-            return true;
-        case KeyAction::MOVE_WEST:
-            out_cmd = ClientCommand::move(protocol::Direction::WEST);
-            return true;
-    }
-    return false;
+void InputHandler::load_move_directions() {
+    move_directions[KeyAction::MOVE_NORTH] = protocol::Direction::NORTH;
+    move_directions[KeyAction::MOVE_SOUTH] = protocol::Direction::SOUTH;
+    move_directions[KeyAction::MOVE_EAST] = protocol::Direction::EAST;
+    move_directions[KeyAction::MOVE_WEST] = protocol::Direction::WEST;
 }
 
 bool InputHandler::process_key(const SDL_KeyboardEvent& key,
-                               ClientCommand& out_cmd) const {
+                               Command& out_cmd) const {
     if (key.type != SDL_KEYDOWN) {
         return false;
     }
@@ -49,4 +38,14 @@ bool InputHandler::process_key(const SDL_KeyboardEvent& key,
     }
 
     return action_to_command(it->second, out_cmd);
+}
+
+bool InputHandler::action_to_command(KeyAction action,
+                                     Command& out_cmd) const {
+    auto move_it = move_directions.find(action);
+    if (move_it != move_directions.end()) {
+        out_cmd = Command::move(static_cast<uint8_t>(move_it->second));
+        return true;
+    }
+    return false;
 }
