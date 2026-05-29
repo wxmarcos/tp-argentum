@@ -56,25 +56,18 @@ public:
         acceptor.join();
     }
 
-    void run() {
+    void run(std::atomic<bool>& running) {
         start();
 
-        std::cout << "Servidor corriendo.\n";
+        std::cout << "[Server] Servidor corriendo.\n";
 
-        std::string line;
-
-        while (std::getline(std::cin, line)) {
-            if (line == "q" ||
-                line == "quit" ||
-                line == "exit") {
-                break;
-            }
+        while (running) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
-
-        std::cout << "Deteniendo servidor...\n";
-
+        std::cout << "[Server] Deteniendo servidor...\n";
         stop();
         join();
+        std::cout << "[Server] Servidor detenido correctamente.\n";
     }
 };
 

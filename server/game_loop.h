@@ -23,8 +23,6 @@ private:
 
     Game game;
 
-    void process(const Command& cmd);
-
 public:
 
     GameLoop(

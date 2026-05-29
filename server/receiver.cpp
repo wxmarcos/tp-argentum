@@ -14,8 +14,20 @@ Receiver::~Receiver() = default;
 void Receiver::run() {
     try {
         while (should_keep_running()) {
-            Command cmd = Command::recv(socket, player_id);
+
+            Command cmd =
+                Command::recv(socket, player_id);
+
+            bool disconnected =
+                cmd.is_disconnect();
+
             queue.push(std::move(cmd));
+
+            if (disconnected) {
+                break;
+            }
         }
-    } catch (...) {}
+
+    } catch (...) {
+    }
 }

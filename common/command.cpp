@@ -89,7 +89,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
     uint16_t payload_size = ntohs(net_payload_size);
     // DEBUG
     std::cout
-    << "[Protocol] opcode="
+    << "[Command] opcode="
     << static_cast<int>(opcode_raw)
     << " payload_size="
     << payload_size
@@ -104,7 +104,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
             return Command(player_id, CommandType::Disconnect);
         }
     }
-    std::cout << "[Protocol] payload hex: ";
+    std::cout << "[Command] payload hex: ";
 
     for (uint8_t b : payload) {
         printf("%02X ", b);
@@ -118,7 +118,18 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
     size_t offset = 0;
 
     switch (type) {
+        case CommandType::CreateCharacter:
 
+            cmd.nick =
+                read_string(payload, offset);
+
+            cmd.raza =
+                read_string(payload, offset);
+
+            cmd.clase =
+                read_string(payload, offset);
+
+            break;
         case CommandType::Move:
             cmd.direction = read_u8(payload, offset);
             break;
@@ -180,6 +191,127 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
 
     return cmd;
 }
+void Command::send(Socket& socket) const {
+
+    uint8_t opcode = static_cast<uint8_t>(type);
+
+    std::vector<uint8_t> payload;
+
+    auto push_u8 = [&](uint8_t value) {
+        payload.push_back(value);
+    };
+
+    auto push_u16 = [&](uint16_t value) {
+        uint16_t net_value = htons(value);
+        auto* bytes = reinterpret_cast<uint8_t*>(&net_value);
+
+        payload.push_back(bytes[0]);
+        payload.push_back(bytes[1]);
+    };
+
+    auto push_u32 = [&](uint32_t value) {
+        uint32_t net_value = htonl(value);
+        auto* bytes = reinterpret_cast<uint8_t*>(&net_value);
+
+        payload.push_back(bytes[0]);
+        payload.push_back(bytes[1]);
+        payload.push_back(bytes[2]);
+        payload.push_back(bytes[3]);
+    };
+
+    auto push_string = [&](const std::string& value) {
+        push_u16(static_cast<uint16_t>(value.size()));
+        payload.insert(
+            payload.end(),
+            value.begin(),
+            value.end());
+    };
+
+    switch (type) {
+        case CommandType::CreateCharacter:
+            push_string(nick);
+            push_string(raza);
+            push_string(clase);
+            break;
+        case CommandType::Move:
+            push_u8(direction);
+            break;
+
+        case CommandType::Attack:
+            push_u32(target_id);
+            break;
+
+        case CommandType::DropItem:
+        case CommandType::EquipItem:
+        case CommandType::BuyItem:
+        case CommandType::SellItem:
+            push_u16(item_id);
+            break;
+
+        case CommandType::DepositItem:
+        case CommandType::WithdrawItem:
+            push_u16(item_id);
+            push_u32(amount);
+            break;
+
+        case CommandType::PrivateMessage:
+            push_string(nick);
+            push_string(text);
+            break;
+
+        case CommandType::ClanCreate:
+        case CommandType::ClanJoin:
+            push_string(clan_name);
+            break;
+
+        case CommandType::ClanAccept:
+        case CommandType::ClanReject:
+        case CommandType::ClanBan:
+        case CommandType::ClanKick:
+            push_string(nick);
+            break;
+
+        case CommandType::Meditate:
+        case CommandType::Resurrect:
+        case CommandType::Heal:
+        case CommandType::PickItem:
+        case CommandType::ClanReview:
+        case CommandType::ClanLeave:
+        case CommandType::Disconnect:
+            break;
+    }
+
+    uint16_t net_payload_size =
+        htons(static_cast<uint16_t>(payload.size()));
+
+    socket.sendall(&opcode, sizeof(opcode));
+
+    socket.sendall(
+        &net_payload_size,
+        sizeof(net_payload_size));
+
+    if (!payload.empty()) {
+        socket.sendall(
+            payload.data(),
+            payload.size());
+    }
+}
+
+Command Command::move(uint8_t direction) {
+    Command cmd(0, CommandType::Move);
+    cmd.direction = direction;
+    return cmd;
+}
+
+Command Command::attack(uint32_t target_id) {
+    Command cmd(0, CommandType::Attack);
+    cmd.target_id = target_id;
+    return cmd;
+}
+
+Command Command::disconnect() {
+    return Command(0, CommandType::Disconnect);
+}
 
 bool Command::is_disconnect() const {
     return type == CommandType::Disconnect;
@@ -223,4 +355,12 @@ const std::string& Command::get_text() const {
 
 const std::string& Command::get_clan_name() const {
     return clan_name;
+}
+
+const std::string& Command::get_raza() const {
+    return raza;
+}
+
+const std::string& Command::get_clase() const {
+    return clase;
 }
