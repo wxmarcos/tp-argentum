@@ -10,6 +10,14 @@
 #include "razas/raza.h"
 #include "clases/charClase.h"
 
+struct ResultadoAtaque {
+    bool exito;
+    int danioAplicado;
+    bool fueEsquivado;
+    bool fueCritico;
+    bool objetivoMurio;
+};
+
 class Game {
 private:
     Config& config;
@@ -23,6 +31,8 @@ private:
     void inicializarRazas();
     void inicializarClases();
 
+    bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
+
     // TODO: criaturas
     // TODO: npcs
 
@@ -35,6 +45,8 @@ public:
     Jugador* getJugador(const std::string& nombre);
 
     bool moverJugador(const std::string& nombre, Direccion dir);
+
+    ResultadoAtaque atacar(const std::string& nombreAtacante, const std::string& nombreObjetivo);
 
     void tick(float dt);
 
