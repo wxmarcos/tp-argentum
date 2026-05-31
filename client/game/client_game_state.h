@@ -13,6 +13,7 @@ struct PlayerView {
     uint16_t x = 0;
     uint16_t y = 0;
     protocol::Direction direction = protocol::Direction::SOUTH;
+    bool moved = false;
 };
 
 class ClientGameState {
@@ -23,6 +24,7 @@ class ClientGameState {
     uint16_t local_x;
     uint16_t local_y;
     protocol::Direction local_dir;
+    bool local_moved;
 
     std::unordered_map<std::string, PlayerView> others;
 
@@ -36,12 +38,15 @@ class ClientGameState {
     public:
     ClientGameState(const std::string& local_nick, int map_width, int map_height);
 
+    void begin_frame();
+
     void apply_update(const GameUpdate& update);
 
     bool has_local_position() const { return has_local_pos; }
     uint16_t get_local_x() const { return local_x; }
     uint16_t get_local_y() const { return local_y; }
     protocol::Direction get_local_dir() const { return local_dir; }
+    bool get_local_moved() const { return local_moved; }
     const std::string& get_local_nick() const { return local_nick; }
 
     const std::unordered_map<std::string, PlayerView>& get_others() const {

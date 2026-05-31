@@ -105,6 +105,7 @@ bool ClientApp::process_input(ServerConnection& connection,
 
 bool ClientApp::process_updates(ServerConnection& connection,
                                 ClientGameState& state) {
+    state.begin_frame();
     GameUpdate update;
     while (connection.poll_update(update)) {
         if (update.disconnect) {
