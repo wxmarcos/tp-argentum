@@ -16,6 +16,7 @@ project(taller_tp
     LANGUAGES CXX
     )
 
+find_package(Threads REQUIRED)
 option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
@@ -41,7 +42,10 @@ set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 # Make this PUBLIC so any dependant linking lib will inherit this
 # location (so our dependants will not have to explicitly request this)
 target_include_directories(taller_common PUBLIC .)
-
+target_link_libraries(taller_common
+    PUBLIC
+    Threads::Threads
+)
 # Define target: game logic library (server-side only)
 add_library(taller_game STATIC)
 add_subdirectory(game/)
@@ -135,7 +139,13 @@ if(TALLER_CLIENT)
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_client
+       taller_common
+       SDL2pp::SDL2pp
+       SDL2_image::SDL2_image
+       SDL2_mixer::SDL2_mixer
+       SDL2_ttf::SDL2_ttf
+   )
 endif()
 
 if(TALLER_SERVER)
@@ -152,7 +162,11 @@ if(TALLER_SERVER)
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # Link the taller_common lib target
-    target_link_libraries(taller_server taller_common taller_game)
+    target_link_libraries(taller_server
+        taller_common
+        taller_game
+        Threads::Threads
+    )
 endif()
 
 # Copiar config.toml al directorio de build
