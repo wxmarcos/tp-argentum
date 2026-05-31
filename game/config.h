@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <stdexcept>
 
 class Config {
@@ -31,6 +32,13 @@ public:
     double getFormulaOroMaxCoeficiente() const;
     double getFormulaOroMaxExponente() const;
     int getFormulaOroDropNPCDivisor() const;
+
+    // Mapas
+    struct ConfigMapa {
+        int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;
+    };
+
+    std::vector<ConfigMapa> getMapas() const;
 
 private:
     struct Impl;

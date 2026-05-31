@@ -72,3 +72,22 @@ exp_exponente           = 1.8
 oro_max_coeficiente     = 100.0   # OroMax = coef * nivel^exp
 oro_max_exponente       = 1.1
 oro_drop_npc_divisor    = 10      # OroDropNPC = vidaMaxNPC / divisor
+
+# -----------------------------------------------------------------------------
+# Mapas
+# -----------------------------------------------------------------------------
+[mapas.1]
+ancho = 100
+alto = 100
+vecino_norte = -1
+vecino_sur = -1
+vecino_este = 2
+vecino_oeste = -1
+
+[mapas.2]
+ancho = 100
+alto = 100
+vecino_norte = -1
+vecino_sur = -1
+vecino_este = -1
+vecino_oeste = 1

@@ -157,3 +157,27 @@ double Config::getFormulaOroMaxExponente() const {
 int Config::getFormulaOroDropNPCDivisor() const {
     return impl->get<int64_t>("formulas.oro_drop_npc_divisor", 10);
 }
+
+std::vector<Config::ConfigMapa> Config::getMapas() const {
+    std::vector<ConfigMapa> resultado;
+
+    auto* seccionMapas = impl->tabla["mapas"].as_table();
+    if (!seccionMapas) return resultado;
+
+    for (auto& [clave, valor] : *seccionMapas) {
+        auto* t = valor.as_table();
+        if (!t) continue;
+
+        ConfigMapa cm;
+        cm.id               = std::stoi(std::string(clave.str()));
+        cm.ancho            = t->get("ancho")           ? (int)(*t->get("ancho")->value<int64_t>())         : 100;
+        cm.alto             = t->get("alto")            ? (int)(*t->get("alto")->value<int64_t>())          : 100;
+        cm.vecinoNorte      = t->get("vecino_norte")    ? (int)(*t->get("vecino_norte")->value<int64_t>())  : -1;
+        cm.vecinoSur        = t->get("vecino_sur")      ? (int)(*t->get("vecino_sur")->value<int64_t>())    : -1;
+        cm.vecinoEste       = t->get("vecino_este")     ? (int)(*t->get("vecino_este")->value<int64_t>())   : -1;
+        cm.vecinoOeste      = t->get("vecino_oeste")    ? (int)(*t->get("vecino_oeste")->value<int64_t>())  : -1;
+        resultado.push_back(cm);
+    }
+    
+    return resultado;
+}
