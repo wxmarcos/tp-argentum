@@ -53,7 +53,8 @@ target_sources(taller_game PRIVATE
     banco/cuentaBanco.cpp
 
     # Mapa y juego
-    map.cpp
+    mapa.cpp
+    mundo.cpp
     clan.cpp
     game.cpp
 )

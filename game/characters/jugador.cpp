@@ -166,7 +166,7 @@ const Inventario& Jugador::getInventario() const { return inventario; }
 void Jugador::recuperacionPasiva(float dt) {
     if (!vivo) return;
 
-    vidaAcumulada += Formulas::calcularRecuperacionVidaF(raza->getFRazaRecuperacion(), dt);
+    vidaAcumulada += Formulas::calcularRecuperacionVida(raza->getFRazaRecuperacion(), dt);
     if (vidaAcumulada >= 1.0f) {
         curar(static_cast<int>(vidaAcumulada));
         vidaAcumulada -= static_cast<int>(vidaAcumulada);
@@ -174,9 +174,9 @@ void Jugador::recuperacionPasiva(float dt) {
 
     float recMana;
     if (meditando) {
-        recMana = Formulas::calcularRecuperacionManaMeditandoF(clase->getFClaseMeditacion(), inteligencia, dt);
+        recMana = Formulas::calcularRecuperacionManaMeditando(clase->getFClaseMeditacion(), inteligencia, dt);
     } else {
-        recMana = Formulas::calcularRecuperacionManaF(raza->getFRazaRecuperacion(), dt);
+        recMana = Formulas::calcularRecuperacionMana(raza->getFRazaRecuperacion(), dt);
     }
     manaAcumulado += recMana;
     if (manaAcumulado >= 1.0f) {

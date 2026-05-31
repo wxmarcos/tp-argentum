@@ -83,6 +83,13 @@ bool Inventario::equiparArma(int indice) {
     return true;
 }
 
+bool Inventario::equiparBaculo(int indice) {
+    if (indice < 0 || indice >= (int)slots.size()) return false;
+    if (slots[indice].item->getTipo() != TipoItem::BACULO) return false;
+    armaOBaculoEquipado = slots[indice].item.get();
+    return true;
+}
+
 bool Inventario::equiparArmadura(int indice) {
     if (indice < 0 || indice >= (int)slots.size()) return false;
     if (slots[indice].item->getTipo() != TipoItem::ARMADURA) return false;
