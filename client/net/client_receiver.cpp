@@ -1,38 +1,7 @@
 #include "net/client_receiver.h"
 
 #include <iostream>
-#include <stdexcept>
 #include <utility>
-
-#include <arpa/inet.h>
-
-#include "common/protocol_defs.h"
-#include "protocol/wire_reader.h"
-
-namespace {
-GameUpdate parse_snapshot(const std::vector<uint8_t>& payload) {
-    GameUpdate update;
-    size_t offset = 0;
-
-    update.tick = wire::read_u32(payload, offset);
-    update.local_id = wire::read_u16(payload, offset);
-
-    uint16_t num_players = wire::read_u16(payload, offset);
-    update.players.reserve(num_players);
-
-    for (uint16_t i = 0; i < num_players; ++i) {
-        PlayerView pv;
-        pv.id = wire::read_u16(payload, offset);
-        pv.x = wire::read_u16(payload, offset);
-        pv.y = wire::read_u16(payload, offset);
-        pv.direction =
-            static_cast<protocol::Direction>(wire::read_u8(payload, offset));
-        update.players.push_back(pv);
-    }
-
-    return update;
-}
-}
 
 ClientReceiver::ClientReceiver(Socket& socket,
                                Queue<GameUpdate>& updates_queue):
@@ -40,73 +9,19 @@ ClientReceiver::ClientReceiver(Socket& socket,
 
 void ClientReceiver::run() {
     try {
-        uint8_t opcode;
-        std::vector<uint8_t> payload;
-
         while (should_keep_running()) {
-            if (!read_message(opcode, payload)) {
-                push_disconnect();
-                break;
-            }
-            process_message(opcode, payload);
+            Snapshot snapshot = Snapshot::recv(socket);
+
+            GameUpdate update;
+            update.snapshot = std::move(snapshot);
+            push_update(std::move(update));
         }
     } catch (const std::exception& ex) {
-        std::cerr << "[ClientReceiver] " << ex.what() << "\n";
-        push_disconnect();
+        if (should_keep_running()) {
+            std::cerr << "[ClientReceiver] " << ex.what() << "\n";
     }
+    push_disconnect();
 }
-
-bool ClientReceiver::read_message(uint8_t& opcode,
-                                  std::vector<uint8_t>& payload) {
-    int received = socket.recvall(&opcode, sizeof(opcode));
-    if (received == 0) {
-        return false;
-    }
-
-    uint16_t net_payload_size;
-    received = socket.recvall(&net_payload_size, sizeof(net_payload_size));
-    if (received == 0) {
-        return false;
-    }
-
-    uint16_t payload_size = ntohs(net_payload_size);
-    payload.resize(payload_size);
-
-    if (payload_size > 0) {
-        received = socket.recvall(payload.data(), payload_size);
-        if (received == 0) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void ClientReceiver::process_message(uint8_t opcode,
-                                     const std::vector<uint8_t>& payload) {
-    auto server_opcode = static_cast<protocol::ServerOpcode>(opcode);
-
-    switch (server_opcode) {
-        case protocol::ServerOpcode::SNAPSHOT:
-            try {
-                push_update(parse_snapshot(payload));
-            } catch (const std::exception& ex) {
-                std::cerr << "[ClientReceiver] snapshot malformado: "
-                          << ex.what() << "\n";
-            }
-            break;
-
-        case protocol::ServerOpcode::ENTITY_SPAWN:
-        case protocol::ServerOpcode::ENTITY_MOVE:
-        case protocol::ServerOpcode::ENTITY_REMOVE:
-        case protocol::ServerOpcode::PLAYER_STATS:
-        case protocol::ServerOpcode::INVENTORY_UPDATE:
-        case protocol::ServerOpcode::CHAT_MESSAGE:
-        case protocol::ServerOpcode::DAMAGE_EVENT:
-        case protocol::ServerOpcode::DODGE_EVENT:
-        case protocol::ServerOpcode::DEATH_EVENT:
-        case protocol::ServerOpcode::ERROR_MESSAGE:
-            break;
-    }
 }
 
 void ClientReceiver::push_update(GameUpdate update) {

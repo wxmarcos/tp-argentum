@@ -1,12 +1,14 @@
 #include "game/client_game_state.h"
 
-#include <algorithm>
+#include "common/snapshot.h"
 
-ClientGameState::ClientGameState(int start_x, int start_y, int map_width,
+ClientGameState::ClientGameState(const std::string& local_nick, int map_width,
                                  int map_height):
-        player_x(start_x),
-        player_y(start_y),
-        player_dir(protocol::Direction::SOUTH),
+        local_nick(local_nick),
+        has_local_pos(false),
+        local_x(0),
+        local_y(0),
+        local_dir(protocol::Direction::SOUTH),
         map_width(map_width),
         map_height(map_height) {}
 
@@ -14,14 +16,41 @@ void ClientGameState::apply_update(const GameUpdate& update) {
     if (update.disconnect) {
         return;
     }
-    if (!update.players.empty()) {
-        apply_snapshot(update);
+    if (update.snapshot.has_value()) {
+        apply_snapshot(*update.snapshot);
     }
 }
 
-void ClientGameState::apply_snapshot(const GameUpdate& update) {
-    const PlayerView& me = update.players.front();
-    player_x = me.x;
-    player_y = me.y;
-    player_dir = me.direction;
+void ClientGameState::apply_snapshot(const Snapshot& snapshot) {
+    if (snapshot.is_entity_move()) {
+        apply_entity_move(snapshot);
+    } else if (snapshot.is_entity_remove()) {
+        apply_entity_remove(snapshot);
+    }
+}
+
+void ClientGameState::apply_entity_move(const Snapshot& snapshot) {
+    const std::string& nick = snapshot.get_nick();
+
+    if (nick == local_nick) {
+        local_x = snapshot.get_x();
+        local_y = snapshot.get_y();
+        local_dir = static_cast<protocol::Direction>(snapshot.get_direction());
+        has_local_pos = true;
+        return;
+    }
+
+    PlayerView& pv = others[nick];
+    pv.nick = nick;
+    pv.x = snapshot.get_x();
+    pv.y = snapshot.get_y();
+    pv.direction = static_cast<protocol::Direction>(snapshot.get_direction());
+}
+
+void ClientGameState::apply_entity_remove(const Snapshot& snapshot) {
+    const std::string& nick = snapshot.get_nick();
+    if (nick == local_nick) {
+        return;
+    }
+    others.erase(nick);
 }

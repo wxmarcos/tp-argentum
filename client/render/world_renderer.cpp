@@ -7,8 +7,6 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
         renderer(renderer), config(config) {}
 
 void WorldRenderer::render(const ClientGameState& state) {
-    using namespace SDL2pp;
-
     renderer.SetDrawColor(34, 51, 34, 255);
     renderer.Clear();
 
@@ -16,14 +14,31 @@ void WorldRenderer::render(const ClientGameState& state) {
     const int screen_cx = config.window_width / 2;
     const int screen_cy = config.window_height / 2;
 
-    const int cam_offset_x = screen_cx - state.get_player_x() * ts - ts / 2;
-    const int cam_offset_y = screen_cy - state.get_player_y() * ts - ts / 2;
+    int cam_x, cam_y;
+    if (state.has_local_position()) {
+        cam_x = state.get_local_x();
+        cam_y = state.get_local_y();
+    } else {
+        cam_x = state.get_map_width() / 2;
+        cam_y = state.get_map_height() / 2;
+    }
+
+    const int cam_offset_x = screen_cx - cam_x * ts - ts / 2;
+    const int cam_offset_y = screen_cy - cam_y * ts - ts / 2;
 
     draw_grid(cam_offset_x, cam_offset_y);
 
-    draw_character(state.get_player_x(), state.get_player_y(),
-                   state.get_player_dir(), cam_offset_x, cam_offset_y,
-                   /*is_self=*/true);
+    if (state.has_local_position()) {
+        draw_character(state.get_local_x(), state.get_local_y(),
+                       state.get_local_dir(), cam_offset_x, cam_offset_y,
+                       /*is_self=*/true);
+    }
+
+    for (const auto& [nick, pv] : state.get_others()) {
+        (void)nick;
+        draw_character(pv.x, pv.y, pv.direction,
+                       cam_offset_x, cam_offset_y, /*is_self=*/false);
+    }
 
     renderer.Present();
 }

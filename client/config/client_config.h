@@ -16,8 +16,6 @@ struct ClientConfig {
 
     int map_width = 50;
     int map_height = 50;
-    int start_x = 25;
-    int start_y = 25;
 
     int music_volume = 64;
     int effects_volume = 96;

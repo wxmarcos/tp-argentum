@@ -69,8 +69,6 @@ ClientConfig ClientConfig::load() {
 
     read_field(tbl, "world", "map_width", cfg.map_width);
     read_field(tbl, "world", "map_height", cfg.map_height);
-    read_field(tbl, "world", "start_x", cfg.start_x);
-    read_field(tbl, "world", "start_y", cfg.start_y);
 
     read_field(tbl, "audio", "music_volume", cfg.music_volume);
     read_field(tbl, "audio", "effects_volume", cfg.effects_volume);

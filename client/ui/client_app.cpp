@@ -38,8 +38,8 @@ int ClientApp::run() {
         AudioManager audio(config);
         WorldRenderer world_renderer(renderer, config);
         InputHandler input;
-        ClientGameState state(config.start_x, config.start_y, config.map_width,
-                              config.map_height);
+        ClientGameState state(config.character_nick, config.map_width,
+                      config.map_height);
 
         ServerConnection connection(config.server_host, config.server_port);
         std::cout << "[Client] Conectado a " << config.server_host << ":"
