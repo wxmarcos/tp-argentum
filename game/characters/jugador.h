@@ -10,11 +10,15 @@ private:
     const CharClase* clase;
     int constitucion;
     int inteligencia;
+    int fuerza;
+    int agilidad;
     int manaActual;
     int manaMax;
     int nivel;
     int experiencia;
     int oro;
+    float vidaAcumulada;
+    float manaAcumulado;
     bool meditando;
     Inventario inventario;
 
@@ -31,6 +35,8 @@ public:
     const CharClase* getClase() const;
     int getConstitucion() const;
     int getInteligencia() const;
+    int getFuerza() const;
+    int getAgilidad() const;
 
     int getManaActual() const;
     int getManaMax() const;
@@ -54,9 +60,11 @@ public:
     std::vector<SlotInventario> soltarTodosLosItems();
 
     bool equiparArma(int indice);
+    bool equiparBaculo(int indice);
     bool equiparArmadura(int indice);
     bool equiparCasco(int indice);
     bool equiparEscudo(int indice);
+    
     void desequiparArma();
     void desequiparArmadura();
     void desequiparCasco();

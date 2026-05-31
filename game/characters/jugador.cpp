@@ -12,11 +12,15 @@ Jugador::Jugador(const std::string& nombre, int posX, int posY,
       clase(clase),
       constitucion(raza->getConstitucionBase()),
       inteligencia(raza->getInteligenciaBase()),
+      fuerza(raza->getFuerzaBase()),
+      agilidad(raza->getAgilidadBase()),
       manaActual(0),
       manaMax(0),
       nivel(1),
       experiencia(0),
       oro(0),
+      vidaAcumulada(0.0f),
+      manaAcumulado(0.0f),
       meditando(false) {
         recalcularStats();
 }
@@ -32,6 +36,8 @@ const Raza* Jugador::getRaza() const { return raza; }
 const CharClase* Jugador::getClase() const { return clase; }
 int Jugador::getConstitucion() const { return constitucion; }
 int Jugador::getInteligencia() const { return inteligencia; }
+int Jugador::getFuerza() const { return fuerza; }
+int Jugador::getAgilidad() const { return agilidad; }
 
 int Jugador::getManaActual() const { return manaActual; }
 int Jugador::getManaMax() const { return manaMax; }
@@ -111,14 +117,21 @@ bool Jugador::equiparArma(int indice) {
     return inventario.equiparArma(indice);
 }
 
+bool Jugador::equiparBaculo(int indice) {
+    interrumpirMeditacion();
+    return inventario.equiparBaculo(indice);
+}
+
 bool Jugador::equiparArmadura(int indice) { 
     interrumpirMeditacion();
     return inventario.equiparArmadura(indice); 
 }
+
 bool Jugador::equiparCasco(int indice) { 
     interrumpirMeditacion();
     return inventario.equiparCasco(indice); 
 }
+
 bool Jugador::equiparEscudo(int indice) { 
     interrumpirMeditacion();
     return inventario.equiparEscudo(indice); 
@@ -126,7 +139,7 @@ bool Jugador::equiparEscudo(int indice) {
 
 void Jugador::desequiparArma() { 
     interrumpirMeditacion();
-    inventario.desequiparArma();
+    inventario.desequiparArmaOBaculo();
 }
 
 void Jugador::desequiparArmadura() { 
@@ -153,12 +166,22 @@ const Inventario& Jugador::getInventario() const { return inventario; }
 void Jugador::recuperacionPasiva(float dt) {
     if (!vivo) return;
 
-    curar(Formulas::calcularRecuperacionVida(raza->getFRazaRecuperacion(), dt));
+    vidaAcumulada += Formulas::calcularRecuperacionVidaF(raza->getFRazaRecuperacion(), dt);
+    if (vidaAcumulada >= 1.0f) {
+        curar(static_cast<int>(vidaAcumulada));
+        vidaAcumulada -= static_cast<int>(vidaAcumulada);
+    }
 
+    float recMana;
     if (meditando) {
-        recuperarMana(Formulas::calcularRecuperacionManaMeditando(clase->getFClaseMeditacion(), inteligencia, dt));
+        recMana = Formulas::calcularRecuperacionManaMeditandoF(clase->getFClaseMeditacion(), inteligencia, dt);
     } else {
-        recuperarMana(Formulas::calcularRecuperacionMana(raza->getFRazaRecuperacion(), dt));
+        recMana = Formulas::calcularRecuperacionManaF(raza->getFRazaRecuperacion(), dt);
+    }
+    manaAcumulado += recMana;
+    if (manaAcumulado >= 1.0f) {
+        recuperarMana(static_cast<int>(manaAcumulado));
+        manaAcumulado -= static_cast<int>(manaAcumulado);
     }
 }
 
