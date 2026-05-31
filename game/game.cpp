@@ -16,10 +16,19 @@
 
 #include <cstdlib>
 
-Game::Game(Config& config, int anchoMapa, int altoMapa)
-    : config(config), mapa(anchoMapa, altoMapa) {
+Game::Game(Config& config) : config(config) {
     inicializarRazas();
     inicializarClases();
+    cargarMundo();
+}
+
+void Game::cargarMundo() {
+    auto mapasConfig = config.getMapas();
+    for (const auto& cm : mapasConfig) {
+        auto mapa = std::make_unique<Mapa>(cm.ancho, cm.alto);
+        infoMapasVecinos vecinos{cm.vecinoNorte, cm.vecinoSur, cm.vecinoEste, cm.vecinoOeste};
+        mundo.agregarMapa(cm.id, std::move(mapa), vecinos);
+    }
 }
 
 void Game::inicializarRazas() {
@@ -43,7 +52,7 @@ bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
 }
 
 
-bool Game::agregarJugador(const std::string& nombre, int posX, int posY,
+bool Game::agregarJugador(const std::string& nombre, int mapaId, int posX, int posY,
                            const std::string& razaNombre, const std::string& claseNombre) {
     if (jugadores.count(nombre)) return false;
 
@@ -56,8 +65,9 @@ bool Game::agregarJugador(const std::string& nombre, int posX, int posY,
         itRaza->second.get(),
         itClase->second.get()
     );
+    jugador->setMapaId(mapaId);
 
-    mapa.agregarPersonaje(jugador.get());
+    mundo.agregarPersonaje(jugador.get());
     jugadores[nombre] = std::move(jugador);
     return true;
 }
@@ -66,7 +76,7 @@ void Game::removerJugador(const std::string& nombre) {
     auto it = jugadores.find(nombre);
     if (it == jugadores.end()) return;
 
-    mapa.removerPersonaje(it->second.get());
+    mundo.removerPersonaje(it->second.get());
     jugadores.erase(it);
 }
 
@@ -80,7 +90,7 @@ bool Game::moverJugador(const std::string& nombre, Direccion dir) {
     Jugador* jugador = getJugador(nombre);
     if (!jugador) return false;
     jugador->interrumpirMeditacion();
-    return mapa.moverPersonaje(jugador, dir);
+    return mundo.moverPersonaje(jugador, dir);
 }
 
 ResultadoAtaque Game::atacar(const std::string& nombreAtacante, const std::string& nombreObjetivo) {
@@ -158,7 +168,7 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante, const std::strin
         // Drop items al piso
         auto items = objetivo->soltarTodosLosItems();
         for (auto& item : items) {
-            mapa.tirarItem(objetivo->getPosX(), objetivo->getPosY(), std::move(item));
+            mundo.tirarItem(objetivo->getMapaId(), objetivo->getPosX(), objetivo->getPosY(), std::move(item));
         }
     }
 
@@ -173,7 +183,7 @@ void Game::tick(float dt) {
     // TODO: tick de criaturas (movimiento, ataque)
 }
 
-const Mapa& Game::getMapa() const { return mapa; }
+const Mundo& Game::getMundo() const { return mundo; }
 
 bool Game::tirarItem(const std::string& nombre, int indice, int cantidad) {
     Jugador* jugador = getJugador(nombre);
@@ -182,7 +192,7 @@ bool Game::tirarItem(const std::string& nombre, int indice, int cantidad) {
     auto slot = jugador->soltarItem(indice, cantidad);
     if(!slot) return false;
 
-    mapa.tirarItem(jugador->getPosX(), jugador->getPosY(), std::move(*slot));
+    mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(), jugador->getPosY(), std::move(*slot));
     return true;
 }
 
@@ -191,7 +201,7 @@ bool Game::tomarItem(const std::string& nombre, int indice) {
     if (!jugador || !jugador->estaVivo()) return false;
     if (jugador->getInventario().estaLleno()) return false;
 
-    auto slot = mapa.tomarItemEnPosicion(jugador->getPosX(), jugador->getPosY(), indice);
+    auto slot = mundo.tomarItemEnPosicion(jugador->getMapaId(), jugador->getPosX(), jugador->getPosY(), indice);
     if (!slot) return false;
 
     jugador->agarrarItem(std::move(slot->item), slot->cantidad);

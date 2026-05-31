@@ -5,7 +5,7 @@
 #include <string>
 
 #include "config.h"
-#include "map.h"
+#include "mundo.h"
 #include "characters/jugador.h"
 #include "razas/raza.h"
 #include "clases/charClase.h"
@@ -25,8 +25,10 @@ private:
     std::map<std::string, std::unique_ptr<Raza>> razas;
     std::map<std::string, std::unique_ptr<CharClase>> clases;
 
-    Mapa mapa;
+    Mundo mundo;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;
+
+    void cargarMundo();
 
     void inicializarRazas();
     void inicializarClases();
@@ -37,9 +39,9 @@ private:
     // TODO: npcs
 
 public:
-    Game(Config& config, int anchoMapa, int altoMapa);
+    Game(Config& config);
 
-    bool agregarJugador(const std::string& nombre, int posX, int posY,
+    bool agregarJugador(const std::string& nombre, int mapaId, int posX, int posY,
                         const std::string& razaNombre, const std::string& claseNombre);
     void removerJugador(const std::string& nombre);
     Jugador* getJugador(const std::string& nombre);
@@ -50,7 +52,7 @@ public:
 
     void tick(float dt);
 
-    const Mapa& getMapa() const;
+    const Mundo& getMundo() const;
 
     bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
     bool tomarItem(const std::string& nombre, int indice);
