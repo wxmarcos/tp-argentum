@@ -1,6 +1,5 @@
 target_sources(taller_client
     PRIVATE
-    # .cpp files
     main.cpp
     ui/client_app.cpp
     net/client_sender.cpp
@@ -10,9 +9,9 @@ target_sources(taller_client
     input/input_handler.cpp
     render/world_renderer.cpp
     audio/audio_manager.cpp
-    
+    protocol/wire_reader.cpp
+
     PUBLIC
-    # .h files
     ui/client_app.h
     net/client_sender.h
     net/client_receiver.h
@@ -23,6 +22,8 @@ target_sources(taller_client
     render/world_renderer.h
     audio/audio_manager.h
     config/client_config.h
+    protocol/game_update.h
+    protocol/wire_reader.h
     )
 
 target_include_directories(taller_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -7,13 +7,15 @@
 #include "common/protocol_defs.h"
 
 struct PlayerView {
-    uint32_t id = 0;
-    int16_t x = 0;
-    int16_t y = 0;
+    uint16_t id = 0;
+    uint16_t x = 0;
+    uint16_t y = 0;
     protocol::Direction direction = protocol::Direction::SOUTH;
 };
 
 struct GameUpdate {
+    uint32_t tick = 0;
+    uint16_t local_id = 0;
     std::vector<PlayerView> players;
     bool disconnect = false;
 

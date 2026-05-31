@@ -1,13 +1,41 @@
 #include "net/client_receiver.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 
 #include <arpa/inet.h>
 
 #include "common/protocol_defs.h"
+#include "protocol/wire_reader.h"
 
-ClientReceiver::ClientReceiver(Socket& socket, Queue<GameUpdate>& updates_queue):
+namespace {
+GameUpdate parse_snapshot(const std::vector<uint8_t>& payload) {
+    GameUpdate update;
+    size_t offset = 0;
+
+    update.tick = wire::read_u32(payload, offset);
+    update.local_id = wire::read_u16(payload, offset);
+
+    uint16_t num_players = wire::read_u16(payload, offset);
+    update.players.reserve(num_players);
+
+    for (uint16_t i = 0; i < num_players; ++i) {
+        PlayerView pv;
+        pv.id = wire::read_u16(payload, offset);
+        pv.x = wire::read_u16(payload, offset);
+        pv.y = wire::read_u16(payload, offset);
+        pv.direction =
+            static_cast<protocol::Direction>(wire::read_u8(payload, offset));
+        update.players.push_back(pv);
+    }
+
+    return update;
+}
+}
+
+ClientReceiver::ClientReceiver(Socket& socket,
+                               Queue<GameUpdate>& updates_queue):
         socket(socket), updates_queue(updates_queue) {}
 
 void ClientReceiver::run() {
@@ -28,7 +56,8 @@ void ClientReceiver::run() {
     }
 }
 
-bool ClientReceiver::read_message(uint8_t& opcode, std::vector<uint8_t>& payload) {
+bool ClientReceiver::read_message(uint8_t& opcode,
+                                  std::vector<uint8_t>& payload) {
     int received = socket.recvall(&opcode, sizeof(opcode));
     if (received == 0) {
         return false;
@@ -58,7 +87,12 @@ void ClientReceiver::process_message(uint8_t opcode,
 
     switch (server_opcode) {
         case protocol::ServerOpcode::SNAPSHOT:
-            (void)payload;
+            try {
+                push_update(parse_snapshot(payload));
+            } catch (const std::exception& ex) {
+                std::cerr << "[ClientReceiver] snapshot malformado: "
+                          << ex.what() << "\n";
+            }
             break;
 
         case protocol::ServerOpcode::ENTITY_SPAWN:
