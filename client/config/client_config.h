@@ -22,6 +22,10 @@ struct ClientConfig {
     int music_volume = 64;
     int effects_volume = 96;
 
+    std::string character_nick = "Messi";
+    std::string character_raza = "humano";
+    std::string character_clase = "mago";
+
     static ClientConfig load() {
         return ClientConfig{};
     }

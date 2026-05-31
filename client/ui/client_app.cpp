@@ -44,9 +44,13 @@ int ClientApp::run() {
         ServerConnection connection(config.server_host, config.server_port);
         std::cout << "[Client] Conectado a " << config.server_host << ":"
                   << config.server_port << "\n";
-
+        
+        connection.send(Command::create_character(config.character_nick,
+                                                   config.character_raza,
+                                                   config.character_clase));
         main_loop(connection, input, world_renderer, state);
-
+        
+        connection.send(Command::disconnect());
         connection.stop();
         std::cout << "[Client] Cerrado limpiamente.\n";
         return 0;
