@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "map.h"
+#include "mapa.h"
 
 Mapa::Mapa(int ancho, int alto)
     : ancho(ancho), alto(alto),

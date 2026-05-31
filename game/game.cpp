@@ -11,17 +11,27 @@
 #include "clases/mago.h"
 #include "clases/clerigo.h"
 #include "clases/paladin.h"
+#include "items/arma.h"
+#include "items/armadura.h"
+#include "items/casco.h"
+#include "items/escudo.h"
+#include "formulas.h"
 
-Game::Game(
-    Config& config,
-    int anchoMapa,
-    int altoMapa)
-    :
-    config(config),
-    mapa(anchoMapa, altoMapa) {
+#include <cstdlib>
 
+Game::Game(Config& config) : config(config) {
     inicializarRazas();
     inicializarClases();
+    cargarMundo();
+}
+
+void Game::cargarMundo() {
+    auto mapasConfig = config.getMapas();
+    for (const auto& cm : mapasConfig) {
+        auto mapa = std::make_unique<Mapa>(cm.ancho, cm.alto);
+        infoMapasVecinos vecinos{cm.vecinoNorte, cm.vecinoSur, cm.vecinoEste, cm.vecinoOeste};
+        mundo.agregarMapa(cm.id, std::move(mapa), vecinos);
+    }
 }
 
 void Game::inicializarRazas() {
@@ -88,114 +98,71 @@ Snapshot Game::build_entity_move_snapshot(
             jugador->getDireccion()));
 }
 // TODO : mandar snapshots que tengan sentido con cada accion
-std::vector<Snapshot> Game::process(
-    const Command& cmd) {
-
+std::vector<Snapshot> Game::process(const Command& cmd) {
     std::vector<Snapshot> snapshots;
 
     if (cmd.get_type() == CommandType::CreateCharacter) {
-
-        bool creado =
-            agregarJugador(
-                cmd.get_nick(),
-                10,
-                10,
-                cmd.get_raza(),
-                cmd.get_clase());
-
+        bool creado = agregarJugador(
+                cmd.get_nick(), 1, 10, 10,
+                cmd.get_raza(), cmd.get_clase());
         if (creado) {
-
-            player_id_to_nick[cmd.get_player_id()] =
-                cmd.get_nick();
-
-            snapshots.push_back(
-                build_entity_move_snapshot(
-                    cmd.get_nick()));
+            player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
+            snapshots.push_back(build_entity_move_snapshot(cmd.get_nick()));
         }
-
         return snapshots;
     }
 
     if (cmd.is_disconnect()) {
-
-        const std::string nombre =
-            getNombreJugadorPorComando(cmd);
-
+        const std::string nombre = getNombreJugadorPorComando(cmd);
         if (!nombre.empty()) {
-
             removerJugador(nombre);
-
-            player_id_to_nick.erase(
-                cmd.get_player_id());
-
-            snapshots.push_back(
-                Snapshot::entity_remove(nombre));
+            player_id_to_nick.erase(cmd.get_player_id());
+            snapshots.push_back(Snapshot::entity_remove(nombre));
         }
-
         return snapshots;
     }
 
-    const std::string nombre =
-        getNombreJugadorPorComando(cmd);
-
-    if (nombre.empty()) {
-        return snapshots;
-    }
+    const std::string nombre = getNombreJugadorPorComando(cmd);
+    if (nombre.empty()) return snapshots;
 
     switch (cmd.get_type()) {
-
         case CommandType::Move: {
-
-            bool moved =
-                moverJugador(
-                    nombre,
-                    static_cast<Direccion>(
-                        cmd.get_direction()));
-
+            bool moved = moverJugador(nombre,
+                static_cast<Direccion>(cmd.get_direction()));
             if (moved) {
-                snapshots.push_back(
-                    build_entity_move_snapshot(nombre));
+                snapshots.push_back(build_entity_move_snapshot(nombre));
             }
-
             break;
         }
-
         case CommandType::PickItem:
-
             if (tomarItem(nombre, 0)) {
                 // TODO: devolver INVENTORY_UPDATE
             }
-
             break;
-
         case CommandType::DropItem:
-
             if (tirarItem(nombre, cmd.get_item_id())) {
                 // TODO: devolver INVENTORY_UPDATE
             }
-
             break;
-
         default:
             break;
     }
-
     return snapshots;
 }
 
-bool Game::agregarJugador(
-    const std::string& nombre,
-    int posX,
-    int posY,
-    const std::string& razaNombre,
-    const std::string& claseNombre) {
+bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
+    if (atacante->getNivel() <= 12 || objetivo->getNivel() <= 12) return false;
+    if (std::abs(atacante->getNivel() - objetivo->getNivel()) > 10) return false;
+    return true;
+}
 
-    if (jugadores.count(nombre))
-        return false;
+bool Game::agregarJugador(const std::string& nombre, int mapaId, int posX, int posY,
+                           const std::string& razaNombre, const std::string& claseNombre) {
+    if (jugadores.count(nombre)) return false;
 
     auto itRaza =
         razas.find(razaNombre);
-
+  
     auto itClase =
         clases.find(claseNombre);
 
@@ -203,35 +170,23 @@ bool Game::agregarJugador(
         itClase == clases.end())
         return false;
 
-    auto jugador =
-        std::make_unique<Jugador>(
-            nombre,
-            posX,
-            posY,
-            itRaza->second.get(),
-            itClase->second.get());
+    auto jugador = std::make_unique<Jugador>(
+        nombre, posX, posY,
+        itRaza->second.get(),
+        itClase->second.get()
+    );
+    jugador->setMapaId(mapaId);
 
-    mapa.agregarPersonaje(
-        jugador.get());
-
-    jugadores[nombre] =
-        std::move(jugador);
-
+    mundo.agregarPersonaje(jugador.get());
+    jugadores[nombre] = std::move(jugador);
     return true;
 }
 
-void Game::removerJugador(
-    const std::string& nombre) {
+void Game::removerJugador(const std::string& nombre) {
+    auto it = jugadores.find(nombre);
+    if (it == jugadores.end()) return;
 
-    auto it =
-        jugadores.find(nombre);
-
-    if (it == jugadores.end())
-        return;
-
-    mapa.removerPersonaje(
-        it->second.get());
-
+    mundo.removerPersonaje(it->second.get());
     jugadores.erase(it);
 }
 
@@ -270,10 +225,89 @@ bool Game::moverJugador(
         return false;
 
     jugador->interrumpirMeditacion();
+    return mundo.moverPersonaje(jugador, dir);
+}
 
-    return mapa.moverPersonaje(
-        jugador,
-        dir);
+ResultadoAtaque Game::atacar(const std::string& nombreAtacante, const std::string& nombreObjetivo) {
+    ResultadoAtaque resultado{false, 0, false, false, false};
+
+    Jugador* atacante = getJugador(nombreAtacante);
+    Jugador* objetivo = getJugador(nombreObjetivo);
+    if (!atacante || !objetivo || !atacante->estaVivo() || !objetivo->estaVivo()) return resultado;
+    if (nombreAtacante == nombreObjetivo) return resultado;
+
+    // Fair Play
+    if (!puedeAtacarJugador(atacante, objetivo)) return resultado;
+
+    resultado.exito = true;
+
+    // Daño base
+    int fuerza = atacante->getFuerza();
+    const Arma* arma = atacante->getInventario().getArmaEquipada();
+    int danio;
+    if (arma) {
+        danio = Formulas::calcularDanio(fuerza, arma->getDanioMin(), arma->getDanioMax());
+    } else {
+        danio = fuerza;
+    }
+
+    // Critico
+    resultado.fueCritico = Formulas::calcularCritico();
+    if (resultado.fueCritico) {
+        danio *= 2;
+    }
+
+    // Esquive
+    if (!resultado.fueCritico) {
+        resultado.fueEsquivado = Formulas::calcularEsquive(objetivo->getAgilidad());
+    }
+
+    if (resultado.fueEsquivado) {
+        resultado.danioAplicado = 0;
+        return resultado;
+    }
+
+    // Defensa
+    const Armadura* armadura = objetivo->getInventario().getArmaduraEquipada();
+    const Casco* casco = objetivo->getInventario().getCascoEquipado();
+    const Escudo* escudo = objetivo->getInventario().getEscudoEquipado();
+
+    int defensa = Formulas::calcularDefensa(
+        armadura ? armadura->getDefensaMin() : 0,
+        armadura ? armadura->getDefensaMax() : 0,
+        escudo ? escudo->getDefensaMin() : 0,
+        escudo ? escudo->getDefensaMax() : 0,
+        casco ? casco->getDefensaMin() : 0,
+        casco ? casco->getDefensaMax() : 0
+    );
+
+    int danioFinal = std::max(0, danio - defensa);
+    resultado.danioAplicado = danioFinal;
+
+    objetivo->recibirDanio(danioFinal);
+
+    // Experiencia
+    int exp = Formulas::calcularExpAtaque(danioFinal, objetivo->getNivel(), atacante->getNivel());
+    atacante->ganarExperiencia(exp);
+
+    // Muerte
+    resultado.objetivoMurio = !objetivo->estaVivo();
+    if (resultado.objetivoMurio) {
+        int expMatar = Formulas::calcularExpMatar(
+            objetivo->getVidaMax(),
+            objetivo->getNivel(),
+            atacante->getNivel()
+        );
+        atacante->ganarExperiencia(expMatar);
+
+        // Drop items al piso
+        auto items = objetivo->soltarTodosLosItems();
+        for (auto& item : items) {
+            mundo.tirarItem(objetivo->getMapaId(), objetivo->getPosX(), objetivo->getPosY(), std::move(item));
+        }
+    }
+
+    return resultado;
 }
 
 void Game::tick(float dt) {
@@ -287,22 +321,12 @@ void Game::tick(float dt) {
     // tick de criaturas
 }
 
-const Mapa& Game::getMapa() const {
+const Mundo& Game::getMundo() const { return mundo; }
 
-    return mapa;
-}
+bool Game::tirarItem(const std::string& nombre, int indice, int cantidad) {
+    Jugador* jugador = getJugador(nombre);
 
-bool Game::tirarItem(
-    const std::string& nombre,
-    int indice,
-    int cantidad) {
-
-    Jugador* jugador =
-        getJugador(nombre);
-
-    if (!jugador ||
-        !jugador->estaVivo())
-        return false;
+    if (!jugador || !jugador->estaVivo()) return false;
 
     auto slot =
         jugador->soltarItem(
@@ -312,11 +336,7 @@ bool Game::tirarItem(
     if (!slot)
         return false;
 
-    mapa.tirarItem(
-        jugador->getPosX(),
-        jugador->getPosY(),
-        std::move(*slot));
-
+    mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(), jugador->getPosY(), std::move(*slot));
     return true;
 }
 
@@ -334,18 +354,11 @@ bool Game::tomarItem(
     if (jugador->getInventario().estaLleno())
         return false;
 
-    auto slot =
-        mapa.tomarItemEnPosicion(
-            jugador->getPosX(),
-            jugador->getPosY(),
-            indice);
-
-    if (!slot)
-        return false;
-
-    jugador->agarrarItem(
-        std::move(slot->item),
-        slot->cantidad);
+    auto slot = mundo.tomarItemEnPosicion(jugador->getMapaId(), jugador->getPosX(), jugador->getPosY(), indice);
+    
+    if (!slot) return false;
+  
+    jugador->agarrarItem(std::move(slot->item), slot->cantidad);
 
     return true;
 }

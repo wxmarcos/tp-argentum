@@ -13,20 +13,20 @@ int Formulas::calcularManaMax(int inteligencia, float fClaseMana, float fRazaMan
 }
 
 // ------------- Recuperacion pasiva -------------
-int Formulas::calcularRecuperacionVida(int fRazaRecuperacion, float dt) {
-    return static_cast<int>(fRazaRecuperacion * dt);
+float Formulas::calcularRecuperacionVida(float fRazaRecuperacion, float dt) {
+    return fRazaRecuperacion * dt;
 }
 
-int Formulas::calcularRecuperacionMana(int fRazaRecuperacion, float dt) {
-    return static_cast<int>(fRazaRecuperacion * dt);
+float Formulas::calcularRecuperacionMana(float fRazaRecuperacion, float dt) {
+    return fRazaRecuperacion * dt;
 }
 
-int Formulas::calcularRecuperacionManaMeditando(int fClaseMeditacion, int inteligencia, float dt) {
-    return static_cast<int>(fClaseMeditacion * inteligencia * dt);
+float Formulas::calcularRecuperacionManaMeditando(float fClaseMeditacion, int inteligencia, float dt) {
+    return fClaseMeditacion * inteligencia * dt;
 }
 
 //------------- Combate - Ataque -------------
-int Formulas::calcularDanio(int fuerza, float danioMin, float danioMax) {
+int Formulas::calcularDanio(int fuerza, int danioMin, int danioMax) {
     if (danioMin > danioMax) return 0;
     int rango = danioMax - danioMin + 1;
     int tirada = danioMin + (rand() % rango);
@@ -60,11 +60,14 @@ int Formulas::calcularLimiteExp(int nivel) {
 }
 int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio) {
     if (nivelPropio <= 0) return 0;
-    return static_cast<int>((danio * static_cast<double>(nivelOtro)) / nivelPropio);
+    int factor = std::max(nivelOtro - nivelPropio + 10, 0);
+    return danio * factor;
 }
 int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro, int nivelPropio) {
     if (nivelPropio <= 0) return 0;
-    return static_cast<int>((vidaMaxOtro * static_cast<double>(nivelOtro)) / nivelPropio);
+    int factor = std::max(nivelOtro - nivelPropio + 10, 0);
+    double r = (static_cast<double>(rand()) / RAND_MAX) * 0.1;
+    return static_cast<int>(r * vidaMaxOtro * factor);
 }
 
 // Oro

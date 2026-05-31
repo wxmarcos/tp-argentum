@@ -9,7 +9,7 @@
 #include <optional>
 
 Inventario::Inventario()
-    : armaEquipada(nullptr), armaduraEquipada(nullptr),
+    : armaOBaculoEquipado(nullptr), armaduraEquipada(nullptr),
       cascoEquipado(nullptr), escudoEquipado(nullptr) {}
 
 bool Inventario::estaLleno() const {
@@ -47,7 +47,7 @@ std::optional<SlotInventario> Inventario::soltar(int indice, int cantidad) {
 
     if (cantidadASoltar == slot.cantidad) {
         Item* item = slot.item.get();
-        if (item == armaEquipada) desequiparArma();
+        if (item == armaOBaculoEquipado) desequiparArmaOBaculo();
         if (item == armaduraEquipada) desequiparArmadura();
         if (item == cascoEquipado) desequiparCasco();
         if (item == escudoEquipado) desequiparEscudo();
@@ -63,7 +63,7 @@ std::optional<SlotInventario> Inventario::soltar(int indice, int cantidad) {
 }
 
 std::vector<SlotInventario> Inventario::soltarTodo() {
-    desequiparArma();
+    desequiparArmaOBaculo();
     desequiparArmadura();
     desequiparCasco();
     desequiparEscudo();
@@ -79,7 +79,14 @@ std::vector<SlotInventario> Inventario::soltarTodo() {
 bool Inventario::equiparArma(int indice) {
     if (indice < 0 || indice >= (int)slots.size()) return false;
     if (slots[indice].item->getTipo() != TipoItem::ARMA) return false;
-    armaEquipada = static_cast<Arma*>(slots[indice].item.get());
+    armaOBaculoEquipado = slots[indice].item.get();
+    return true;
+}
+
+bool Inventario::equiparBaculo(int indice) {
+    if (indice < 0 || indice >= (int)slots.size()) return false;
+    if (slots[indice].item->getTipo() != TipoItem::BACULO) return false;
+    armaOBaculoEquipado = slots[indice].item.get();
     return true;
 }
 
@@ -104,22 +111,52 @@ bool Inventario::equiparEscudo(int indice) {
     return true;
 }
 
-void Inventario::desequiparArma() { armaEquipada = nullptr; }
+void Inventario::desequiparArmaOBaculo() { armaOBaculoEquipado = nullptr; }
 void Inventario::desequiparArmadura() { armaduraEquipada = nullptr; }
 void Inventario::desequiparCasco() { cascoEquipado = nullptr; }
 void Inventario::desequiparEscudo() { escudoEquipado = nullptr; }
 
-const Arma* Inventario::getArmaEquipada() const { return armaEquipada; }
+const Arma* Inventario::getArmaEquipada() const {
+    if (!armaOBaculoEquipado || armaOBaculoEquipado->getTipo() != TipoItem::ARMA) return nullptr;
+    return static_cast<const Arma*>(armaOBaculoEquipado);
+}
+const Baculo* Inventario::getBaculoEquipado() const {
+    if (!armaOBaculoEquipado || armaOBaculoEquipado->getTipo() != TipoItem::BACULO) return nullptr;
+    return static_cast<const Baculo*>(armaOBaculoEquipado);
+}
 const Armadura* Inventario::getArmaduraEquipada() const { return armaduraEquipada; }
 const Casco* Inventario::getCascoEquipado() const { return cascoEquipado; }
 const Escudo* Inventario::getEscudoEquipado() const { return escudoEquipado; }
 
-int Inventario::calcularDefensaTotal() const {
-    int total = 0;
-    if (armaduraEquipada) total += armaduraEquipada->getDefensa();
-    if (cascoEquipado) total += cascoEquipado->getDefensa();
-    if (escudoEquipado) total += escudoEquipado->getDefensa();
-    return total;
+std::pair<int, int> Inventario::calcularRangoDefensa() const {
+    int min = 0;
+    int max = 0;
+    if (armaduraEquipada) {
+        min += armaduraEquipada->getDefensaMin();
+        max += armaduraEquipada->getDefensaMax();
+    }
+    if (cascoEquipado) {
+        min += cascoEquipado->getDefensaMin();
+        max += cascoEquipado->getDefensaMax();
+    }
+    if (escudoEquipado) {
+        min += escudoEquipado->getDefensaMin();
+        max += escudoEquipado->getDefensaMax();
+    }
+    return {min, max};
+}
+
+std::pair<int, int> Inventario::calcularRangoAtaque() const {
+    if (!armaOBaculoEquipado) return {0, 0};
+    if (armaOBaculoEquipado->getTipo() == TipoItem::ARMA) {
+        const Arma* arma = static_cast<const Arma*>(armaOBaculoEquipado);
+        return {arma->getDanioMin(), arma->getDanioMax()};
+    }
+    if (armaOBaculoEquipado->getTipo() == TipoItem::BACULO) {
+        const Baculo* baculo = static_cast<const Baculo*>(armaOBaculoEquipado);
+        return {baculo->getEfectoMin(), baculo->getEfectoMax()};
+    }
+    return {0, 0};
 }
 
 bool Inventario::usarPocion(int indice, Jugador& jugador) {

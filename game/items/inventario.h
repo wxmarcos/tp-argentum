@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include "item.h"
+#include "baculo.h"
 
 class Arma;
 class Armadura;
@@ -23,7 +24,7 @@ private:
     static constexpr int CAPACIDAD_MAX = 30;        // TODO: cargar desde Config
 
     std::vector<SlotInventario> slots;
-    Arma* armaEquipada;
+    Item* armaOBaculoEquipado;
     Armadura* armaduraEquipada;
     Casco* cascoEquipado;
     Escudo* escudoEquipado;
@@ -42,21 +43,24 @@ public:
     std::vector<SlotInventario> soltarTodo();
 
     bool equiparArma(int indice);
+    bool equiparBaculo(int indice);
     bool equiparArmadura(int indice);
     bool equiparCasco(int indice);
     bool equiparEscudo(int indice);
 
-    void desequiparArma();
+    void desequiparArmaOBaculo();
     void desequiparArmadura();
     void desequiparCasco();
     void desequiparEscudo();
 
     const Arma* getArmaEquipada() const;
+    const Baculo* getBaculoEquipado() const;
     const Armadura* getArmaduraEquipada() const;
     const Casco* getCascoEquipado() const;
     const Escudo* getEscudoEquipado() const;
 
-    int calcularDefensaTotal() const;
+    std::pair<int, int> calcularRangoDefensa() const;
+    std::pair<int, int> calcularRangoAtaque() const;
 
     bool usarPocion(int indice, Jugador& jugador);
 };
