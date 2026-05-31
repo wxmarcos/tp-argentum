@@ -8,6 +8,7 @@ target_sources(taller_client
     game/client_game_state.cpp
     input/input_handler.cpp
     render/world_renderer.cpp
+    render/texture_manager.cpp
     audio/audio_manager.cpp
     config/client_config.cpp
 
@@ -20,6 +21,7 @@ target_sources(taller_client
     game/client_game_state.h
     input/input_handler.h
     render/world_renderer.h
+    render/texture_manager.h
     audio/audio_manager.h
     config/client_config.h
     )
