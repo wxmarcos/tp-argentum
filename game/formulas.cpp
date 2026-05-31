@@ -25,6 +25,18 @@ int Formulas::calcularRecuperacionManaMeditando(int fClaseMeditacion, int inteli
     return static_cast<int>(fClaseMeditacion * inteligencia * dt);
 }
 
+float Formulas::calcularRecuperacionVidaF(float fRazaRecuperacion, float dt) {
+    return fRazaRecuperacion * dt;
+}
+
+float Formulas::calcularRecuperacionManaF(float fRazaRecuperacion, float dt) {
+    return fRazaRecuperacion * dt;
+}
+
+float Formulas::calcularRecuperacionManaMeditandoF(float fClaseMeditacion, int inteligencia, float dt) {
+    return fClaseMeditacion * inteligencia * dt;
+}
+
 //------------- Combate - Ataque -------------
 int Formulas::calcularDanio(int fuerza, float danioMin, float danioMax) {
     if (danioMin > danioMax) return 0;

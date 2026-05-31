@@ -13,6 +13,10 @@ public:
     static int calcularRecuperacionMana(int fRazaRecuperacion, float dt);
     static int calcularRecuperacionManaMeditando(int fClaseMeditacion, int inteligencia, float dt);
 
+    static float calcularRecuperacionVidaF(float fRazaRecuperacion, float dt);
+    static float calcularRecuperacionManaF(float fRazaRecuperacion, float dt);
+    static float calcularRecuperacionManaMeditandoF(float fClaseMeditacion, int inteligencia, float dt);
+
     // Combate - Ataque
     static int calcularDanio(int fuerza, float danioMin, float danioMax);
     static bool calcularEsquive(int agilidad);
