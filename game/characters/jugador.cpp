@@ -6,7 +6,7 @@
 #include <optional>
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
-                 const Raza* raza, const charClase* clase)
+                 const Raza* raza, const CharClase* clase)
     : Character(nombre, posX, posY, 1),
       raza(raza),
       clase(clase),
@@ -33,7 +33,7 @@ void Jugador::recalcularStats() {
 }
 
 const Raza* Jugador::getRaza() const { return raza; }
-const charClase* Jugador::getClase() const { return clase; }
+const CharClase* Jugador::getClase() const { return clase; }
 int Jugador::getConstitucion() const { return constitucion; }
 int Jugador::getInteligencia() const { return inteligencia; }
 int Jugador::getFuerza() const { return fuerza; }

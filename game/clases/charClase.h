@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-class charClase {
+class CharClase {
 public:
     virtual std::string getNombre() const = 0;
     virtual float getFClaseVida() const = 0;
@@ -9,5 +9,5 @@ public:
     virtual float getFClaseMeditacion() const = 0;
     virtual bool puedeMeditar() const = 0;
     virtual bool puedeUsarMagia() const = 0;
-    virtual ~charClase() = default;
+    virtual ~CharClase() = default;
 };

@@ -7,7 +7,7 @@
 class Jugador : public Character {
 private:
     const Raza* raza;
-    const charClase* clase;
+    const CharClase* clase;
     int constitucion;
     int inteligencia;
     int fuerza;
@@ -28,11 +28,11 @@ private:
 
 public:
     Jugador(const std::string& nombre, int posX, int posY,
-            const Raza* raza, const charClase* clase);
+            const Raza* raza, const CharClase* clase);
 
 
     const Raza* getRaza() const;
-    const charClase* getClase() const;
+    const CharClase* getClase() const;
     int getConstitucion() const;
     int getInteligencia() const;
     int getFuerza() const;
