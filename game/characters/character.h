@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-enum class Direccion { NORTE, SUR, ESTE, OESTE };
+enum class Direccion { NORTE, ESTE, SUR, OESTE };
 
 class Character {
 protected:
