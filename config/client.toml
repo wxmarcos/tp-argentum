@@ -1,0 +1,27 @@
+[server]
+host = "localhost"
+port = "8080"
+
+[window]
+width = 800
+height = 600
+fullscreen = false
+title = "Argentum Online"
+
+[render]
+tile_size = 32
+
+[world]
+map_width = 50
+map_height = 50
+start_x = 25
+start_y = 25
+
+[audio]
+music_volume = 64
+effects_volume = 96
+
+[character]
+nick = "Messi"
+raza = "humano"
+clase = "mago"

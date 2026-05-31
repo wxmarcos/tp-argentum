@@ -145,6 +145,7 @@ if(TALLER_CLIENT)
        SDL2_image::SDL2_image
        SDL2_mixer::SDL2_mixer
        SDL2_ttf::SDL2_ttf
+       tomlplusplus::tomlplusplus
    )
 endif()
 

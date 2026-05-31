@@ -10,6 +10,7 @@ target_sources(taller_client
     render/world_renderer.cpp
     audio/audio_manager.cpp
     protocol/wire_reader.cpp
+    config/client_config.cpp
 
     PUBLIC
     ui/client_app.h

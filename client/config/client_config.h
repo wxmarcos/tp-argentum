@@ -26,9 +26,7 @@ struct ClientConfig {
     std::string character_raza = "humano";
     std::string character_clase = "mago";
 
-    static ClientConfig load() {
-        return ClientConfig{};
-    }
+    static ClientConfig load();
 };
 
 #endif
