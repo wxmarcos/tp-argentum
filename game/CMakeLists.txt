@@ -38,14 +38,16 @@ target_sources(taller_game PRIVATE
     criaturas/orco.cpp
     criaturas/golem.cpp
 
-    # Items (stubs por ahora)
+    # Items
     items/item.cpp
     items/arma.cpp
+    items/baculo.cpp
     items/armadura.cpp
     items/casco.cpp
     items/escudo.cpp
     items/pocion.cpp
     items/inventario.cpp
+    items/itemFactory.cpp
 
     # Banco
     banco/cuentaBanco.cpp
