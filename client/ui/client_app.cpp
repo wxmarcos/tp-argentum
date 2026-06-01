@@ -65,18 +65,21 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
                           WorldRenderer& renderer, ClientGameState& state) {
     const Uint32 frame_delay_ms = 1000 / 60;
     bool running = true;
+    Uint32 last_ticks = SDL_GetTicks();
 
     while (running) {
-        Uint32 frame_start = SDL_GetTicks();
+        const Uint32 now = SDL_GetTicks();
+        const Uint32 delta_ms = now - last_ticks;
+        last_ticks = now;
 
         running = process_input(connection, input);
         if (running) {
             running = process_updates(connection, state);
         }
 
-        renderer.render(state);
+        renderer.render(state, delta_ms);
 
-        Uint32 elapsed = SDL_GetTicks() - frame_start;
+        const Uint32 elapsed = SDL_GetTicks() - now;
         if (elapsed < frame_delay_ms) {
             SDL_Delay(frame_delay_ms - elapsed);
         }

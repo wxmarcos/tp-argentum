@@ -11,6 +11,7 @@ target_sources(taller_client
     render/texture_manager.cpp
     render/animation.cpp
     render/character_animator.cpp
+    render/sprite_registry.cpp
     audio/audio_manager.cpp
     config/client_config.cpp
 
@@ -26,6 +27,8 @@ target_sources(taller_client
     render/texture_manager.h
     render/animation.h
     render/character_animator.h
+    render/sprite_data.h
+    render/sprite_registry.h
     audio/audio_manager.h
     config/client_config.h
     )

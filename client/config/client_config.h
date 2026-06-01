@@ -14,6 +14,8 @@ struct ClientConfig {
 
     int tile_size = 32;
 
+    std::string assets_path = "assets/graficos";
+
     int map_width = 50;
     int map_height = 50;
 

@@ -66,6 +66,7 @@ ClientConfig ClientConfig::load() {
     read_field(tbl, "window", "title", cfg.window_title);
 
     read_field(tbl, "render", "tile_size", cfg.tile_size);
+    read_field(tbl, "render", "assets_path", cfg.assets_path);
 
     read_field(tbl, "world", "map_width", cfg.map_width);
     read_field(tbl, "world", "map_height", cfg.map_height);
