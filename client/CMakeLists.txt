@@ -1,30 +1,34 @@
 target_sources(taller_client
     PRIVATE
-    # .cpp files
     main.cpp
     ui/client_app.cpp
     net/client_sender.cpp
     net/client_receiver.cpp
     net/server_connection.cpp
-    protocol/protocol.cpp
     game/client_game_state.cpp
     input/input_handler.cpp
     render/world_renderer.cpp
+    render/texture_manager.cpp
+    render/animation.cpp
+    render/character_animator.cpp
+    render/sprite_registry.cpp
     audio/audio_manager.cpp
-    
+    config/client_config.cpp
+
     PUBLIC
-    # .h files
     ui/client_app.h
     net/client_sender.h
     net/client_receiver.h
     net/server_connection.h
-    protocol/protocol.h
-    protocol/protocol_defs.h
-    protocol/client_command.h
     protocol/game_update.h
     game/client_game_state.h
     input/input_handler.h
     render/world_renderer.h
+    render/texture_manager.h
+    render/animation.h
+    render/character_animator.h
+    render/sprite_data.h
+    render/sprite_registry.h
     audio/audio_manager.h
     config/client_config.h
     )

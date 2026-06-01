@@ -313,6 +313,14 @@ Command Command::disconnect() {
     return Command(0, CommandType::Disconnect);
 }
 
+Command Command::create_character(const std::string& nick, const std::string& raza, const std::string& clase) {
+    Command cmd(0, CommandType::CreateCharacter);
+    cmd.nick = nick;
+    cmd.raza = raza;
+    cmd.clase = clase;
+    return cmd;
+}
+
 bool Command::is_disconnect() const {
     return type == CommandType::Disconnect;
 }

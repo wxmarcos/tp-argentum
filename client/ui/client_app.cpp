@@ -2,15 +2,16 @@
 
 #include <exception>
 #include <iostream>
+#include <utility>
 
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
 #include "audio/audio_manager.h"
+#include "common/command.h"
 #include "game/client_game_state.h"
 #include "input/input_handler.h"
 #include "net/server_connection.h"
-#include "protocol/client_command.h"
 #include "protocol/game_update.h"
 #include "render/world_renderer.h"
 
@@ -37,15 +38,19 @@ int ClientApp::run() {
         AudioManager audio(config);
         WorldRenderer world_renderer(renderer, config);
         InputHandler input;
-        ClientGameState state(config.start_x, config.start_y, config.map_width,
-                              config.map_height);
+        ClientGameState state(config.character_nick, config.map_width,
+                      config.map_height);
 
         ServerConnection connection(config.server_host, config.server_port);
         std::cout << "[Client] Conectado a " << config.server_host << ":"
                   << config.server_port << "\n";
-
+        
+        connection.send(Command::create_character(config.character_nick,
+                                                   config.character_raza,
+                                                   config.character_clase));
         main_loop(connection, input, world_renderer, state);
-
+        
+        connection.send(Command::disconnect());
         connection.stop();
         std::cout << "[Client] Cerrado limpiamente.\n";
         return 0;
@@ -60,18 +65,21 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
                           WorldRenderer& renderer, ClientGameState& state) {
     const Uint32 frame_delay_ms = 1000 / 60;
     bool running = true;
+    Uint32 last_ticks = SDL_GetTicks();
 
     while (running) {
-        Uint32 frame_start = SDL_GetTicks();
+        const Uint32 now = SDL_GetTicks();
+        const Uint32 delta_ms = now - last_ticks;
+        last_ticks = now;
 
         running = process_input(connection, input);
         if (running) {
             running = process_updates(connection, state);
         }
 
-        renderer.render(state);
+        renderer.render(state, delta_ms);
 
-        Uint32 elapsed = SDL_GetTicks() - frame_start;
+        const Uint32 elapsed = SDL_GetTicks() - now;
         if (elapsed < frame_delay_ms) {
             SDL_Delay(frame_delay_ms - elapsed);
         }
@@ -89,10 +97,8 @@ bool ClientApp::process_input(ServerConnection& connection,
             if (event.key.keysym.sym == SDLK_ESCAPE) {
                 return false;
             }
-            ClientCommand cmd;
+            Command cmd(0, CommandType::Disconnect);
             if (input.process_key(event.key, cmd)) {
-                // El cliente NO mueve al personaje: solo manda el comando.
-                // La posicion cambia cuando el server confirma.
                 connection.send(cmd);
             }
         }
@@ -102,6 +108,7 @@ bool ClientApp::process_input(ServerConnection& connection,
 
 bool ClientApp::process_updates(ServerConnection& connection,
                                 ClientGameState& state) {
+    state.begin_frame();
     GameUpdate update;
     while (connection.poll_update(update)) {
         if (update.disconnect) {
