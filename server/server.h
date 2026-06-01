@@ -36,9 +36,7 @@ public:
         gameloop(
             commands_queue,
             clients,
-            game_config,
-            ServerConfig::MAP_WIDTH,
-            ServerConfig::MAP_HEIGHT) {}
+            game_config) {}
 
     void start() {
         acceptor.start();

@@ -9,12 +9,10 @@
 GameLoop::GameLoop(
     Queue<Command>& commands_queue,
     std::vector<std::unique_ptr<ClientHandler>>& clients,
-    Config& config,
-    int anchoMapa,
-    int altoMapa)
+    Config& config)
     : commands_queue(commands_queue),
       clients(clients),
-      game(config, anchoMapa, altoMapa) {}
+      game(config) {}
 
 void GameLoop::run() {
 

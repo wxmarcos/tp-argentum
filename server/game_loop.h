@@ -28,9 +28,7 @@ public:
     GameLoop(
         Queue<Command>& commands_queue,
         std::vector<std::unique_ptr<ClientHandler>>& clients,
-        Config& config,
-        int anchoMapa,
-        int altoMapa);
+        Config& config);
 
     void run() override;
 
