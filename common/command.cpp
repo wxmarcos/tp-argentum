@@ -135,7 +135,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
             break;
 
         case CommandType::Attack:
-            cmd.target_id = read_u32(payload, offset);
+            cmd.nick = read_string(payload, offset);
             break;
 
         case CommandType::Meditate:
@@ -238,7 +238,7 @@ void Command::send(Socket& socket) const {
             break;
 
         case CommandType::Attack:
-            push_u32(target_id);
+            push_string(nick);
             break;
 
         case CommandType::DropItem:
@@ -303,9 +303,9 @@ Command Command::move(uint8_t direction) {
     return cmd;
 }
 
-Command Command::attack(uint32_t target_id) {
+Command Command::attack(const std::string& nick) {
     Command cmd(0, CommandType::Attack);
-    cmd.target_id = target_id;
+    cmd.nick = nick;
     return cmd;
 }
 

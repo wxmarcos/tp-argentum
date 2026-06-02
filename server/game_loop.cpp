@@ -66,30 +66,54 @@ void GameLoop::run() {
     std::cout << "[GameLoop] finalizado\n";
 }
 
-void GameLoop::broadcast_snapshot(
-    const Snapshot& snapshot) {
-
-    std::cout
-        << "[GameLoop] Broadcast opcode="
-        << static_cast<int>(
-            snapshot.get_opcode())
-        << " nick="
-        << snapshot.get_nick();
-
+void GameLoop::broadcast_snapshot(const Snapshot& snapshot) {
     if (snapshot.is_entity_move()) {
-
         std::cout
+            << "[GameLoop] Broadcast ENTITY_MOVE "
+            << "nick=" << snapshot.get_nick()
             << " x=" << snapshot.get_x()
             << " y=" << snapshot.get_y()
-            << " dir="
-            << static_cast<int>(
-                snapshot.get_direction());
+            << " dir=" << static_cast<int>(snapshot.get_direction())
+            << "\n";
+
+    } else if (snapshot.is_entity_remove()) {
+        std::cout
+            << "[GameLoop] Broadcast ENTITY_REMOVE "
+            << "nick=" << snapshot.get_nick()
+            << "\n";
+
+    } else if (snapshot.is_damage_event()) {
+        std::cout
+            << "[GameLoop] Broadcast DAMAGE_EVENT "
+            << snapshot.get_attacker()
+            << " -> "
+            << snapshot.get_target()
+            << " damage=" << snapshot.get_damage()
+            << " critical=" << snapshot.is_critical()
+            << "\n";
+
+    } else if (snapshot.is_dodge_event()) {
+        std::cout
+            << "[GameLoop] Broadcast DODGE_EVENT "
+            << snapshot.get_attacker()
+            << " -> "
+            << snapshot.get_target()
+            << "\n";
+
+    } else if (snapshot.is_death_event()) {
+        std::cout
+            << "[GameLoop] Broadcast DEATH_EVENT "
+            << "target=" << snapshot.get_target()
+            << "\n";
+
+    } else {
+        std::cout
+            << "[GameLoop] Broadcast opcode="
+            << static_cast<int>(snapshot.get_opcode())
+            << "\n";
     }
 
-    std::cout << "\n";
-
     for (auto& client : clients) {
-
         if (client) {
             client->push(snapshot);
         }

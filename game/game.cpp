@@ -144,6 +144,43 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 // TODO: devolver INVENTORY_UPDATE
             }
             break;
+        case CommandType::Attack: {
+            const std::string objetivo = cmd.get_nick();
+
+            ResultadoAtaque resultado = atacar(nombre, objetivo);
+
+            if (!resultado.exito) {
+                break;
+            }
+
+            if (resultado.fueEsquivado) {
+                snapshots.push_back(
+                    Snapshot::dodge_event(nombre, objetivo)
+                );
+                break;
+            }
+
+            snapshots.push_back(
+                Snapshot::damage_event(
+                    nombre,
+                    objetivo,
+                    static_cast<uint16_t>(resultado.danioAplicado),
+                    resultado.fueCritico
+                )
+            );
+
+            if (resultado.objetivoMurio) {
+                snapshots.push_back(
+                    Snapshot::death_event(objetivo)
+                );
+
+                snapshots.push_back(
+                    Snapshot::entity_remove(objetivo)
+                );
+            }
+
+        break;
+    }
         default:
             break;
     }
@@ -235,7 +272,7 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante, const std::strin
     Jugador* objetivo = getJugador(nombreObjetivo);
     if (!atacante || !objetivo || !atacante->estaVivo() || !objetivo->estaVivo()) return resultado;
     if (nombreAtacante == nombreObjetivo) return resultado;
-
+    
     // Fair Play
     if (!puedeAtacarJugador(atacante, objetivo)) return resultado;
 

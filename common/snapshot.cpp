@@ -5,7 +5,62 @@
 
 #include <arpa/inet.h>
 #include <stdexcept>
-#include <vector>
+#include <string>
+
+static void send_u8(Socket& socket, uint8_t value) {
+    socket.sendall(&value, sizeof(value));
+}
+
+static void send_u16(Socket& socket, uint16_t value) {
+    uint16_t net_value = htons(value);
+    socket.sendall(&net_value, sizeof(net_value));
+}
+
+static uint8_t recv_u8(Socket& socket) {
+    uint8_t value;
+
+    int received = socket.recvall(&value, sizeof(value));
+    if (received == 0) {
+        throw std::runtime_error("socket cerrado leyendo uint8");
+    }
+
+    return value;
+}
+
+static uint16_t recv_u16(Socket& socket) {
+    uint16_t net_value;
+
+    int received = socket.recvall(&net_value, sizeof(net_value));
+    if (received == 0) {
+        throw std::runtime_error("socket cerrado leyendo uint16");
+    }
+
+    return ntohs(net_value);
+}
+
+static void send_string(Socket& socket, const std::string& value) {
+    send_u16(socket, static_cast<uint16_t>(value.size()));
+
+    if (!value.empty()) {
+        socket.sendall(value.data(), value.size());
+    }
+}
+
+static std::string recv_string(Socket& socket) {
+    uint16_t len = recv_u16(socket);
+
+    std::string value;
+    value.resize(len);
+
+    if (len > 0) {
+        int received = socket.recvall(value.data(), len);
+        if (received == 0) {
+            throw std::runtime_error("socket cerrado leyendo string");
+        }
+    }
+
+    return value;
+}
 
 Snapshot::Snapshot(
     protocol::ServerOpcode opcode,
@@ -33,228 +88,218 @@ Snapshot Snapshot::entity_move(
         direction);
 }
 
-Snapshot Snapshot::entity_remove(
-    const std::string& nick) {
+Snapshot Snapshot::entity_remove(const std::string& nick) {
+    return Snapshot(protocol::ServerOpcode::ENTITY_REMOVE, nick);
+}
 
-    return Snapshot(
-        protocol::ServerOpcode::ENTITY_REMOVE,
-        nick);
+Snapshot Snapshot::damage_event(
+    const std::string& attacker,
+    const std::string& target,
+    uint16_t damage,
+    bool critical) {
+
+    Snapshot snapshot(protocol::ServerOpcode::DAMAGE_EVENT, "");
+
+    snapshot.attacker = attacker;
+    snapshot.target = target;
+    snapshot.damage = damage;
+    snapshot.critical = critical;
+
+    return snapshot;
+}
+
+Snapshot Snapshot::dodge_event(
+    const std::string& attacker,
+    const std::string& target) {
+
+    Snapshot snapshot(protocol::ServerOpcode::DODGE_EVENT, "");
+
+    snapshot.attacker = attacker;
+    snapshot.target = target;
+
+    return snapshot;
+}
+
+Snapshot Snapshot::death_event(const std::string& target) {
+    Snapshot snapshot(protocol::ServerOpcode::DEATH_EVENT, target);
+
+    snapshot.target = target;
+
+    return snapshot;
 }
 
 void Snapshot::send(Socket& socket) const {
-
-    uint8_t raw_opcode =
-        static_cast<uint8_t>(opcode);
+    uint8_t raw_opcode = static_cast<uint8_t>(opcode);
 
     uint16_t payload_size = 0;
 
     if (opcode == protocol::ServerOpcode::ENTITY_MOVE) {
-
         payload_size =
             static_cast<uint16_t>(
-                sizeof(uint16_t) +
-                nick.size() +
+                sizeof(uint16_t) + nick.size() +
                 sizeof(uint16_t) +
                 sizeof(uint16_t) +
                 sizeof(uint8_t));
 
     } else if (opcode == protocol::ServerOpcode::ENTITY_REMOVE) {
-
         payload_size =
             static_cast<uint16_t>(
+                sizeof(uint16_t) + nick.size());
+
+    } else if (opcode == protocol::ServerOpcode::DAMAGE_EVENT) {
+        payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + attacker.size() +
+                sizeof(uint16_t) + target.size() +
                 sizeof(uint16_t) +
-                nick.size());
+                sizeof(uint8_t));
+
+    } else if (opcode == protocol::ServerOpcode::DODGE_EVENT) {
+        payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + attacker.size() +
+                sizeof(uint16_t) + target.size());
+
+    } else if (opcode == protocol::ServerOpcode::DEATH_EVENT) {
+        payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + target.size());
 
     } else {
-
-        throw std::runtime_error(
-            "Snapshot::send opcode no soportado");
+        throw std::runtime_error("Snapshot::send opcode no soportado");
     }
 
-    uint16_t net_payload_size =
-        htons(payload_size);
-
-    uint16_t net_nick_len =
-        htons(static_cast<uint16_t>(nick.size()));
-
-    socket.sendall(
-        &raw_opcode,
-        sizeof(raw_opcode));
-
-    socket.sendall(
-        &net_payload_size,
-        sizeof(net_payload_size));
-
-    socket.sendall(
-        &net_nick_len,
-        sizeof(net_nick_len));
-
-    if (!nick.empty()) {
-        socket.sendall(
-            nick.data(),
-            nick.size());
-    }
+    send_u8(socket, raw_opcode);
+    send_u16(socket, payload_size);
 
     if (opcode == protocol::ServerOpcode::ENTITY_MOVE) {
+        send_string(socket, nick);
+        send_u16(socket, x);
+        send_u16(socket, y);
+        send_u8(socket, direction);
+        return;
+    }
 
-        uint16_t net_x =
-            htons(x);
+    if (opcode == protocol::ServerOpcode::ENTITY_REMOVE) {
+        send_string(socket, nick);
+        return;
+    }
 
-        uint16_t net_y =
-            htons(y);
+    if (opcode == protocol::ServerOpcode::DAMAGE_EVENT) {
+        send_string(socket, attacker);
+        send_string(socket, target);
+        send_u16(socket, damage);
+        send_u8(socket, critical ? 1 : 0);
+        return;
+    }
 
-        socket.sendall(
-            &net_x,
-            sizeof(net_x));
+    if (opcode == protocol::ServerOpcode::DODGE_EVENT) {
+        send_string(socket, attacker);
+        send_string(socket, target);
+        return;
+    }
 
-        socket.sendall(
-            &net_y,
-            sizeof(net_y));
-
-        socket.sendall(
-            &direction,
-            sizeof(direction));
+    if (opcode == protocol::ServerOpcode::DEATH_EVENT) {
+        send_string(socket, target);
+        return;
     }
 }
 
 Snapshot Snapshot::recv(Socket& socket) {
+    uint8_t raw_opcode = recv_u8(socket);
+    uint16_t payload_size = recv_u16(socket);
 
-    uint8_t raw_opcode;
-    uint16_t net_payload_size;
-
-    int received =
-        socket.recvall(
-            &raw_opcode,
-            sizeof(raw_opcode));
-
-    if (received == 0) {
-        throw std::runtime_error(
-            "Snapshot::recv socket cerrado leyendo opcode");
-    }
-
-    received =
-        socket.recvall(
-            &net_payload_size,
-            sizeof(net_payload_size));
-
-    if (received == 0) {
-        throw std::runtime_error(
-            "Snapshot::recv socket cerrado leyendo payload_size");
-    }
-
-    auto opcode =
-        static_cast<protocol::ServerOpcode>(raw_opcode);
-
-    uint16_t payload_size =
-        ntohs(net_payload_size);
-
-    if (opcode != protocol::ServerOpcode::ENTITY_MOVE &&
-        opcode != protocol::ServerOpcode::ENTITY_REMOVE) {
-
-        throw std::runtime_error(
-            "Snapshot::recv opcode no soportado");
-    }
-
-    uint16_t net_nick_len;
-
-    received =
-        socket.recvall(
-            &net_nick_len,
-            sizeof(net_nick_len));
-
-    if (received == 0) {
-        throw std::runtime_error(
-            "Snapshot::recv socket cerrado leyendo nick_len");
-    }
-
-    uint16_t nick_len =
-        ntohs(net_nick_len);
-
-    uint16_t expected_payload_size = 0;
+    auto opcode = static_cast<protocol::ServerOpcode>(raw_opcode);
 
     if (opcode == protocol::ServerOpcode::ENTITY_MOVE) {
+        std::string nick = recv_string(socket);
+        uint16_t x = recv_u16(socket);
+        uint16_t y = recv_u16(socket);
+        uint8_t direction = recv_u8(socket);
 
-        expected_payload_size =
+        uint16_t expected_payload_size =
             static_cast<uint16_t>(
-                sizeof(uint16_t) +
-                nick_len +
+                sizeof(uint16_t) + nick.size() +
                 sizeof(uint16_t) +
                 sizeof(uint16_t) +
                 sizeof(uint8_t));
 
-    } else {
-
-        expected_payload_size =
-            static_cast<uint16_t>(
-                sizeof(uint16_t) +
-                nick_len);
-    }
-
-    if (payload_size != expected_payload_size) {
-        throw std::runtime_error(
-            "Snapshot::recv payload_size invalido");
-    }
-
-    std::string nick;
-    nick.resize(nick_len);
-
-    if (nick_len > 0) {
-
-        received =
-            socket.recvall(
-                nick.data(),
-                nick_len);
-
-        if (received == 0) {
-            throw std::runtime_error(
-                "Snapshot::recv socket cerrado leyendo nick");
+        if (payload_size != expected_payload_size) {
+            throw std::runtime_error("Snapshot::recv payload_size invalido ENTITY_MOVE");
         }
+
+        return Snapshot::entity_move(nick, x, y, direction);
     }
 
     if (opcode == protocol::ServerOpcode::ENTITY_REMOVE) {
+        std::string nick = recv_string(socket);
+
+        uint16_t expected_payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + nick.size());
+
+        if (payload_size != expected_payload_size) {
+            throw std::runtime_error("Snapshot::recv payload_size invalido ENTITY_REMOVE");
+        }
 
         return Snapshot::entity_remove(nick);
     }
 
-    uint16_t net_x;
-    uint16_t net_y;
-    uint8_t direction;
+    if (opcode == protocol::ServerOpcode::DAMAGE_EVENT) {
+        std::string attacker = recv_string(socket);
+        std::string target = recv_string(socket);
+        uint16_t damage = recv_u16(socket);
+        uint8_t critical = recv_u8(socket);
 
-    received =
-        socket.recvall(
-            &net_x,
-            sizeof(net_x));
+        uint16_t expected_payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + attacker.size() +
+                sizeof(uint16_t) + target.size() +
+                sizeof(uint16_t) +
+                sizeof(uint8_t));
 
-    if (received == 0) {
-        throw std::runtime_error(
-            "Snapshot::recv socket cerrado leyendo x");
+        if (payload_size != expected_payload_size) {
+            throw std::runtime_error("Snapshot::recv payload_size invalido DAMAGE_EVENT");
+        }
+
+        return Snapshot::damage_event(
+            attacker,
+            target,
+            damage,
+            critical != 0);
     }
 
-    received =
-        socket.recvall(
-            &net_y,
-            sizeof(net_y));
+    if (opcode == protocol::ServerOpcode::DODGE_EVENT) {
+        std::string attacker = recv_string(socket);
+        std::string target = recv_string(socket);
 
-    if (received == 0) {
-        throw std::runtime_error(
-            "Snapshot::recv socket cerrado leyendo y");
+        uint16_t expected_payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + attacker.size() +
+                sizeof(uint16_t) + target.size());
+
+        if (payload_size != expected_payload_size) {
+            throw std::runtime_error("Snapshot::recv payload_size invalido DODGE_EVENT");
+        }
+
+        return Snapshot::dodge_event(attacker, target);
     }
 
-    received =
-        socket.recvall(
-            &direction,
-            sizeof(direction));
+    if (opcode == protocol::ServerOpcode::DEATH_EVENT) {
+        std::string target = recv_string(socket);
 
-    if (received == 0) {
-        throw std::runtime_error(
-            "Snapshot::recv socket cerrado leyendo direction");
+        uint16_t expected_payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + target.size());
+
+        if (payload_size != expected_payload_size) {
+            throw std::runtime_error("Snapshot::recv payload_size invalido DEATH_EVENT");
+        }
+
+        return Snapshot::death_event(target);
     }
 
-    return Snapshot::entity_move(
-        nick,
-        ntohs(net_x),
-        ntohs(net_y),
-        direction);
+    throw std::runtime_error("Snapshot::recv opcode no soportado");
 }
 
 protocol::ServerOpcode Snapshot::get_opcode() const {
@@ -269,8 +314,28 @@ bool Snapshot::is_entity_remove() const {
     return opcode == protocol::ServerOpcode::ENTITY_REMOVE;
 }
 
+bool Snapshot::is_damage_event() const {
+    return opcode == protocol::ServerOpcode::DAMAGE_EVENT;
+}
+
+bool Snapshot::is_dodge_event() const {
+    return opcode == protocol::ServerOpcode::DODGE_EVENT;
+}
+
+bool Snapshot::is_death_event() const {
+    return opcode == protocol::ServerOpcode::DEATH_EVENT;
+}
+
 const std::string& Snapshot::get_nick() const {
     return nick;
+}
+
+const std::string& Snapshot::get_attacker() const {
+    return attacker;
+}
+
+const std::string& Snapshot::get_target() const {
+    return target;
 }
 
 uint16_t Snapshot::get_x() const {
@@ -283,4 +348,12 @@ uint16_t Snapshot::get_y() const {
 
 uint8_t Snapshot::get_direction() const {
     return direction;
+}
+
+uint16_t Snapshot::get_damage() const {
+    return damage;
+}
+
+bool Snapshot::is_critical() const {
+    return critical;
 }
