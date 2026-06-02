@@ -353,12 +353,47 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         }
 
         case protocol::ClientOpcode::PRIVATE_MESSAGE: {
+            const std::string destino = cmd.get_nick();
+            const std::string mensaje = cmd.get_text();
+
+            if (destino.empty()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Debe indicar un destinatario"
+                    )
+                );
+                break;
+            }
+
+            if (mensaje.empty()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "El mensaje no puede estar vacio"
+                    )
+                );
+                break;
+            }
+
+            if (!getJugador(destino)) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "El jugador destinatario no existe"
+                    )
+                );
+                break;
+            }
+
             snapshots.push_back(
-                Snapshot::error_message(
+                Snapshot::chat_message(
                     nombre,
-                    "Mensajes privados todavia no implementados"
+                    destino,
+                    mensaje
                 )
             );
+
             break;
         }
 

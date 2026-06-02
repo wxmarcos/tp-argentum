@@ -1,5 +1,5 @@
 #include "persistence_worker.h"
-
+#include "game/items/item.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -25,7 +25,20 @@ static void write_task_toml(std::ofstream& out,
     out << "vida = " << task.vida << "\n";
     out << "vida_max = " << task.vida_max << "\n";
     out << "mana = " << task.mana << "\n";
-    out << "mana_max = " << task.mana_max << "\n\n";
+    out << "mana_max = " << task.mana_max << "\n";
+    out << "experiencia = " << task.experiencia << "\n";
+    out << "oro = " << task.oro << "\n";
+    out << "constitucion = " << task.constitucion << "\n";
+    out << "inteligencia = " << task.inteligencia << "\n";
+    out << "fuerza = " << task.fuerza << "\n";
+    out << "agilidad = " << task.agilidad << "\n\n";
+
+    for (const auto& item : task.inventario) {
+        out << "[[players." << task.nick << ".inventario]]\n";
+        out << "nombre = \"" << item.nombre << "\"\n";
+        out << "cantidad = " << item.cantidad << "\n";
+        out << "equipado = " << (item.equipado ? "true" : "false") << "\n\n";
+    }
 }
 
 static void save_all_players(

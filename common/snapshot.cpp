@@ -186,6 +186,13 @@ void Snapshot::send(Socket& socket) const {
             static_cast<uint16_t>(
                 sizeof(uint16_t) + target.size());
                 
+    } else if (opcode == protocol::ServerOpcode::CHAT_MESSAGE) {
+    payload_size =
+        static_cast<uint16_t>(
+            sizeof(uint16_t) + nick.size() +
+            sizeof(uint16_t) + target.size() +
+            sizeof(uint16_t) + text.size());
+
     }else if (opcode == protocol::ServerOpcode::ERROR_MESSAGE) {
         payload_size = static_cast<uint16_t>(
             sizeof(uint16_t) + nick.size() +
@@ -228,6 +235,12 @@ void Snapshot::send(Socket& socket) const {
 
     if (opcode == protocol::ServerOpcode::DEATH_EVENT) {
         send_string(socket, target);
+        return;
+    }
+    if (opcode == protocol::ServerOpcode::CHAT_MESSAGE) {
+        send_string(socket, nick);
+        send_string(socket, target);
+        send_string(socket, text);
         return;
     }
 
@@ -339,6 +352,26 @@ Snapshot Snapshot::recv(Socket& socket) {
 
         return Snapshot::death_event(target);
     }
+    if (opcode == protocol::ServerOpcode::CHAT_MESSAGE) {
+        std::string from = recv_string(socket);
+        std::string to = recv_string(socket);
+        std::string text = recv_string(socket);
+
+        uint16_t expected_payload_size =
+            static_cast<uint16_t>(
+                sizeof(uint16_t) + from.size() +
+                sizeof(uint16_t) + to.size() +
+                sizeof(uint16_t) + text.size());
+
+        if (payload_size != expected_payload_size) {
+            throw std::runtime_error(
+                "Snapshot::recv payload_size invalido CHAT_MESSAGE"
+            );
+        }
+
+        return Snapshot::chat_message(from, to, text);
+    }
+
     if (opcode == protocol::ServerOpcode::ERROR_MESSAGE) {
         std::string nick = recv_string(socket);
         std::string text = recv_string(socket);
@@ -374,6 +407,21 @@ Snapshot Snapshot::error_message(
 
 bool Snapshot::is_error_message() const {
     return opcode == protocol::ServerOpcode::ERROR_MESSAGE;
+}
+
+Snapshot Snapshot::chat_message(
+    const std::string& from,
+    const std::string& to,
+    const std::string& text
+) {
+    Snapshot snapshot(protocol::ServerOpcode::CHAT_MESSAGE, from);
+    snapshot.target = to;
+    snapshot.text = text;
+    return snapshot;
+}
+
+bool Snapshot::is_chat_message() const {
+    return opcode == protocol::ServerOpcode::CHAT_MESSAGE;
 }
 
 const std::string& Snapshot::get_text() const {

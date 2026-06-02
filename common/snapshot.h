@@ -79,6 +79,14 @@ public:
     );
 
     bool is_error_message() const;
+    
+    static Snapshot chat_message(
+        const std::string& from,
+        const std::string& to,
+        const std::string& text
+    );
+
+    bool is_chat_message() const;
     const std::string& get_text() const;
 
     bool is_entity_created() const;

@@ -3,24 +3,35 @@
 #include <cstdint>
 #include <string>
 
+struct PersistenceInventoryItem {
+    std::string nombre;
+    int cantidad;
+    bool equipado;
+};
+
 struct PersistenceTask {
     std::string nick;
-
     std::string raza;
     std::string clase;
 
-    uint16_t mapa_id = 0;
+    uint16_t mapa_id;
+    uint16_t x;
+    uint16_t y;
+    uint8_t direction;
 
-    uint16_t x = 0;
-    uint16_t y = 0;
+    uint16_t nivel;
+    uint16_t vida;
+    uint16_t vida_max;
+    uint16_t mana;
+    uint16_t mana_max;
 
-    uint8_t direction = 0;
+    uint32_t experiencia;
+    uint32_t oro;
 
-    uint16_t nivel = 1;
+    uint16_t constitucion;
+    uint16_t inteligencia;
+    uint16_t fuerza;
+    uint16_t agilidad;
 
-    uint16_t vida = 0;
-    uint16_t vida_max = 0;
-
-    uint16_t mana = 0;
-    uint16_t mana_max = 0;
+    std::vector<PersistenceInventoryItem> inventario;
 };

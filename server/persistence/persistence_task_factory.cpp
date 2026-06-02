@@ -1,5 +1,10 @@
 #include "persistence_task_factory.h"
-
+#include "persistence_task_factory.h"
+#include "items/arma.h"
+#include "items/baculo.h"
+#include "items/armadura.h"
+#include "items/casco.h"
+#include "items/escudo.h"
 #include "common/protocol_defs.h"
 
 static void add_unique_name(std::vector<std::string>& names,
@@ -19,8 +24,10 @@ static void add_unique_name(std::vector<std::string>& names,
 
 PersistenceTask PersistenceTaskFactory::from_player(const Jugador& jugador) {
     PersistenceTask task;
-
     task.nick = jugador.getNombre();
+    
+    task.raza = jugador.getRaza()->getNombre();
+    task.clase = jugador.getClase()->getNombre();
 
     task.mapa_id = static_cast<uint16_t>(jugador.getMapaId());
     task.x = static_cast<uint16_t>(jugador.getPosX());
@@ -30,7 +37,46 @@ PersistenceTask PersistenceTaskFactory::from_player(const Jugador& jugador) {
     task.nivel = static_cast<uint16_t>(jugador.getNivel());
     task.vida = static_cast<uint16_t>(jugador.getVidaActual());
     task.vida_max = static_cast<uint16_t>(jugador.getVidaMax());
+    
+    task.mana = static_cast<uint16_t>(jugador.getManaActual());
+    task.mana_max = static_cast<uint16_t>(jugador.getManaMax());
+    
+    task.experiencia = static_cast<uint32_t>(jugador.getExperiencia());
+    task.oro = static_cast<uint32_t>(jugador.getOro());
+    
+    task.constitucion = static_cast<uint16_t>(jugador.getConstitucion());
+    task.inteligencia = static_cast<uint16_t>(jugador.getInteligencia());
+    task.fuerza = static_cast<uint16_t>(jugador.getFuerza());
+    task.agilidad = static_cast<uint16_t>(jugador.getAgilidad());
+    const Inventario& inventario = jugador.getInventario();
+    const auto& slots = inventario.getSlots();
+    
+    for (const auto& slot : slots) {
+        PersistenceInventoryItem item;
+        
+    item.nombre = slot.item->getNombre();
+    item.cantidad = slot.cantidad;
 
+    const std::string nombreItem = slot.item->getNombre();
+
+    item.equipado =
+            (inventario.getArmaEquipada() &&
+            nombreItem == inventario.getArmaEquipada()->getNombre()) ||
+
+            (inventario.getBaculoEquipado() &&
+            nombreItem == inventario.getBaculoEquipado()->getNombre()) ||
+
+            (inventario.getArmaduraEquipada() &&
+            nombreItem == inventario.getArmaduraEquipada()->getNombre()) ||
+
+            (inventario.getCascoEquipado() &&
+            nombreItem == inventario.getCascoEquipado()->getNombre()) ||
+
+            (inventario.getEscudoEquipado() &&
+            nombreItem == inventario.getEscudoEquipado()->getNombre());
+
+        task.inventario.push_back(item);
+    }
     return task;
 }
 
