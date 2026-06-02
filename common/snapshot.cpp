@@ -7,6 +7,12 @@
 #include <stdexcept>
 #include <string>
 
+static bool is_position_snapshot(protocol::ServerOpcode opcode) {
+    return opcode == protocol::ServerOpcode::ENTITY_MOVE ||
+           opcode == protocol::ServerOpcode::ENTITY_CREATED ||
+           opcode == protocol::ServerOpcode::ENTITY_LOGIN;
+}
+
 static void send_u8(Socket& socket, uint8_t value) {
     socket.sendall(&value, sizeof(value));
 }
@@ -18,29 +24,20 @@ static void send_u16(Socket& socket, uint16_t value) {
 
 static uint8_t recv_u8(Socket& socket) {
     uint8_t value;
-
     int received = socket.recvall(&value, sizeof(value));
-    if (received == 0) {
-        throw std::runtime_error("socket cerrado leyendo uint8");
-    }
-
+    if (received == 0) throw std::runtime_error("socket cerrado leyendo uint8");
     return value;
 }
 
 static uint16_t recv_u16(Socket& socket) {
     uint16_t net_value;
-
     int received = socket.recvall(&net_value, sizeof(net_value));
-    if (received == 0) {
-        throw std::runtime_error("socket cerrado leyendo uint16");
-    }
-
+    if (received == 0) throw std::runtime_error("socket cerrado leyendo uint16");
     return ntohs(net_value);
 }
 
 static void send_string(Socket& socket, const std::string& value) {
     send_u16(socket, static_cast<uint16_t>(value.size()));
-
     if (!value.empty()) {
         socket.sendall(value.data(), value.size());
     }
@@ -54,9 +51,7 @@ static std::string recv_string(Socket& socket) {
 
     if (len > 0) {
         int received = socket.recvall(value.data(), len);
-        if (received == 0) {
-            throw std::runtime_error("socket cerrado leyendo string");
-        }
+        if (received == 0) throw std::runtime_error("socket cerrado leyendo string");
     }
 
     return value;
@@ -73,6 +68,34 @@ Snapshot::Snapshot(
     x(x),
     y(y),
     direction(direction) {}
+
+Snapshot Snapshot::entity_created(
+    const std::string& nick,
+    uint16_t x,
+    uint16_t y,
+    uint8_t direction) {
+
+    return Snapshot(
+        protocol::ServerOpcode::ENTITY_CREATED,
+        nick,
+        x,
+        y,
+        direction);
+}
+
+Snapshot Snapshot::entity_login(
+    const std::string& nick,
+    uint16_t x,
+    uint16_t y,
+    uint8_t direction) {
+
+    return Snapshot(
+        protocol::ServerOpcode::ENTITY_LOGIN,
+        nick,
+        x,
+        y,
+        direction);
+}
 
 Snapshot Snapshot::entity_move(
     const std::string& nick,
@@ -122,9 +145,7 @@ Snapshot Snapshot::dodge_event(
 
 Snapshot Snapshot::death_event(const std::string& target) {
     Snapshot snapshot(protocol::ServerOpcode::DEATH_EVENT, target);
-
     snapshot.target = target;
-
     return snapshot;
 }
 
@@ -133,7 +154,7 @@ void Snapshot::send(Socket& socket) const {
 
     uint16_t payload_size = 0;
 
-    if (opcode == protocol::ServerOpcode::ENTITY_MOVE) {
+    if (is_position_snapshot(opcode)) {
         payload_size =
             static_cast<uint16_t>(
                 sizeof(uint16_t) + nick.size() +
@@ -172,7 +193,7 @@ void Snapshot::send(Socket& socket) const {
     send_u8(socket, raw_opcode);
     send_u16(socket, payload_size);
 
-    if (opcode == protocol::ServerOpcode::ENTITY_MOVE) {
+    if (is_position_snapshot(opcode)) {
         send_string(socket, nick);
         send_u16(socket, x);
         send_u16(socket, y);
@@ -211,7 +232,7 @@ Snapshot Snapshot::recv(Socket& socket) {
 
     auto opcode = static_cast<protocol::ServerOpcode>(raw_opcode);
 
-    if (opcode == protocol::ServerOpcode::ENTITY_MOVE) {
+    if (is_position_snapshot(opcode)) {
         std::string nick = recv_string(socket);
         uint16_t x = recv_u16(socket);
         uint16_t y = recv_u16(socket);
@@ -225,7 +246,15 @@ Snapshot Snapshot::recv(Socket& socket) {
                 sizeof(uint8_t));
 
         if (payload_size != expected_payload_size) {
-            throw std::runtime_error("Snapshot::recv payload_size invalido ENTITY_MOVE");
+            throw std::runtime_error("Snapshot::recv payload_size invalido position snapshot");
+        }
+
+        if (opcode == protocol::ServerOpcode::ENTITY_CREATED) {
+            return Snapshot::entity_created(nick, x, y, direction);
+        }
+
+        if (opcode == protocol::ServerOpcode::ENTITY_LOGIN) {
+            return Snapshot::entity_login(nick, x, y, direction);
         }
 
         return Snapshot::entity_move(nick, x, y, direction);
@@ -304,6 +333,14 @@ Snapshot Snapshot::recv(Socket& socket) {
 
 protocol::ServerOpcode Snapshot::get_opcode() const {
     return opcode;
+}
+
+bool Snapshot::is_entity_created() const {
+    return opcode == protocol::ServerOpcode::ENTITY_CREATED;
+}
+
+bool Snapshot::is_entity_login() const {
+    return opcode == protocol::ServerOpcode::ENTITY_LOGIN;
 }
 
 bool Snapshot::is_entity_move() const {

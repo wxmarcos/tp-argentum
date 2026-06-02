@@ -97,7 +97,7 @@ bool ClientApp::process_input(ServerConnection& connection,
             if (event.key.keysym.sym == SDLK_ESCAPE) {
                 return false;
             }
-            Command cmd(0, CommandType::Disconnect);
+            Command cmd(0, protocol::ClientOpcode::DISCONNECT);
             if (input.process_key(event.key, cmd)) {
                 connection.send(cmd);
             }

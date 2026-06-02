@@ -77,7 +77,37 @@ std::string Game::getNombreJugadorPorComando(
 
     return it->second;
 }
+Snapshot Game::build_entity_created_snapshot(
+    const std::string& nombre) const {
 
+    const Jugador* jugador = getJugador(nombre);
+
+    if (!jugador) {
+        return Snapshot::entity_remove(nombre);
+    }
+
+    return Snapshot::entity_created(
+        nombre,
+        static_cast<uint16_t>(jugador->getPosX()),
+        static_cast<uint16_t>(jugador->getPosY()),
+        static_cast<uint8_t>(jugador->getDireccion()));
+}
+
+Snapshot Game::build_entity_login_snapshot(
+    const std::string& nombre) const {
+
+    const Jugador* jugador = getJugador(nombre);
+
+    if (!jugador) {
+        return Snapshot::entity_remove(nombre);
+    }
+
+    return Snapshot::entity_login(
+        nombre,
+        static_cast<uint16_t>(jugador->getPosX()),
+        static_cast<uint16_t>(jugador->getPosY()),
+        static_cast<uint8_t>(jugador->getDireccion()));
+}
 Snapshot Game::build_entity_move_snapshot(
     const std::string& nombre) const {
 
@@ -100,15 +130,32 @@ Snapshot Game::build_entity_move_snapshot(
 // TODO : mandar snapshots que tengan sentido con cada accion
 std::vector<Snapshot> Game::process(const Command& cmd) {
     std::vector<Snapshot> snapshots;
+    if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
+        Jugador* jugador = getJugador(cmd.get_nick());
 
-    if (cmd.get_type() == CommandType::CreateCharacter) {
+        if (!jugador) {
+            return snapshots;
+        }
+
+        player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
+
+        snapshots.push_back(
+            build_entity_login_snapshot(cmd.get_nick()));
+
+        return snapshots;
+    }
+    if (cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
         bool creado = agregarJugador(
-                cmd.get_nick(), 1, 10, 10,
-                cmd.get_raza(), cmd.get_clase());
+            cmd.get_nick(), 1, 10, 10,
+            cmd.get_raza(), cmd.get_clase());
+
         if (creado) {
             player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
-            snapshots.push_back(build_entity_move_snapshot(cmd.get_nick()));
+
+            snapshots.push_back(
+                build_entity_created_snapshot(cmd.get_nick()));
         }
+
         return snapshots;
     }
 
@@ -126,7 +173,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     if (nombre.empty()) return snapshots;
 
     switch (cmd.get_type()) {
-        case CommandType::Move: {
+        case protocol::ClientOpcode::MOVE: {
             bool moved = moverJugador(nombre,
                 static_cast<Direccion>(cmd.get_direction()));
             if (moved) {
@@ -134,17 +181,17 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             break;
         }
-        case CommandType::PickItem:
+        case protocol::ClientOpcode::PICK_ITEM:
             if (tomarItem(nombre, 0)) {
                 // TODO: devolver INVENTORY_UPDATE
             }
             break;
-        case CommandType::DropItem:
+        case protocol::ClientOpcode::DROP_ITEM:
             if (tirarItem(nombre, cmd.get_item_id())) {
                 // TODO: devolver INVENTORY_UPDATE
             }
             break;
-        case CommandType::Attack: {
+        case protocol::ClientOpcode::ATTACK: {
             const std::string objetivo = cmd.get_nick();
 
             ResultadoAtaque resultado = atacar(nombre, objetivo);

@@ -39,8 +39,9 @@ private:
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     std::string getNombreJugadorPorComando(const Command& cmd) const;
+    Snapshot build_entity_created_snapshot(const std::string& nombre) const;
+    Snapshot build_entity_login_snapshot(const std::string& nombre) const;
     Snapshot build_entity_move_snapshot(const std::string& nombre) const;
-
     // TODO: criaturas
     // TODO: npcs
 

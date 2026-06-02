@@ -63,7 +63,7 @@ static std::string read_string(
     return value;
 }
 
-Command::Command(uint16_t player_id, CommandType type)
+Command::Command(uint16_t player_id, protocol::ClientOpcode type)
     : player_id(player_id),
       type(type) {}
 
@@ -75,7 +75,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
     int received = socket.recvall(&opcode_raw, sizeof(opcode_raw));
 
     if (received == 0) {
-        return Command(player_id, CommandType::Disconnect);
+        return Command(player_id, protocol::ClientOpcode::DISCONNECT);
     }
 
     received = socket.recvall(
@@ -83,7 +83,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
         sizeof(net_payload_size));
 
     if (received == 0) {
-        return Command(player_id, CommandType::Disconnect);
+        return Command(player_id, protocol::ClientOpcode::DISCONNECT);
     }
 
     uint16_t payload_size = ntohs(net_payload_size);
@@ -101,7 +101,7 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
         received = socket.recvall(payload.data(), payload_size);
 
         if (received == 0) {
-            return Command(player_id, CommandType::Disconnect);
+            return Command(player_id, protocol::ClientOpcode::DISCONNECT);
         }
     }
     std::cout << "[Command] payload hex: ";
@@ -111,69 +111,67 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
     }
 
     std::cout << "\n";
-    auto type = static_cast<CommandType>(opcode_raw);
+    auto type = static_cast<protocol::ClientOpcode>(opcode_raw);
 
     Command cmd(player_id, type);
 
     size_t offset = 0;
 
     switch (type) {
-        case CommandType::CreateCharacter:
-
-            cmd.nick =
-                read_string(payload, offset);
-
-            cmd.raza =
-                read_string(payload, offset);
-
-            cmd.clase =
-                read_string(payload, offset);
-
-            break;
-        case CommandType::Move:
-            cmd.direction = read_u8(payload, offset);
-            break;
-
-        case CommandType::Attack:
+        case protocol::ClientOpcode::LOGIN:
             cmd.nick = read_string(payload, offset);
             break;
 
-        case CommandType::Meditate:
-        case CommandType::Resurrect:
-        case CommandType::Heal:
-        case CommandType::PickItem:
-        case CommandType::ClanReview:
-        case CommandType::ClanLeave:
-        case CommandType::Disconnect:
+        case protocol::ClientOpcode::CREATE_CHARACTER:
+            cmd.nick = read_string(payload, offset);
+            cmd.raza = read_string(payload, offset);
+            cmd.clase = read_string(payload, offset);
             break;
 
-        case CommandType::DropItem:
-        case CommandType::EquipItem:
-        case CommandType::BuyItem:
-        case CommandType::SellItem:
+        case protocol::ClientOpcode::MOVE:
+            cmd.direction = read_u8(payload, offset);
+            break;
+
+        case protocol::ClientOpcode::ATTACK:
+            cmd.nick = read_string(payload, offset);
+            break;
+
+        case protocol::ClientOpcode::MEDITATE:
+        case protocol::ClientOpcode::RESURRECT:
+        case protocol::ClientOpcode::HEAL:
+        case protocol::ClientOpcode::PICK_ITEM:
+        case protocol::ClientOpcode::CLAN_REVIEW:
+        case protocol::ClientOpcode::CLAN_LEAVE:
+        case protocol::ClientOpcode::DISCONNECT:
+            break;
+
+        case protocol::ClientOpcode::DROP_ITEM:
+        case protocol::ClientOpcode::EQUIP_ITEM:
+        case protocol::ClientOpcode::BUY_ITEM:
+        case protocol::ClientOpcode::SELL_ITEM:
             cmd.item_id = read_u16(payload, offset);
             break;
 
-        case CommandType::DepositItem:
-        case CommandType::WithdrawItem:
+        case protocol::ClientOpcode::DEPOSIT_ITEM:
+        case protocol::ClientOpcode::WITHDRAW_ITEM:
             cmd.item_id = read_u16(payload, offset);
             cmd.amount = read_u32(payload, offset);
             break;
 
-        case CommandType::PrivateMessage:
+        case protocol::ClientOpcode::PRIVATE_MESSAGE:
             cmd.nick = read_string(payload, offset);
             cmd.text = read_string(payload, offset);
             break;
 
-        case CommandType::ClanCreate:
-        case CommandType::ClanJoin:
+        case protocol::ClientOpcode::CLAN_CREATE:
+        case protocol::ClientOpcode::CLAN_JOIN:
             cmd.clan_name = read_string(payload, offset);
             break;
 
-        case CommandType::ClanAccept:
-        case CommandType::ClanReject:
-        case CommandType::ClanBan:
-        case CommandType::ClanKick:
+        case protocol::ClientOpcode::CLAN_ACCEPT:
+        case protocol::ClientOpcode::CLAN_REJECT:
+        case protocol::ClientOpcode::CLAN_BAN:
+        case protocol::ClientOpcode::CLAN_KICK:
             cmd.nick = read_string(payload, offset);
             break;
 
@@ -228,56 +226,60 @@ void Command::send(Socket& socket) const {
     };
 
     switch (type) {
-        case CommandType::CreateCharacter:
+        case protocol::ClientOpcode::LOGIN:
+            push_string(nick);
+            break;
+
+        case protocol::ClientOpcode::CREATE_CHARACTER:
             push_string(nick);
             push_string(raza);
             push_string(clase);
             break;
-        case CommandType::Move:
+        case protocol::ClientOpcode::MOVE:
             push_u8(direction);
             break;
 
-        case CommandType::Attack:
+        case protocol::ClientOpcode::ATTACK:
             push_string(nick);
             break;
 
-        case CommandType::DropItem:
-        case CommandType::EquipItem:
-        case CommandType::BuyItem:
-        case CommandType::SellItem:
+        case protocol::ClientOpcode::DROP_ITEM:
+        case protocol::ClientOpcode::EQUIP_ITEM:
+        case protocol::ClientOpcode::BUY_ITEM:
+        case protocol::ClientOpcode::SELL_ITEM:
             push_u16(item_id);
             break;
 
-        case CommandType::DepositItem:
-        case CommandType::WithdrawItem:
+        case protocol::ClientOpcode::DEPOSIT_ITEM:
+        case protocol::ClientOpcode::WITHDRAW_ITEM:
             push_u16(item_id);
             push_u32(amount);
             break;
 
-        case CommandType::PrivateMessage:
+        case protocol::ClientOpcode::PRIVATE_MESSAGE:
             push_string(nick);
             push_string(text);
             break;
 
-        case CommandType::ClanCreate:
-        case CommandType::ClanJoin:
+        case protocol::ClientOpcode::CLAN_CREATE:
+        case protocol::ClientOpcode::CLAN_JOIN:
             push_string(clan_name);
             break;
 
-        case CommandType::ClanAccept:
-        case CommandType::ClanReject:
-        case CommandType::ClanBan:
-        case CommandType::ClanKick:
+        case protocol::ClientOpcode::CLAN_ACCEPT:
+        case protocol::ClientOpcode::CLAN_REJECT:
+        case protocol::ClientOpcode::CLAN_BAN:
+        case protocol::ClientOpcode::CLAN_KICK:
             push_string(nick);
             break;
 
-        case CommandType::Meditate:
-        case CommandType::Resurrect:
-        case CommandType::Heal:
-        case CommandType::PickItem:
-        case CommandType::ClanReview:
-        case CommandType::ClanLeave:
-        case CommandType::Disconnect:
+        case protocol::ClientOpcode::MEDITATE:
+        case protocol::ClientOpcode::RESURRECT:
+        case protocol::ClientOpcode::HEAL:
+        case protocol::ClientOpcode::PICK_ITEM:
+        case protocol::ClientOpcode::CLAN_REVIEW:
+        case protocol::ClientOpcode::CLAN_LEAVE:
+        case protocol::ClientOpcode::DISCONNECT:
             break;
     }
 
@@ -298,23 +300,23 @@ void Command::send(Socket& socket) const {
 }
 
 Command Command::move(uint8_t direction) {
-    Command cmd(0, CommandType::Move);
+    Command cmd(0, protocol::ClientOpcode::MOVE);
     cmd.direction = direction;
     return cmd;
 }
 
 Command Command::attack(const std::string& nick) {
-    Command cmd(0, CommandType::Attack);
+    Command cmd(0, protocol::ClientOpcode::ATTACK);
     cmd.nick = nick;
     return cmd;
 }
 
 Command Command::disconnect() {
-    return Command(0, CommandType::Disconnect);
+    return Command(0, protocol::ClientOpcode::DISCONNECT);
 }
 
 Command Command::create_character(const std::string& nick, const std::string& raza, const std::string& clase) {
-    Command cmd(0, CommandType::CreateCharacter);
+    Command cmd(0, protocol::ClientOpcode::CREATE_CHARACTER);
     cmd.nick = nick;
     cmd.raza = raza;
     cmd.clase = clase;
@@ -322,10 +324,10 @@ Command Command::create_character(const std::string& nick, const std::string& ra
 }
 
 bool Command::is_disconnect() const {
-    return type == CommandType::Disconnect;
+    return type == protocol::ClientOpcode::DISCONNECT;
 }
 
-CommandType Command::get_type() const {
+protocol::ClientOpcode Command::get_type() const {
     return type;
 }
 
@@ -336,11 +338,6 @@ uint16_t Command::get_player_id() const {
 uint8_t Command::get_direction() const {
     return direction;
 }
-
-uint32_t Command::get_target() const {
-    return target_id;
-}
-
 uint16_t Command::get_item_id() const {
     return item_id;
 }
