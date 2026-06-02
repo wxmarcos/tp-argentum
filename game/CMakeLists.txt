@@ -57,4 +57,7 @@ target_sources(taller_game PRIVATE
     mundo.cpp
     clan.cpp
     game.cpp
+    # Snapshots
+    snapshot_factory.cpp
+    
 )

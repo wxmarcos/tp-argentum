@@ -77,56 +77,6 @@ std::string Game::getNombreJugadorPorComando(
 
     return it->second;
 }
-Snapshot Game::build_entity_created_snapshot(
-    const std::string& nombre) const {
-
-    const Jugador* jugador = getJugador(nombre);
-
-    if (!jugador) {
-        return Snapshot::entity_remove(nombre);
-    }
-
-    return Snapshot::entity_created(
-        nombre,
-        static_cast<uint16_t>(jugador->getPosX()),
-        static_cast<uint16_t>(jugador->getPosY()),
-        static_cast<uint8_t>(jugador->getDireccion()));
-}
-
-Snapshot Game::build_entity_login_snapshot(
-    const std::string& nombre) const {
-
-    const Jugador* jugador = getJugador(nombre);
-
-    if (!jugador) {
-        return Snapshot::entity_remove(nombre);
-    }
-
-    return Snapshot::entity_login(
-        nombre,
-        static_cast<uint16_t>(jugador->getPosX()),
-        static_cast<uint16_t>(jugador->getPosY()),
-        static_cast<uint8_t>(jugador->getDireccion()));
-}
-Snapshot Game::build_entity_move_snapshot(
-    const std::string& nombre) const {
-
-    const Jugador* jugador =
-        getJugador(nombre);
-
-    if (!jugador) {
-        return Snapshot::entity_remove(nombre);
-    }
-
-    return Snapshot::entity_move(
-        nombre,
-        static_cast<uint16_t>(
-            jugador->getPosX()),
-        static_cast<uint16_t>(
-            jugador->getPosY()),
-        static_cast<uint8_t>(
-            jugador->getDireccion()));
-}
 // TODO : mandar snapshots que tengan sentido con cada accion
 std::vector<Snapshot> Game::process(const Command& cmd) {
     std::vector<Snapshot> snapshots;
@@ -140,7 +90,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(
-            build_entity_login_snapshot(cmd.get_nick()));
+            SnapshotFactory::entity_login(
+            cmd.get_nick(),
+            getJugador(cmd.get_nick())));
 
         return snapshots;
     }
@@ -153,7 +105,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
             snapshots.push_back(
-                build_entity_created_snapshot(cmd.get_nick()));
+                SnapshotFactory::entity_created(
+                cmd.get_nick(),
+                getJugador(cmd.get_nick())));
         }
 
         return snapshots;
@@ -177,7 +131,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             bool moved = moverJugador(nombre,
                 static_cast<Direccion>(cmd.get_direction()));
             if (moved) {
-                snapshots.push_back(build_entity_move_snapshot(nombre));
+                snapshots.push_back(SnapshotFactory::entity_move(
+                nombre,
+                getJugador(nombre)));
             }
             break;
         }
@@ -447,112 +403,25 @@ bool Game::tomarItem(
     return true;
 }
 
-static void add_unique_name(
-    std::vector<std::string>& names,
-    const std::string& name) {
-
-    if (name.empty()) {
-        return;
-    }
-
-    for (const std::string& existing : names) {
-        if (existing == name) {
-            return;
-        }
-    }
-
-    names.push_back(name);
-}
-
-PersistenceTask Game::build_persistence_task_for_player(
-    const Jugador& jugador) const {
-
-    PersistenceTask task;
-
-    task.nick = jugador.getNombre();
-
-    task.mapa_id =
-        static_cast<uint16_t>(
-            jugador.getMapaId());
-
-    task.x =
-        static_cast<uint16_t>(
-            jugador.getPosX());
-
-    task.y =
-        static_cast<uint16_t>(
-            jugador.getPosY());
-
-    task.direction =
-        static_cast<uint8_t>(
-            jugador.getDireccion());
-
-    task.nivel =
-        static_cast<uint16_t>(
-            jugador.getNivel());
-
-    task.vida =
-        static_cast<uint16_t>(
-            jugador.getVidaActual());
-
-    task.vida_max =
-        static_cast<uint16_t>(
-            jugador.getVidaMax());
-
-    return task;
-}
-
 std::vector<PersistenceTask>
-Game::build_persistence_tasks_for_command(
-    const Command& cmd) const {
-
+Game::build_persistence_tasks_for_command(const Command& cmd) const {
     std::vector<PersistenceTask> tasks;
-    std::vector<std::string> names;
 
     const std::string actor =
         getNombreJugadorPorComando(cmd);
 
-    switch (cmd.get_type()) {
-        case protocol::ClientOpcode::CREATE_CHARACTER:
-        case protocol::ClientOpcode::LOGIN:
-            add_unique_name(names, cmd.get_nick());
-            break;
-
-        case protocol::ClientOpcode::ATTACK:
-            add_unique_name(names, actor);
-            add_unique_name(names, cmd.get_nick());
-            break;
-
-        case protocol::ClientOpcode::MOVE:
-        case protocol::ClientOpcode::PICK_ITEM:
-        case protocol::ClientOpcode::DROP_ITEM:
-        case protocol::ClientOpcode::EQUIP_ITEM:
-        case protocol::ClientOpcode::BUY_ITEM:
-        case protocol::ClientOpcode::SELL_ITEM:
-        case protocol::ClientOpcode::DEPOSIT_ITEM:
-        case protocol::ClientOpcode::WITHDRAW_ITEM:
-        case protocol::ClientOpcode::MEDITATE:
-        case protocol::ClientOpcode::RESURRECT:
-        case protocol::ClientOpcode::HEAL:
-        case protocol::ClientOpcode::DISCONNECT:
-            add_unique_name(names, actor);
-            break;
-
-        default:
-            break;
-    }
+    std::vector<std::string> names =
+        PersistenceTaskFactory::get_affected_players(cmd, actor);
 
     for (const std::string& name : names) {
-        const Jugador* jugador =
-            getJugador(name);
+        const Jugador* jugador = getJugador(name);
 
         if (!jugador) {
             continue;
         }
 
         tasks.push_back(
-            build_persistence_task_for_player(
-                *jugador));
+            PersistenceTaskFactory::from_player(*jugador));
     }
 
     return tasks;

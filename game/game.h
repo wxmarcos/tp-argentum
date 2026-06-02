@@ -13,7 +13,9 @@
 #include "clases/charClase.h"
 #include "common/command.h"
 #include "common/snapshot.h"
+#include "snapshot_factory.h"
 #include "server/persistence/persistence_task.h"
+#include "server/persistence/persistence_task_factory.h"
 
 struct ResultadoAtaque {
     bool exito;
@@ -41,12 +43,6 @@ private:
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     std::string getNombreJugadorPorComando(const Command& cmd) const;
 
-    PersistenceTask build_persistence_task_for_player(
-        const Jugador& jugador) const;
-
-    Snapshot build_entity_created_snapshot(const std::string& nombre) const;
-    Snapshot build_entity_login_snapshot(const std::string& nombre) const;
-    Snapshot build_entity_move_snapshot(const std::string& nombre) const;
     // TODO: criaturas
     // TODO: npcs
 

@@ -1,0 +1,14 @@
+[players.Messi]
+nick = "Messi"
+raza = ""
+clase = ""
+mapa_id = 1
+x = 10
+y = 10
+direction = 2
+nivel = 1
+vida = 240
+vida_max = 240
+mana = 0
+mana_max = 0
+
