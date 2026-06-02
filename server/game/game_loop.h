@@ -11,7 +11,7 @@
 #include "common/command.h"
 #include "common/snapshot.h"
 
-#include "client_handler.h"
+#include "client/client_handler.h"
 
 class GameLoop : public Thread {
 

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-#include "server_config.h"
+#include "config/server_config.h"
 
 GameLoop::GameLoop(
     Queue<Command>& commands_queue,

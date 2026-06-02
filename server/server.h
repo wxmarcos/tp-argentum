@@ -9,10 +9,10 @@
 #include "common/command.h"
 #include "common/queue.h"
 
-#include "acceptor.h"
-#include "client_handler.h"
-#include "server_config.h"
-#include "game_loop.h"
+#include "acceptor/acceptor.h"
+#include "client/client_handler.h"
+#include "config/server_config.h"
+#include "game/game_loop.h"
 
 #include "game/config.h"
 

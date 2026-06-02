@@ -4,7 +4,7 @@
 #include <atomic>
 
 #include "server.h"
-#include "server_config.h"
+#include "config/server_config.h"
 #include "game/config.h"
 
 static std::atomic<bool> running(true);
