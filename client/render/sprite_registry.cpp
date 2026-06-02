@@ -1,4 +1,3 @@
-
 #include "render/sprite_registry.h"
 #include <iostream>
  
@@ -34,7 +33,7 @@ void SpriteRegistry::register_head(const std::string& raza,
 }
  
 void SpriteRegistry::load_all() {
-    const SpriteData std_data = make_standard_sprite_data();
+    //const SpriteData std_data = make_standard_sprite_data();
  
     register_sprite("humano",  "cuerpos/razas/humanoCuerpo.png",
                     make_humano_sprite_data());
@@ -54,16 +53,16 @@ void SpriteRegistry::load_all() {
     register_sprite("paladin", "cuerpos/clases/paladinCuerpo.png",
                     make_paladin_sprite_data());
  
-    register_sprite("goblin",   "criaturas/goblin.png",   std_data);
-    register_sprite("esqueleto","criaturas/esqueleto.png",std_data);
-    register_sprite("zombie",   "criaturas/zombie.png",   std_data);
-    register_sprite("orco",     "criaturas/orco.png",     std_data);
-    register_sprite("arana",    "criaturas/arana.png",    std_data);
-    register_sprite("golem",    "criaturas/golem.png",    std_data);
+    register_sprite("goblin",   "criaturas/goblin.png",   make_goblin_sprite_data());
+    register_sprite("esqueleto","criaturas/esqueleto.png",make_esqueleto_sprite_data());
+    register_sprite("zombie",   "criaturas/zombie.png",   make_zombie_sprite_data());
+    register_sprite("orco",     "criaturas/orco.png",     make_orco_sprite_data());
+    register_sprite("arana",    "criaturas/arana.png",    make_arana_sprite_data());
+    register_sprite("golem",    "criaturas/golem.png",    make_golem_sprite_data());
  
-    register_sprite("banquero",    "characters/banquero.png",    std_data);
-    register_sprite("comerciante", "characters/comerciante.png", std_data);
-    register_sprite("sacerdote",   "characters/sacerdote.png",   std_data);
+    register_sprite("banquero",    "characters/banquero.png",    make_banquero_sprite_data());
+    register_sprite("comerciante", "characters/comerciante.png", make_comerciante_sprite_data());
+    register_sprite("sacerdote",   "characters/sacerdote.png",   make_sacerdote_sprite_data());
  
     register_head("humano", "cabezas/humanoCabezas.png", make_humano_head_data());
     register_head("elfo",   "cabezas/elfoCabezas.png",   make_elfo_head_data());
@@ -112,4 +111,3 @@ SDL_Rect SpriteRegistry::get_head_rect(const std::string& raza,
 bool SpriteRegistry::has_head(const std::string& raza) const {
     return head_data.count(raza) > 0;
 }
- 
