@@ -9,15 +9,23 @@ static constexpr int ANIM_FRAMES    = 4;
 static constexpr int ANIM_MS_FRAME  = 150;
  
 namespace {
-// Escala del cuerpo segun la raza (porcentaje).
 int body_scale_pct(const std::string& raza) {
     if (raza == "enano") return 85;
     if (raza == "gnomo") return 82;
-    return 100;  // humano, elfo
+    return 100;
 }
-// Reduccion extra solo de la cabeza, por raza (porcentaje).
 int head_scale_pct(const std::string& raza) {
     if (raza == "gnomo") return 85;
+    return 100;
+}
+ 
+int creature_scale_pct(const std::string& type) {
+    if (type == "golem")  return 170;
+    if (type == "orco")   return 150;
+    if (type == "arana")  return 130;
+    if (type == "esqueleto") return 110;
+    if (type == "zombie") return 105;
+    if (type == "goblin") return 90;
     return 100;
 }
 }
@@ -113,19 +121,19 @@ void WorldRenderer::draw_character(int world_x, int world_y,
     // cuerpo
     SDL_Texture* body_tex = registry.get_texture(sprite_key);
     if (body_tex) {
-
+ 
         SDL_Rect src = registry.get_frame(sprite_key, dir_idx, frame);
         const int draw_w = src.h > 0 ? (src.w * body_h) / src.h : ts;
-
+ 
         SDL_Rect dst{
             px + (ts - draw_w) / 2,
             body_top,
             draw_w,
             body_h
         };
-
+ 
         SDL_RenderCopy(renderer.Get(), body_tex, &src, &dst);
-
+ 
     } else {
         const int pad = 3;
         renderer.SetDrawColor(80, 160, 255, 255);
@@ -137,22 +145,57 @@ void WorldRenderer::draw_character(int world_x, int world_y,
     SDL_Texture* head_tex = registry.get_head_texture(raza);
     if (head_tex) {
         SDL_Rect src = registry.get_head_rect(raza, dir_idx);
-
+ 
         const int head_h = (((ts * 7) / 8) * body_scale / 100) * head_scale / 100;
         const int head_w = src.h > 0 ? (src.w * head_h) / src.h : ts / 2;
-
+ 
         const int neck        = registry.get_head_neck(sprite_key) * body_scale / 100;
         const int head_bottom = body_top + neck;
-
+ 
         SDL_Rect dst{
             px + (ts - head_w) / 2,
             head_bottom - head_h,
             head_w,
             head_h
         };
-
+ 
         SDL_RenderCopy(renderer.Get(), head_tex, &src, &dst);
     }
+}
+ 
+void WorldRenderer::draw_creature(int world_x, int world_y,
+                                  protocol::Direction dir,
+                                  const std::string& type,
+                                  int frame,
+                                  int cam_offset_x, int cam_offset_y) {
+    const int ts = config.tile_size;
+    const int px = cam_offset_x + world_x * ts;
+    const int py = cam_offset_y + world_y * ts;
+ 
+    const int scale  = creature_scale_pct(type);
+    const int body_h = (ts * 2 * scale) / 100;
+ 
+    if (px + body_h < 0 || px - body_h > config.window_width ||
+        py + ts < 0 || py - body_h > config.window_height) {
+        return;
+    }
+ 
+    const int dir_idx  = dir_to_idx(dir);
+    const int body_top = py + ts - body_h;
+ 
+    SDL_Texture* tex = registry.get_texture(type);
+    if (!tex) {
+        return;
+    }
+    SDL_Rect src = registry.get_frame(type, dir_idx, frame);
+    const int draw_w = src.h > 0 ? (src.w * body_h) / src.h : ts;
+    SDL_Rect dst{
+        px + (ts - draw_w) / 2,
+        body_top,
+        draw_w,
+        body_h
+    };
+    SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
 }
  
 void WorldRenderer::render(const ClientGameState& state,
@@ -214,5 +257,27 @@ void WorldRenderer::render(const ClientGameState& state,
         }
     }
  
+    // criaturas/npcs
+    for (const auto& [key, cv] : state.get_creatures()) {
+        auto [it, inserted] = creature_anims.try_emplace(
+                key, ANIM_FRAMES, ANIM_MS_FRAME);
+ 
+        it->second.update(delta_ms, cv.direction, cv.moved);
+ 
+        draw_creature(cv.x, cv.y, cv.direction,
+                      cv.type,
+                      it->second.current_frame(),
+                      cam_offset_x, cam_offset_y);
+    }
+ 
+    for (auto cit = creature_anims.begin(); cit != creature_anims.end();) {
+        if (!state.get_creatures().count(cit->first)) {
+            cit = creature_anims.erase(cit);
+        } else {
+            ++cit;
+        }
+    }
+ 
     renderer.Present();
 }
+ 
