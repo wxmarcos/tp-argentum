@@ -38,7 +38,7 @@ private:
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
-
+    void cargarJugadoresPersistidos();
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     std::string getNombreJugadorPorComando(const Command& cmd) const;
 

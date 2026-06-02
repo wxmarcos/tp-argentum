@@ -30,7 +30,19 @@ public:
     Jugador(const std::string& nombre, int posX, int posY,
             const Raza* raza, const charClase* clase);
 
-
+    void restaurarEstado(
+        int nivel,
+        int vida,
+        int vidaMax,
+        int mana,
+        int manaMax,
+        int experiencia,
+        int oro,
+        int constitucion,
+        int inteligencia,
+        int fuerza,
+        int agilidad
+    );
     const Raza* getRaza() const;
     const charClase* getClase() const;
     int getConstitucion() const;

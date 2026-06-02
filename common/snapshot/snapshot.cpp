@@ -148,11 +148,9 @@ Snapshot Snapshot::meditation_status(
     const std::string& nick,
     bool started
 ) {
-    return Snapshot::chat_message(
-        nick,
-        nick,
-        started ? "Meditacion iniciada" : "Meditacion interrumpida"
-    );
+    Snapshot snapshot(protocol::ServerOpcode::MEDITATION_STATUS, nick);
+    snapshot.meditating = started;
+    return snapshot;
 }
 
 Snapshot Snapshot::player_stats(
@@ -265,6 +263,15 @@ uint16_t Snapshot::get_damage() const {
 bool Snapshot::is_critical() const {
     return critical;
 }
+
+bool Snapshot::is_meditating() const {
+    return meditating;
+}
+
+bool Snapshot::is_meditation_status() const {
+    return opcode == protocol::ServerOpcode::MEDITATION_STATUS;
+}
+
 bool Snapshot::is_player_stats() const {
     return opcode == protocol::ServerOpcode::PLAYER_STATS;
 }

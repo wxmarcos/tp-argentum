@@ -40,6 +40,7 @@ private:
     uint16_t agilidad = 0;
     uint16_t damage = 0;
     bool critical = false;
+    bool meditating = false;
 
 public:
     Snapshot(
@@ -168,6 +169,8 @@ public:
 
     uint16_t get_damage() const;
     bool is_critical() const;
+    bool is_meditating() const;
+    bool is_meditation_status() const;
 };
 
 #endif

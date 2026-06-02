@@ -16,6 +16,7 @@
 #include "items/casco.h"
 #include "items/escudo.h"
 #include "formulas.h"
+#include "server/persistence/persistance_loader.h"
 
 #include <cstdlib>
 
@@ -23,6 +24,7 @@ Game::Game(Config& config) : config(config) {
     inicializarRazas();
     inicializarClases();
     cargarMundo();
+    cargarJugadoresPersistidos();
 }
 
 void Game::cargarMundo() {
@@ -62,6 +64,44 @@ void Game::inicializarClases() {
 
     clases["paladin"] =
         std::make_unique<Paladin>(config);
+}
+
+void Game::cargarJugadoresPersistidos() {
+    // DEBERIA CARGAR LA RUTA DEL ARCHIVO TOML DESDE LA CONFIGURACION
+    auto players = PersistenceLoader::load_players("saves/players.toml");
+
+    for (const auto& p : players) {
+        bool ok = agregarJugador(
+            p.nick,
+            p.mapa_id,
+            p.x,
+            p.y,
+            p.raza,
+            p.clase
+        );
+
+        if (!ok) continue;
+
+        Jugador* jugador = getJugador(p.nick);
+        if (!jugador) continue;
+
+        jugador->setDireccion(static_cast<Direccion>(p.direction));
+
+        jugador->restaurarEstado(
+            p.nivel,
+            p.vida,
+            p.vida_max,
+            p.mana,
+            p.mana_max,
+            p.experiencia,
+            p.oro,
+            p.constitucion,
+            p.inteligencia,
+            p.fuerza,
+            p.agilidad
+        );
+        //TODO restaurar inventario
+    }
 }
 
 std::string Game::getNombreJugadorPorComando(

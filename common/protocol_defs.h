@@ -58,7 +58,7 @@ enum class ServerOpcode : uint8_t {
 
     PLAYER_STATS = 10,
     INVENTORY_UPDATE = 11,
-
+    MEDITATION_STATUS = 12,
     CHAT_MESSAGE = 30,
     DAMAGE_EVENT = 40,
     DODGE_EVENT = 41,

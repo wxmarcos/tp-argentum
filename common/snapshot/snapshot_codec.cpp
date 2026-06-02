@@ -71,6 +71,12 @@ static uint16_t error_payload_size(const Snapshot& snapshot) {
         sizeof(uint16_t) + snapshot.get_text().size());
 }
 
+static uint16_t meditation_status_payload_size(const Snapshot& snapshot) {
+    return static_cast<uint16_t>(
+        sizeof(uint16_t) + snapshot.get_nick().size() +
+        sizeof(uint8_t));
+}
+
 uint16_t snapshot_payload_size(const Snapshot& snapshot) {
     switch (snapshot.get_opcode()) {
         case protocol::ServerOpcode::ENTITY_CREATED:
@@ -95,6 +101,9 @@ uint16_t snapshot_payload_size(const Snapshot& snapshot) {
 
         case protocol::ServerOpcode::PLAYER_STATS:
             return player_stats_payload_size(snapshot);
+
+        case protocol::ServerOpcode::MEDITATION_STATUS:
+            return meditation_status_payload_size(snapshot);
 
         case protocol::ServerOpcode::ERROR_MESSAGE:
             return error_payload_size(snapshot);
@@ -163,6 +172,11 @@ static void send_error_message(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_text());
 }
 
+static void send_meditation_status(Socket& socket, const Snapshot& snapshot) {
+    send_string(socket, snapshot.get_nick());
+    send_u8(socket, snapshot.is_meditating() ? 1 : 0);
+}
+
 void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
     switch (snapshot.get_opcode()) {
         case protocol::ServerOpcode::ENTITY_CREATED:
@@ -193,6 +207,10 @@ void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
 
         case protocol::ServerOpcode::PLAYER_STATS:
             send_player_stats(socket, snapshot);
+            return;
+
+        case protocol::ServerOpcode::MEDITATION_STATUS:
+            send_meditation_status(socket, snapshot);
             return;
 
         case protocol::ServerOpcode::ERROR_MESSAGE:
@@ -356,6 +374,17 @@ static Snapshot recv_error_message(Socket& socket, uint16_t payload_size) {
     return Snapshot::error_message(nick, text);
 }
 
+static Snapshot recv_meditation_status(Socket& socket, uint16_t payload_size) {
+    std::string nick = recv_string(socket);
+    uint8_t started = recv_u8(socket);
+    validate_payload_size(payload_size,
+        static_cast<uint16_t>(
+            sizeof(uint16_t) + nick.size() +
+            sizeof(uint8_t)),
+        "Snapshot::recv payload_size invalido");
+    return Snapshot::meditation_status(nick, started != 0);
+}
+
 Snapshot recv_snapshot_payload(
     Socket& socket,
     protocol::ServerOpcode opcode,
@@ -383,6 +412,9 @@ Snapshot recv_snapshot_payload(
 
         case protocol::ServerOpcode::PLAYER_STATS:
             return recv_player_stats(socket, payload_size);
+
+        case protocol::ServerOpcode::MEDITATION_STATUS:
+            return recv_meditation_status(socket, payload_size);
 
         case protocol::ServerOpcode::ERROR_MESSAGE:
             return recv_error_message(socket, payload_size);
