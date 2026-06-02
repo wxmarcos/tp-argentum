@@ -7,9 +7,9 @@
 
 PersistenceWorker::PersistenceWorker(
     Queue<PersistenceTask>& queue,
-    const std::string& save_directory)
+    const std::string& save_file_path)
     : queue(queue),
-      save_directory(save_directory) {}
+      save_file_path(save_file_path) {}
 
 static void write_task_toml(std::ofstream& out,
                             const PersistenceTask& task) {
@@ -58,15 +58,17 @@ static void save_all_players(
 }
 
 void PersistenceWorker::run() {
-    try {
-        std::filesystem::create_directories(save_directory);
-    } catch (const std::exception& ex) {
-        std::cerr << "[PersistenceWorker] no se pudo crear directorio: "
-                  << ex.what() << "\n";
-    }
+    std::filesystem::path file_path(save_file_path);
+    std::filesystem::path directory = file_path.parent_path();
 
-    std::filesystem::path file_path =
-        std::filesystem::path(save_directory) / "players.toml";
+    if (!directory.empty()) {
+        try {
+            std::filesystem::create_directories(directory);
+        } catch (const std::exception& ex) {
+            std::cerr << "[PersistenceWorker] no se pudo crear directorio: "
+                      << ex.what() << "\n";
+        }
+    }
 
     std::map<std::string, PersistenceTask> players;
 

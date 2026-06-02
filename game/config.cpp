@@ -158,6 +158,16 @@ int Config::getFormulaOroDropNPCDivisor() const {
     return impl->get<int64_t>("formulas.oro_drop_npc_divisor", 10);
 }
 
+// Rutas de Persistencia
+
+std::string Config::getRutaJugadores() const {
+    return impl->get<std::string>("rutas.ruta_jugadores", "data/players.toml");
+}
+
+std::string Config::getRutaNPCsCriaturas() const {
+    return impl->get<std::string>("rutas.ruta_npcs_criaturas", "data/npcs_criaturas.toml");
+}
+
 std::vector<Config::ConfigMapa> Config::getMapas() const {
     std::vector<ConfigMapa> resultado;
 

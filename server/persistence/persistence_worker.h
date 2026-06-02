@@ -12,12 +12,12 @@ class PersistenceWorker : public Thread {
 private:
     Queue<PersistenceTask>& queue;
 
-    std::string save_directory;
+    std::string save_file_path;
 
 public:
     PersistenceWorker(
         Queue<PersistenceTask>& queue,
-        const std::string& save_directory);
+        const std::string& save_file_path);
 
     void run() override;
 };

@@ -52,7 +52,7 @@ public:
 
         persistence_worker(
             persistence_queue,
-            "saves") {}
+            game_config.getRutaJugadores()) {}
 
     void start() {
         persistence_worker.start();

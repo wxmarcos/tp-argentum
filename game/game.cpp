@@ -67,8 +67,7 @@ void Game::inicializarClases() {
 }
 
 void Game::cargarJugadoresPersistidos() {
-    // DEBERIA CARGAR LA RUTA DEL ARCHIVO TOML DESDE LA CONFIGURACION
-    auto players = PersistenceLoader::load_players("saves/players.toml");
+    auto players = PersistenceLoader::load_players(config.getRutaJugadores());
 
     for (const auto& p : players) {
         bool ok = agregarJugador(
@@ -186,7 +185,6 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         const std::string nombre = getNombreJugadorPorComando(cmd);
 
         if (!nombre.empty()) {
-            removerJugador(nombre);
             player_id_to_nick.erase(cmd.get_player_id());
             snapshots.push_back(Snapshot::entity_remove(nombre));
         }

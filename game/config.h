@@ -40,6 +40,10 @@ public:
 
     std::vector<ConfigMapa> getMapas() const;
 
+    // Rutas de Persistencia
+    std::string getRutaJugadores() const;
+    std::string getRutaNPCsCriaturas() const;
+
 private:
     struct Impl;
     Impl* impl;
