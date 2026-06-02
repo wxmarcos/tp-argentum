@@ -101,6 +101,10 @@ public:
         const std::string& to,
         const std::string& text
     );
+    static Snapshot meditation_status(
+        const std::string& nick,
+        bool started
+    );
     static Snapshot player_stats(
         const std::string& nick,
         const std::string& raza,

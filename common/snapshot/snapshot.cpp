@@ -144,6 +144,17 @@ Snapshot Snapshot::chat_message(
     return snapshot;
 }
 
+Snapshot Snapshot::meditation_status(
+    const std::string& nick,
+    bool started
+) {
+    return Snapshot::chat_message(
+        nick,
+        nick,
+        started ? "Meditacion iniciada" : "Meditacion interrumpida"
+    );
+}
+
 Snapshot Snapshot::player_stats(
     const std::string& nick,
     const std::string& raza,

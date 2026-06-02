@@ -13,7 +13,6 @@
 #include "clases/charClase.h"
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
-#include "snapshot_factory.h"
 #include "server/persistence/persistence_task.h"
 #include "server/persistence/persistence_task_factory.h"
 
@@ -43,6 +42,8 @@ private:
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     std::string getNombreJugadorPorComando(const Command& cmd) const;
 
+    bool handle_meditation_interruption(Jugador* jugador, std::vector<Snapshot>& snapshots, const std::string& nombre);
+
     // TODO: criaturas
     // TODO: npcs
 
@@ -61,7 +62,7 @@ public:
     bool moverJugador(const std::string& nombre, Direccion dir);
     ResultadoAtaque atacar(const std::string& nombreAtacante, const std::string& nombreObjetivo);
 
-    void tick(float dt);
+    std::vector<Snapshot> tick(float dt);
 
     const Mundo& getMundo() const;
 

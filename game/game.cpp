@@ -97,9 +97,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(
-            SnapshotFactory::entity_login(
+            Snapshot::entity_login(
                 cmd.get_nick(),
-                jugador
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())
             )
         );
 
@@ -129,9 +131,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(
-            SnapshotFactory::entity_created(
+            Snapshot::entity_created(
                 cmd.get_nick(),
-                getJugador(cmd.get_nick())
+                static_cast<uint16_t>(getJugador(cmd.get_nick())->getPosX()),
+                static_cast<uint16_t>(getJugador(cmd.get_nick())->getPosY()),
+                static_cast<uint8_t>(getJugador(cmd.get_nick())->getDireccion())
             )
         );
 
@@ -162,6 +166,12 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         return snapshots;
     }
 
+    Jugador* jugador = getJugador(nombre);
+    // Deja de meditar si recibe cualquier comando distinto a MEDITATE mientras se está meditando
+    if (jugador && cmd.get_type() != protocol::ClientOpcode::MEDITATE) {
+        handle_meditation_interruption(jugador, snapshots, nombre);
+    }
+
     switch (cmd.get_type()) {
         case protocol::ClientOpcode::MOVE: {
             bool moved = moverJugador(
@@ -170,10 +180,13 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             );
 
             if (moved) {
+                Jugador* jugador = getJugador(nombre);
                 snapshots.push_back(
-                    SnapshotFactory::entity_move(
+                    Snapshot::entity_move(
                         nombre,
-                        getJugador(nombre)
+                        static_cast<uint16_t>(jugador->getPosX()),
+                        static_cast<uint16_t>(jugador->getPosY()),
+                        static_cast<uint8_t>(jugador->getDireccion())
                     )
                 );
             } else {
@@ -273,42 +286,164 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         }
 
         case protocol::ClientOpcode::MEDITATE: {
+            if (!jugador || !jugador->estaVivo()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No se puede meditar si no estas vivo"
+                    )
+                );
+                break;
+            }
+
+            if (!jugador->getClase()->puedeMeditar()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Tu clase no puede meditar"
+                    )
+                );
+                break;
+            }
+
+            if (jugador->estaMeditando()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Ya estas meditando"
+                    )
+                );
+                break;
+            }
+
+            jugador->iniciarMeditacion();
             snapshots.push_back(
-                Snapshot::error_message(
-                    nombre,
-                    "Meditacion todavia no implementada"
+                Snapshot::meditation_status(nombre, true)
+            );
+            snapshots.push_back(
+                Snapshot::player_stats(
+                    jugador->getNombre(),
+                    jugador->getRaza()->getNombre(),
+                    jugador->getClase()->getNombre(),
+                    static_cast<uint16_t>(jugador->getMapaId()),
+                    static_cast<uint16_t>(jugador->getPosX()),
+                    static_cast<uint16_t>(jugador->getPosY()),
+                    static_cast<uint8_t>(jugador->getDireccion()),
+                    static_cast<uint16_t>(jugador->getNivel()),
+                    static_cast<uint16_t>(jugador->getVidaActual()),
+                    static_cast<uint16_t>(jugador->getVidaMax()),
+                    static_cast<uint16_t>(jugador->getManaActual()),
+                    static_cast<uint16_t>(jugador->getManaMax()),
+                    static_cast<uint32_t>(jugador->getExperiencia()),
+                    static_cast<uint32_t>(jugador->getOro()),
+                    static_cast<uint16_t>(jugador->getConstitucion()),
+                    static_cast<uint16_t>(jugador->getInteligencia()),
+                    static_cast<uint16_t>(jugador->getFuerza()),
+                    static_cast<uint16_t>(jugador->getAgilidad())
                 )
             );
             break;
         }
 
         case protocol::ClientOpcode::RESURRECT: {
+            // Resurrección por comando no soportada mientras no haya NPCs
             snapshots.push_back(
                 Snapshot::error_message(
                     nombre,
-                    "Resurreccion todavia no implementada"
+                    "Resucitar por comando no implementado.  a un Sacerdote en la ciudad."
                 )
             );
             break;
         }
 
         case protocol::ClientOpcode::HEAL: {
+            // Curación por comando no soportada mientras no haya NPCs
             snapshots.push_back(
                 Snapshot::error_message(
                     nombre,
-                    "Curacion todavia no implementada"
+                    "Curar por comando no implementado. Acercate a un Sacerdote."
                 )
             );
+            break;
             break;
         }
 
         case protocol::ClientOpcode::EQUIP_ITEM: {
-            snapshots.push_back(
-                Snapshot::error_message(
-                    nombre,
-                    "Equipar item todavia no implementado"
-                )
-            );
+            Jugador* jugador = getJugador(nombre);
+            if (!jugador || !jugador->estaVivo()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No puedes equipar items si no estas vivo"
+                    )
+                );
+                break;
+            }
+
+            int slot = static_cast<int>(cmd.get_item_id());
+            const auto& slots = jugador->getInventario().getSlots();
+            if (slot < 0 || slot >= (int)slots.size()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Slot de inventario invalido"
+                    )
+                );
+                break;
+            }
+
+            bool equipped = false;
+            switch (slots[slot].item->getTipo()) {
+                case TipoItem::ARMA:
+                    equipped = jugador->equiparArma(slot);
+                    break;
+                case TipoItem::BACULO:
+                    equipped = jugador->equiparBaculo(slot);
+                    break;
+                case TipoItem::ARMADURA:
+                    equipped = jugador->equiparArmadura(slot);
+                    break;
+                case TipoItem::CASCO:
+                    equipped = jugador->equiparCasco(slot);
+                    break;
+                case TipoItem::ESCUDO:
+                    equipped = jugador->equiparEscudo(slot);
+                    break;
+                default:
+                    equipped = false;
+                    break;
+            }
+
+            if (!equipped) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No se pudo equipar el item"
+                    )
+                );
+                break;
+            }
+
+            snapshots.push_back(Snapshot::player_stats(
+                jugador->getNombre(),
+                jugador->getRaza()->getNombre(),
+                jugador->getClase()->getNombre(),
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion()),
+                static_cast<uint16_t>(jugador->getNivel()),
+                static_cast<uint16_t>(jugador->getVidaActual()),
+                static_cast<uint16_t>(jugador->getVidaMax()),
+                static_cast<uint16_t>(jugador->getManaActual()),
+                static_cast<uint16_t>(jugador->getManaMax()),
+                static_cast<uint32_t>(jugador->getExperiencia()),
+                static_cast<uint32_t>(jugador->getOro()),
+                static_cast<uint16_t>(jugador->getConstitucion()),
+                static_cast<uint16_t>(jugador->getInteligencia()),
+                static_cast<uint16_t>(jugador->getFuerza()),
+                static_cast<uint16_t>(jugador->getAgilidad())
+            ));
             break;
         }
 
@@ -651,15 +786,72 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante, const std::strin
     return resultado;
 }
 
-void Game::tick(float dt) {
+bool Game::handle_meditation_interruption(Jugador* jugador, std::vector<Snapshot>& snapshots, const std::string& nombre) {
+    if (!jugador || !jugador->estaMeditando()) {
+        return false;
+    }
+
+    jugador->interrumpirMeditacion();
+    snapshots.push_back(Snapshot::meditation_status(nombre, false));
+    snapshots.push_back(Snapshot::player_stats(
+        jugador->getNombre(),
+        jugador->getRaza()->getNombre(),
+        jugador->getClase()->getNombre(),
+        static_cast<uint16_t>(jugador->getMapaId()),
+        static_cast<uint16_t>(jugador->getPosX()),
+        static_cast<uint16_t>(jugador->getPosY()),
+        static_cast<uint8_t>(jugador->getDireccion()),
+        static_cast<uint16_t>(jugador->getNivel()),
+        static_cast<uint16_t>(jugador->getVidaActual()),
+        static_cast<uint16_t>(jugador->getVidaMax()),
+        static_cast<uint16_t>(jugador->getManaActual()),
+        static_cast<uint16_t>(jugador->getManaMax()),
+        static_cast<uint32_t>(jugador->getExperiencia()),
+        static_cast<uint32_t>(jugador->getOro()),
+        static_cast<uint16_t>(jugador->getConstitucion()),
+        static_cast<uint16_t>(jugador->getInteligencia()),
+        static_cast<uint16_t>(jugador->getFuerza()),
+        static_cast<uint16_t>(jugador->getAgilidad())
+    ));
+    return true;
+}
+
+std::vector<Snapshot> Game::tick(float dt) {
+    std::vector<Snapshot> snapshots;
 
     for (auto& [nombre, jugador] : jugadores) {
+        bool wasMeditating = jugador->estaMeditando();
+        int oldMana = jugador->getManaActual();
 
         jugador->recuperacionPasiva(dt);
+        // por ahora mando todo, pero en un futuro podria optimizarse para mandar solo cambios relevantes
+        if (wasMeditating && jugador->getManaActual() != oldMana) {
+            snapshots.push_back(Snapshot::player_stats(
+                jugador->getNombre(),
+                jugador->getRaza()->getNombre(),
+                jugador->getClase()->getNombre(),
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion()),
+                static_cast<uint16_t>(jugador->getNivel()),
+                static_cast<uint16_t>(jugador->getVidaActual()),
+                static_cast<uint16_t>(jugador->getVidaMax()),
+                static_cast<uint16_t>(jugador->getManaActual()),
+                static_cast<uint16_t>(jugador->getManaMax()),
+                static_cast<uint32_t>(jugador->getExperiencia()),
+                static_cast<uint32_t>(jugador->getOro()),
+                static_cast<uint16_t>(jugador->getConstitucion()),
+                static_cast<uint16_t>(jugador->getInteligencia()),
+                static_cast<uint16_t>(jugador->getFuerza()),
+                static_cast<uint16_t>(jugador->getAgilidad())
+            ));
+        }
     }
 
     // TODO:
     // tick de criaturas
+    return snapshots;
 }
 
 const Mundo& Game::getMundo() const { return mundo; }

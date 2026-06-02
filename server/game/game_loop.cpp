@@ -57,7 +57,10 @@ void GameLoop::run() {
             std::chrono::duration<float>(
                 tick_duration).count();
 
-        game.tick(dt);
+        std::vector<Snapshot> tickSnapshots = game.tick(dt);
+        for (const Snapshot& snapshot : tickSnapshots) {
+            broadcast_snapshot(snapshot);
+        }
 
         auto tick_end =
             std::chrono::steady_clock::now();
