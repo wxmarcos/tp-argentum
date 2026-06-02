@@ -13,6 +13,7 @@
 #include "clases/charClase.h"
 #include "common/command.h"
 #include "common/snapshot.h"
+#include "server/persistence/persistence_task.h"
 
 struct ResultadoAtaque {
     bool exito;
@@ -25,7 +26,7 @@ struct ResultadoAtaque {
 class Game {
 private:
     Config& config;
-    
+
     std::map<std::string, std::unique_ptr<Raza>> razas;
     std::map<std::string, std::unique_ptr<charClase>> clases;
 
@@ -39,6 +40,10 @@ private:
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     std::string getNombreJugadorPorComando(const Command& cmd) const;
+
+    PersistenceTask build_persistence_task_for_player(
+        const Jugador& jugador) const;
+
     Snapshot build_entity_created_snapshot(const std::string& nombre) const;
     Snapshot build_entity_login_snapshot(const std::string& nombre) const;
     Snapshot build_entity_move_snapshot(const std::string& nombre) const;
@@ -47,7 +52,8 @@ private:
 
 public:
     Game(Config& config);
-  
+    std::vector<PersistenceTask> build_persistence_tasks_for_command(
+    const Command& cmd) const;
     std::vector<Snapshot> process(const Command& cmd);
 
     bool agregarJugador(const std::string& nombre, int mapaId, int posX, int posY,

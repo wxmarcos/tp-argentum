@@ -8,9 +8,11 @@
 
 GameLoop::GameLoop(
     Queue<Command>& commands_queue,
+    Queue<PersistenceTask>& persistence_queue,
     std::vector<std::unique_ptr<ClientHandler>>& clients,
     Config& config)
     : commands_queue(commands_queue),
+      persistence_queue(persistence_queue),
       clients(clients),
       game(config) {}
 
@@ -28,13 +30,20 @@ void GameLoop::run() {
             std::chrono::steady_clock::now();
 
         try {
-
             Command cmd =
                 commands_queue.pop();
-            std::cout << "[GameLoop] Comando recibido: player_id=" << cmd.get_player_id() << " type=" << static_cast<int>(cmd.get_type()) << "\n";
-            
+
+            std::cout
+                << "[GameLoop] Comando recibido: player_id="
+                << cmd.get_player_id()
+                << " type="
+                << static_cast<int>(cmd.get_type())
+                << "\n";
+
             std::vector<Snapshot> snapshots =
                 game.process(cmd);
+
+            enqueue_persistence_tasks(cmd);
 
             for (const Snapshot& snapshot : snapshots) {
                 broadcast_snapshot(snapshot);
@@ -44,7 +53,6 @@ void GameLoop::run() {
             break;
         }
 
-        // update lógica del juego
         float dt =
             std::chrono::duration<float>(
                 tick_duration).count();
@@ -66,8 +74,39 @@ void GameLoop::run() {
     std::cout << "[GameLoop] finalizado\n";
 }
 
-void GameLoop::broadcast_snapshot(const Snapshot& snapshot) {
-    if (snapshot.is_entity_move()) {
+void GameLoop::enqueue_persistence_tasks(
+    const Command& cmd) {
+
+    std::vector<PersistenceTask> tasks =
+        game.build_persistence_tasks_for_command(cmd);
+
+    for (const PersistenceTask& task : tasks) {
+        persistence_queue.push(task);
+    }
+}
+
+void GameLoop::debug_snapshot(
+    const Snapshot& snapshot) const {
+
+    if (snapshot.is_entity_created()) {
+        std::cout
+            << "[GameLoop] Broadcast ENTITY_CREATED "
+            << "nick=" << snapshot.get_nick()
+            << " x=" << snapshot.get_x()
+            << " y=" << snapshot.get_y()
+            << " dir=" << static_cast<int>(snapshot.get_direction())
+            << "\n";
+
+    } else if (snapshot.is_entity_login()) {
+        std::cout
+            << "[GameLoop] Broadcast ENTITY_LOGIN "
+            << "nick=" << snapshot.get_nick()
+            << " x=" << snapshot.get_x()
+            << " y=" << snapshot.get_y()
+            << " dir=" << static_cast<int>(snapshot.get_direction())
+            << "\n";
+
+    } else if (snapshot.is_entity_move()) {
         std::cout
             << "[GameLoop] Broadcast ENTITY_MOVE "
             << "nick=" << snapshot.get_nick()
@@ -112,6 +151,12 @@ void GameLoop::broadcast_snapshot(const Snapshot& snapshot) {
             << static_cast<int>(snapshot.get_opcode())
             << "\n";
     }
+}
+
+void GameLoop::broadcast_snapshot(
+    const Snapshot& snapshot) {
+
+    debug_snapshot(snapshot);
 
     for (auto& client : clients) {
         if (client) {
