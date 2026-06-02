@@ -80,10 +80,17 @@ std::string Game::getNombreJugadorPorComando(
 // TODO : mandar snapshots que tengan sentido con cada accion
 std::vector<Snapshot> Game::process(const Command& cmd) {
     std::vector<Snapshot> snapshots;
+
     if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
         Jugador* jugador = getJugador(cmd.get_nick());
 
         if (!jugador) {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    cmd.get_nick(),
+                    "Login fallido: personaje inexistente"
+                )
+            );
             return snapshots;
         }
 
@@ -91,68 +98,148 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
         snapshots.push_back(
             SnapshotFactory::entity_login(
-            cmd.get_nick(),
-            getJugador(cmd.get_nick())));
+                cmd.get_nick(),
+                jugador
+            )
+        );
 
         return snapshots;
     }
+
     if (cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
         bool creado = agregarJugador(
-            cmd.get_nick(), 1, 10, 10,
-            cmd.get_raza(), cmd.get_clase());
+            cmd.get_nick(),
+            1,
+            10,
+            10,
+            cmd.get_raza(),
+            cmd.get_clase()
+        );
 
-        if (creado) {
-            player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
-
+        if (!creado) {
             snapshots.push_back(
-                SnapshotFactory::entity_created(
-                cmd.get_nick(),
-                getJugador(cmd.get_nick())));
+                Snapshot::error_message(
+                    cmd.get_nick(),
+                    "No se pudo crear el personaje"
+                )
+            );
+            return snapshots;
         }
+
+        player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
+
+        snapshots.push_back(
+            SnapshotFactory::entity_created(
+                cmd.get_nick(),
+                getJugador(cmd.get_nick())
+            )
+        );
 
         return snapshots;
     }
 
     if (cmd.is_disconnect()) {
         const std::string nombre = getNombreJugadorPorComando(cmd);
+
         if (!nombre.empty()) {
             removerJugador(nombre);
             player_id_to_nick.erase(cmd.get_player_id());
             snapshots.push_back(Snapshot::entity_remove(nombre));
         }
+
         return snapshots;
     }
 
     const std::string nombre = getNombreJugadorPorComando(cmd);
-    if (nombre.empty()) return snapshots;
+
+    if (nombre.empty()) {
+        snapshots.push_back(
+            Snapshot::error_message(
+                "",
+                "Comando recibido sin jugador asociado"
+            )
+        );
+        return snapshots;
+    }
 
     switch (cmd.get_type()) {
         case protocol::ClientOpcode::MOVE: {
-            bool moved = moverJugador(nombre,
-                static_cast<Direccion>(cmd.get_direction()));
-            if (moved) {
-                snapshots.push_back(SnapshotFactory::entity_move(
+            bool moved = moverJugador(
                 nombre,
-                getJugador(nombre)));
+                static_cast<Direccion>(cmd.get_direction())
+            );
+
+            if (moved) {
+                snapshots.push_back(
+                    SnapshotFactory::entity_move(
+                        nombre,
+                        getJugador(nombre)
+                    )
+                );
+            } else {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No se pudo mover"
+                    )
+                );
             }
+
             break;
         }
-        case protocol::ClientOpcode::PICK_ITEM:
+
+        case protocol::ClientOpcode::PICK_ITEM: {
             if (tomarItem(nombre, 0)) {
-                // TODO: devolver INVENTORY_UPDATE
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Item recogido"
+                    )
+                );
+            } else {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No hay item para recoger"
+                    )
+                );
             }
+
             break;
-        case protocol::ClientOpcode::DROP_ITEM:
+        }
+
+        case protocol::ClientOpcode::DROP_ITEM: {
             if (tirarItem(nombre, cmd.get_item_id())) {
-                // TODO: devolver INVENTORY_UPDATE
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Item arrojado"
+                    )
+                );
+            } else {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No se pudo arrojar el item"
+                    )
+                );
             }
+
             break;
+        }
+
         case protocol::ClientOpcode::ATTACK: {
             const std::string objetivo = cmd.get_nick();
 
             ResultadoAtaque resultado = atacar(nombre, objetivo);
 
             if (!resultado.exito) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Ataque invalido"
+                    )
+                );
                 break;
             }
 
@@ -182,11 +269,190 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 );
             }
 
-        break;
-    }
-        default:
             break;
+        }
+
+        case protocol::ClientOpcode::MEDITATE: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Meditacion todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::RESURRECT: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Resurreccion todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::HEAL: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Curacion todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::EQUIP_ITEM: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Equipar item todavia no implementado"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::BUY_ITEM: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Compra en comercio todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::SELL_ITEM: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Venta en comercio todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::DEPOSIT_ITEM: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Deposito en banco todavia no implementado"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::WITHDRAW_ITEM: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Extraccion de banco todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::PRIVATE_MESSAGE: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Mensajes privados todavia no implementados"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_CREATE: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Creacion de clan todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_JOIN: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Solicitud para unirse a clan todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_REVIEW: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Revision de solicitudes de clan todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_ACCEPT: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Aceptacion de miembro de clan todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_REJECT: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Rechazo de solicitud de clan todavia no implementado"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_BAN: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Baneo de miembro de clan todavia no implementado"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_KICK: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Expulsion de miembro de clan todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_LEAVE: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Salida de clan todavia no implementada"
+                )
+            );
+            break;
+        }
+
+        default: {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Comando no implementado"
+                )
+            );
+            break;
+        }
     }
+
     return snapshots;
 }
 

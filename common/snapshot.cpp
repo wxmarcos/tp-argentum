@@ -185,6 +185,12 @@ void Snapshot::send(Socket& socket) const {
         payload_size =
             static_cast<uint16_t>(
                 sizeof(uint16_t) + target.size());
+                
+    }else if (opcode == protocol::ServerOpcode::ERROR_MESSAGE) {
+        payload_size = static_cast<uint16_t>(
+            sizeof(uint16_t) + nick.size() +
+            sizeof(uint16_t) + text.size()
+    );
 
     } else {
         throw std::runtime_error("Snapshot::send opcode no soportado");
@@ -222,6 +228,12 @@ void Snapshot::send(Socket& socket) const {
 
     if (opcode == protocol::ServerOpcode::DEATH_EVENT) {
         send_string(socket, target);
+        return;
+    }
+
+    if (opcode == protocol::ServerOpcode::ERROR_MESSAGE) {
+        send_string(socket, nick);
+        send_string(socket, text);
         return;
     }
 }
@@ -327,12 +339,45 @@ Snapshot Snapshot::recv(Socket& socket) {
 
         return Snapshot::death_event(target);
     }
+    if (opcode == protocol::ServerOpcode::ERROR_MESSAGE) {
+        std::string nick = recv_string(socket);
+        std::string text = recv_string(socket);
+
+        uint16_t expected_payload_size = static_cast<uint16_t>(
+            sizeof(uint16_t) + nick.size() +
+            sizeof(uint16_t) + text.size()
+        );
+
+        if (payload_size != expected_payload_size) {
+            throw std::runtime_error(
+                "Snapshot::recv payload_size invalido ERROR_MESSAGE"
+            );
+        }
+
+        return Snapshot::error_message(nick, text);
+    }
 
     throw std::runtime_error("Snapshot::recv opcode no soportado");
 }
 
 protocol::ServerOpcode Snapshot::get_opcode() const {
     return opcode;
+}
+Snapshot Snapshot::error_message(
+    const std::string& nick,
+    const std::string& text
+) {
+    Snapshot snapshot(protocol::ServerOpcode::ERROR_MESSAGE, nick);
+    snapshot.text = text;
+    return snapshot;
+}
+
+bool Snapshot::is_error_message() const {
+    return opcode == protocol::ServerOpcode::ERROR_MESSAGE;
+}
+
+const std::string& Snapshot::get_text() const {
+    return text;
 }
 
 bool Snapshot::is_entity_created() const {

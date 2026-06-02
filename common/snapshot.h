@@ -13,7 +13,7 @@ private:
     protocol::ServerOpcode opcode;
 
     std::string nick;
-
+    std::string text;
     std::string attacker;
     std::string target;
 
@@ -72,6 +72,14 @@ public:
     static Snapshot recv(Socket& socket);
 
     protocol::ServerOpcode get_opcode() const;
+
+    static Snapshot error_message(
+        const std::string& nick,
+        const std::string& text
+    );
+
+    bool is_error_message() const;
+    const std::string& get_text() const;
 
     bool is_entity_created() const;
     bool is_entity_login() const;
