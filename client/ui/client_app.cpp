@@ -8,7 +8,7 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "audio/audio_manager.h"
-#include "common/command.h"
+#include "common/command/command.h"
 #include "game/client_game_state.h"
 #include "input/input_handler.h"
 #include "net/server_connection.h"

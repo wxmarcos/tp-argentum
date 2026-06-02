@@ -8,8 +8,8 @@
 
 #include "common/thread.h"
 #include "common/queue.h"
-#include "common/command.h"
-#include "common/snapshot.h"
+#include "common/command/command.h"
+#include "common/snapshot/snapshot.h"
 
 #include "client/client_handler.h"
 

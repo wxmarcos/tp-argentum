@@ -1,6 +1,6 @@
 #include "game/client_game_state.h"
 
-#include "common/snapshot.h"
+#include "common/snapshot/snapshot.h"
 
 ClientGameState::ClientGameState(const std::string& local_nick,
                                  int map_width, int map_height):

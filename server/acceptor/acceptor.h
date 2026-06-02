@@ -9,7 +9,7 @@
 #include "common/thread.h"
 #include "common/network/socket.h"
 #include "common/queue.h"
-#include "common/command.h"
+#include "common/command/command.h"
 
 #include "client/client_handler.h"
 

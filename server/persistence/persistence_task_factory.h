@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "characters/jugador.h"
-#include "common/command.h"
+#include "common/command/command.h"
 #include "server/persistence/persistence_task.h"
 
 class PersistenceTaskFactory {

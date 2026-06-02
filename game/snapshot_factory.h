@@ -3,7 +3,7 @@
 #include <string>
 
 #include "characters/jugador.h"
-#include "common/snapshot.h"
+#include "common/snapshot/snapshot.h"
 
 class SnapshotFactory {
 public:

@@ -6,6 +6,7 @@ target_sources(taller_common
      resolver.cpp
      resolvererror.cpp
      socket.cpp
+     socket_helpers.cpp
 )
 
 target_include_directories(taller_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -16,12 +16,28 @@ private:
     std::string text;
     std::string attacker;
     std::string target;
+    std::string raza;
+    std::string clase;
 
     uint16_t x = 0;
     uint16_t y = 0;
 
     uint8_t direction = 0;
+    uint16_t mapa_id = 0;
 
+    uint16_t nivel = 0;
+    uint16_t vida = 0;
+    uint16_t vida_max = 0;
+    uint16_t mana = 0;
+    uint16_t mana_max = 0;
+
+    uint32_t experiencia = 0;
+    uint32_t oro = 0;
+
+    uint16_t constitucion = 0;
+    uint16_t inteligencia = 0;
+    uint16_t fuerza = 0;
+    uint16_t agilidad = 0;
     uint16_t damage = 0;
     bool critical = false;
 
@@ -79,13 +95,52 @@ public:
     );
 
     bool is_error_message() const;
-    
+
     static Snapshot chat_message(
         const std::string& from,
         const std::string& to,
         const std::string& text
     );
+    static Snapshot player_stats(
+        const std::string& nick,
+        const std::string& raza,
+        const std::string& clase,
+        uint16_t mapa_id,
+        uint16_t x,
+        uint16_t y,
+        uint8_t direction,
+        uint16_t nivel,
+        uint16_t vida,
+        uint16_t vida_max,
+        uint16_t mana,
+        uint16_t mana_max,
+        uint32_t experiencia,
+        uint32_t oro,
+        uint16_t constitucion,
+        uint16_t inteligencia,
+        uint16_t fuerza,
+        uint16_t agilidad
+    );
+    const std::string& get_raza() const;
+    const std::string& get_clase() const;
 
+    uint16_t get_mapa_id() const;
+    uint16_t get_nivel() const;
+
+    uint16_t get_vida() const;
+    uint16_t get_vida_max() const;
+
+    uint16_t get_mana() const;
+    uint16_t get_mana_max() const;
+
+    uint32_t get_experiencia() const;
+    uint32_t get_oro() const;
+
+    uint16_t get_constitucion() const;
+    uint16_t get_inteligencia() const;
+    uint16_t get_fuerza() const;
+    uint16_t get_agilidad() const;
+    bool is_player_stats() const;
     bool is_chat_message() const;
     const std::string& get_text() const;
 

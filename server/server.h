@@ -9,7 +9,7 @@
 #include <thread>
 #include <vector>
 
-#include "common/command.h"
+#include "common/command/command.h"
 #include "common/queue.h"
 
 #include "acceptor/acceptor.h"
