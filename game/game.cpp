@@ -25,6 +25,8 @@
 #include <cstdlib>
 #include <cmath>
 
+static Snapshot make_player_stats(Jugador* j);
+
 // ----------------- Constructor -----------------
 Game::Game(Config& config)
     : config(config), nextCriaturaId(0),
@@ -182,12 +184,12 @@ std::string Game::agregarCriatura(const std::string& tipo, int mapaId, int posX,
     std::string id = tipo + "_" + std::to_string(nextCriaturaId++);
 
     std::unique_ptr<Criatura> criatura;
-    if      (tipo == "goblin")      criatura = std::make_unique<Goblin>(id, posX, posY);
-    else if (tipo == "esqueleto")   criatura = std::make_unique<Esqueleto>(id, posX, posY);
-    else if (tipo == "arana")       criatura = std::make_unique<Arana>(id, posX, posY);
-    else if (tipo == "golem")       criatura = std::make_unique<Golem>(id, posX, posY);
-    else if (tipo == "orco")        criatura = std::make_unique<Orco>(id, posX, posY);
-    else if (tipo == "zombie")      criatura = std::make_unique<Zombie>(id, posX, posY);
+    if      (tipo == "goblin")      criatura = std::make_unique<Goblin>(config, posX, posY);
+    else if (tipo == "esqueleto")   criatura = std::make_unique<Esqueleto>(config, posX, posY);
+    else if (tipo == "arana")       criatura = std::make_unique<Arana>(config, posX, posY);
+    else if (tipo == "golem")       criatura = std::make_unique<Golem>(config, posX, posY);
+    else if (tipo == "orco")        criatura = std::make_unique<Orco>(config, posX, posY);
+    else if (tipo == "zombie")      criatura = std::make_unique<Zombie>(config, posX, posY);
     else return "";
 
     criatura->setMapaId(mapaId);
