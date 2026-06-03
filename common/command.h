@@ -60,6 +60,7 @@ public:
     static Command recv(Socket& socket, uint16_t player_id);
     void send(Socket& socket) const;
 
+    static Command create_character(const std::string& nick, const std::string& raza, const std::string& clase);
     static Command move(uint8_t direction);
     static Command attack(uint32_t target_id);
     static Command disconnect();

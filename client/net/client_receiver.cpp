@@ -1,51 +1,27 @@
 #include "net/client_receiver.h"
 
 #include <iostream>
-#include <string>
 #include <utility>
 
-#include "protocol/protocol.h"
-
-ClientReceiver::ClientReceiver(Socket& socket, Queue<GameUpdate>& updates_queue):
+ClientReceiver::ClientReceiver(Socket& socket,
+                               Queue<GameUpdate>& updates_queue):
         socket(socket), updates_queue(updates_queue) {}
 
 void ClientReceiver::run() {
     try {
-        std::string acc;
-        char c;
-
         while (should_keep_running()) {
-            int received = socket.recvsome(&c, 1);
+            Snapshot snapshot = Snapshot::recv(socket);
 
-            if (received == 0) {
-                push_disconnect();
-                break;
-            }
-            if (received < 0) {
-                continue;
-            }
-
-            feed(acc, c);
+            GameUpdate update;
+            update.snapshot = std::move(snapshot);
+            push_update(std::move(update));
         }
     } catch (const std::exception& ex) {
-        std::cerr << "[ClientReceiver] " << ex.what() << "\n";
-        push_disconnect();
+        if (should_keep_running()) {
+            std::cerr << "[ClientReceiver] " << ex.what() << "\n";
     }
+    push_disconnect();
 }
-
-void ClientReceiver::feed(std::string& acc, char c) {
-    if (c != '\n') {
-        acc.push_back(c);
-        return;
-    }
-
-    if (!acc.empty() && acc.back() == '\r') {
-        acc.pop_back();
-    }
-    if (!acc.empty()) {
-        push_update(Protocol::parse(acc));
-    }
-    acc.clear();
 }
 
 void ClientReceiver::push_update(GameUpdate update) {

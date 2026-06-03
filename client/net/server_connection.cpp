@@ -27,7 +27,7 @@ ServerConnection::~ServerConnection() {
     stop();
 }
 
-void ServerConnection::send(const ClientCommand& cmd) {
+void ServerConnection::send(const Command& cmd) {
     if (!running) {
         return;
     }

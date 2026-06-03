@@ -14,17 +14,19 @@ struct ClientConfig {
 
     int tile_size = 32;
 
+    std::string assets_path = "assets/graficos";
+
     int map_width = 50;
     int map_height = 50;
-    int start_x = 25;
-    int start_y = 25;
 
     int music_volume = 64;
     int effects_volume = 96;
 
-    static ClientConfig load() {
-        return ClientConfig{};
-    }
+    std::string character_nick = "Messi";
+    std::string character_raza = "humano";
+    std::string character_clase = "mago";
+
+    static ClientConfig load();
 };
 
 #endif
