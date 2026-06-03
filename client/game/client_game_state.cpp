@@ -2,7 +2,7 @@
  
 #include <cctype>
  
-#include "common/snapshot.h"
+#include "common/snapshot/snapshot.h"
  
 namespace {
 bool classify_creature(const std::string& nick, std::string& type) {

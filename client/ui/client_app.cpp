@@ -8,7 +8,7 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "audio/audio_manager.h"
-#include "common/command.h"
+#include "common/command/command.h"
 #include "game/client_game_state.h"
 #include "input/input_handler.h"
 #include "net/server_connection.h"
@@ -97,7 +97,7 @@ bool ClientApp::process_input(ServerConnection& connection,
             if (event.key.keysym.sym == SDLK_ESCAPE) {
                 return false;
             }
-            Command cmd(0, CommandType::Disconnect);
+            Command cmd(0, protocol::ClientOpcode::DISCONNECT);
             if (input.process_key(event.key, cmd)) {
                 connection.send(cmd);
             }

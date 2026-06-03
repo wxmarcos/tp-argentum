@@ -10,8 +10,10 @@
 #include "characters/jugador.h"
 #include "razas/raza.h"
 #include "clases/charClase.h"
-#include "common/command.h"
-#include "common/snapshot.h"
+#include "common/command/command.h"
+#include "common/snapshot/snapshot.h"
+#include "server/persistence/persistence_task.h"
+#include "server/persistence/persistence_task_factory.h"
 
 struct ResultadoAtaque {
     bool exito;
@@ -35,17 +37,18 @@ private:
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
-
+    void cargarJugadoresPersistidos();
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     std::string getNombreJugadorPorComando(const Command& cmd) const;
-    Snapshot build_entity_move_snapshot(const std::string& nombre) const;
+
+    bool handle_meditation_interruption(Jugador* jugador, std::vector<Snapshot>& snapshots, const std::string& nombre);
 
     // TODO: criaturas
     // TODO: npcs
 
 public:
     Game(Config& config);
-
+    std::vector<PersistenceTask> build_persistence_tasks_for_command(const Command& cmd) const;
     std::vector<Snapshot> process(const Command& cmd);
 
     bool agregarJugador(const std::string& nombre, int mapaId, int posX, int posY,
@@ -58,7 +61,8 @@ public:
     ResultadoAtaque atacar(const std::string& nombreAtacante,
                            const std::string& nombreObjetivo);
 
-    void tick(float dt);
+    std::vector<Snapshot> tick(float dt);
+
     const Mundo& getMundo() const;
 
     bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);

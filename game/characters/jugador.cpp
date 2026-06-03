@@ -32,6 +32,37 @@ void Jugador::recalcularStats() {
     manaActual = manaMax;
 }
 
+void Jugador::restaurarEstado(
+    int nuevoNivel,
+    int nuevaVida,
+    int nuevaVidaMax,
+    int nuevoMana,
+    int nuevoManaMax,
+    int nuevaExperiencia,
+    int nuevoOro,
+    int nuevaConstitucion,
+    int nuevaInteligencia,
+    int nuevaFuerza,
+    int nuevaAgilidad
+) {
+    nivel = nuevoNivel;
+    vidaMax = nuevaVidaMax;
+    vidaActual = nuevaVida;
+
+    manaMax = nuevoManaMax;
+    manaActual = nuevoMana;
+
+    experiencia = nuevaExperiencia;
+    oro = nuevoOro;
+
+    constitucion = nuevaConstitucion;
+    inteligencia = nuevaInteligencia;
+    fuerza = nuevaFuerza;
+    agilidad = nuevaAgilidad;
+
+    vivo = vidaActual > 0;
+}
+
 const Raza* Jugador::getRaza() const { return raza; }
 const CharClase* Jugador::getClase() const { return clase; }
 int Jugador::getConstitucion() const { return constitucion; }
