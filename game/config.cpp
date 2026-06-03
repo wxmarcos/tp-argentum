@@ -247,6 +247,7 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
         cm.vecinoSur        = t->get("vecino_sur")      ? (int)(*t->get("vecino_sur")->value<int64_t>())    : -1;
         cm.vecinoEste       = t->get("vecino_este")     ? (int)(*t->get("vecino_este")->value<int64_t>())   : -1;
         cm.vecinoOeste      = t->get("vecino_oeste")    ? (int)(*t->get("vecino_oeste")->value<int64_t>())  : -1;
+        cm.esZonaSegura     = t->get("es_zona_segura")  ? (*t->get("es_zona_segura")->value<bool>())        : false;
         resultado.push_back(cm);
     }
     

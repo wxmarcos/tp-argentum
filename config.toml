@@ -146,17 +146,28 @@ max_clients = 100
 # Mapas
 # -----------------------------------------------------------------------------
 [mapas.1]
-ancho = 100
-alto = 100
-vecino_norte = -1
-vecino_sur = -1
-vecino_este = 2
-vecino_oeste = -1
-
+ancho              = 100
+alto               = 100
+vecino_norte       = 3
+vecino_sur         = -1
+vecino_este        = 2
+vecino_oeste       = -1
+es_zona_segura     = false
+ 
 [mapas.2]
-ancho = 100
-alto = 100
-vecino_norte = -1
-vecino_sur = -1
-vecino_este = -1
-vecino_oeste = 1
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = 1
+es_zona_segura     = false
+
+[mapas.3]
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = 1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = true

@@ -43,6 +43,7 @@ public:
     // Mapas
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;
+        bool esZonaSegura;
     };
 
     std::vector<ConfigMapa> getMapas() const;
