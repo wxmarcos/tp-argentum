@@ -32,13 +32,13 @@ struct Config::Impl {
 Config::Config(const std::string& rutaArchivo)
     : impl(new Impl(rutaArchivo)) {}
 
-// Inventario
+// ----------------- Inventario -----------------
 
 int Config::getInventarioCapacidadMax() const {
     return impl->get<int64_t>("inventario.capacidad_max", 30);
 }
 
-// Razas
+// ----------------- Razas -----------------
 
 int Config::getRazaConstitucionBase(const std::string& raza) const {
     std::string clave = "razas." + raza + ".constitucion_base";
@@ -103,7 +103,7 @@ float Config::getRazaFRecuperacion(const std::string& raza) const {
     return static_cast<float>(impl->get<double>(clave, 1.0));
 }
 
-// Clases
+// ----------------- Clases -----------------
 
 float Config::getClaseFVida(const std::string& clase) const {
     std::string clave = "clases." + clase + ".f_clase_vida";
@@ -132,7 +132,7 @@ float Config::getClaseFMeditacion(const std::string& clase) const {
     return static_cast<float>(impl->get<double>(clave, 0.0));
 }
 
-// Fórmulas
+// ----------------- Fórmulas -----------------
 
 int Config::getFormulaCriticoPorcentaje() const {
     return impl->get<int64_t>("formulas.critico_porcentaje", 20);
@@ -158,7 +158,66 @@ int Config::getFormulaOroDropNPCDivisor() const {
     return impl->get<int64_t>("formulas.oro_drop_npc_divisor", 10);
 }
 
-// Rutas de Persistencia
+
+// ----------------- Criaturas -----------------
+
+int Config::getCriaturaVidaMax(const std::string& tipo) const {
+    std::string clave = "criaturas." + tipo + ".vida_max";
+    if (tipo == "goblin")    return impl->get<int64_t>(clave, 50);
+    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 60);
+    if (tipo == "zombie")    return impl->get<int64_t>(clave, 80);
+    if (tipo == "arana")     return impl->get<int64_t>(clave, 40);
+    if (tipo == "orco")      return impl->get<int64_t>(clave, 150);
+    if (tipo == "golem")     return impl->get<int64_t>(clave, 250);
+    return impl->get<int64_t>(clave, 50);
+}
+ 
+int Config::getCriaturaNivel(const std::string& tipo) const {
+    std::string clave = "criaturas." + tipo + ".nivel";
+    if (tipo == "goblin")    return impl->get<int64_t>(clave, 1);
+    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 2);
+    if (tipo == "zombie")    return impl->get<int64_t>(clave, 1);
+    if (tipo == "arana")     return impl->get<int64_t>(clave, 1);
+    if (tipo == "orco")      return impl->get<int64_t>(clave, 3);
+    if (tipo == "golem")     return impl->get<int64_t>(clave, 5);
+    return impl->get<int64_t>(clave, 1);
+}
+ 
+int Config::getCriaturaDanioMin(const std::string& tipo) const {
+    std::string clave = "criaturas." + tipo + ".danio_min";
+    if (tipo == "goblin")    return impl->get<int64_t>(clave, 2);
+    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 3);
+    if (tipo == "zombie")    return impl->get<int64_t>(clave, 2);
+    if (tipo == "arana")     return impl->get<int64_t>(clave, 1);
+    if (tipo == "orco")      return impl->get<int64_t>(clave, 5);
+    if (tipo == "golem")     return impl->get<int64_t>(clave, 8);
+    return impl->get<int64_t>(clave, 1);
+}
+ 
+int Config::getCriaturaDanioMax(const std::string& tipo) const {
+    std::string clave = "criaturas." + tipo + ".danio_max";
+    if (tipo == "goblin")    return impl->get<int64_t>(clave, 5);
+    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 7);
+    if (tipo == "zombie")    return impl->get<int64_t>(clave, 6);
+    if (tipo == "arana")     return impl->get<int64_t>(clave, 4);
+    if (tipo == "orco")      return impl->get<int64_t>(clave, 12);
+    if (tipo == "golem")     return impl->get<int64_t>(clave, 20);
+    return impl->get<int64_t>(clave, 2);
+}
+ 
+int Config::getCriaturaFuerza(const std::string& tipo) const {
+    std::string clave = "criaturas." + tipo + ".fuerza";
+    if (tipo == "goblin")    return impl->get<int64_t>(clave, 1);
+    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 1);
+    if (tipo == "zombie")    return impl->get<int64_t>(clave, 1);
+    if (tipo == "arana")     return impl->get<int64_t>(clave, 1);
+    if (tipo == "orco")      return impl->get<int64_t>(clave, 2);
+    if (tipo == "golem")     return impl->get<int64_t>(clave, 3);
+    return impl->get<int64_t>(clave, 1);
+}
+
+
+// ----------------- Rutas de Persistencia -----------------
 
 std::string Config::getRutaJugadores() const {
     return impl->get<std::string>("rutas.ruta_jugadores", "data/players.toml");
@@ -167,6 +226,8 @@ std::string Config::getRutaJugadores() const {
 std::string Config::getRutaNPCsCriaturas() const {
     return impl->get<std::string>("rutas.ruta_npcs_criaturas", "data/npcs_criaturas.toml");
 }
+
+// ----------------- Mapas -----------------
 
 std::vector<Config::ConfigMapa> Config::getMapas() const {
     std::vector<ConfigMapa> resultado;

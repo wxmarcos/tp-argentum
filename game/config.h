@@ -33,6 +33,13 @@ public:
     double getFormulaOroMaxExponente() const;
     int getFormulaOroDropNPCDivisor() const;
 
+    // Criaturas
+    int getCriaturaVidaMax(const std::string& tipo) const;
+    int getCriaturaNivel(const std::string& tipo) const;
+    int getCriaturaDanioMin(const std::string& tipo) const;
+    int getCriaturaDanioMax(const std::string& tipo) const;
+    int getCriaturaFuerza(const std::string& tipo) const;
+
     // Mapas
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;

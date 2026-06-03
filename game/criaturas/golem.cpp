@@ -1,6 +1,13 @@
 #include "criaturas/golem.h"
 
-Golem::Golem(int posX, int posY)
-    : Criatura("Golem", posX, posY, 100, 1, 5, 10) {}  // TODO: stats desde Config
+Golem::Golem(const Config& config, int posX, int posY)
+    : Criatura("Golem", posX, posY,
+               config.getCriaturaVidaMax("golem"),
+               config.getCriaturaNivel("golem"),
+               config.getCriaturaDanioMin("golem"),
+               config.getCriaturaDanioMax("golem"),
+               config.getCriaturaFuerza("golem"),
+               config.getCriaturaCooldownAtaque(),
+               config.getCriaturaCooldownMovimiento()) {}
 
-std::string Golem::getTipo() const { return "Golem"; }
+std::string Golem::getTipo() const { return "golem"; }
