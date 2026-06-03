@@ -33,6 +33,12 @@ public:
     double getFormulaOroMaxExponente() const;
     int getFormulaOroDropNPCDivisor() const;
 
+    // IA de criaturas
+    int getCriaturaRangoDeteccion() const;
+    float getCriaturaCooldownMovimiento() const;
+    float getCriaturaCooldownAtaque() const;
+    float getSpawnIntervalo() const;
+
     // Criaturas
     int getCriaturaVidaMax(const std::string& tipo) const;
     int getCriaturaNivel(const std::string& tipo) const;
@@ -44,6 +50,8 @@ public:
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;
         bool esZonaSegura;
+        int poblacionMax;
+        std::vector<std::string> criaturasPosibles;
     };
 
     std::vector<ConfigMapa> getMapas() const;

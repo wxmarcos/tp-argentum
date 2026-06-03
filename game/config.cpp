@@ -158,6 +158,23 @@ int Config::getFormulaOroDropNPCDivisor() const {
     return impl->get<int64_t>("formulas.oro_drop_npc_divisor", 10);
 }
 
+// ----------------- IA de criaturas -----------------
+
+int Config::getCriaturaRangoDeteccion() const {
+    return impl->get<int64_t>("ia.rango_deteccion_criaturas", 15);
+}
+
+float Config::getCriaturaCooldownAtaque() const {
+    return static_cast<float>(impl->get<double>("ia.cooldown_ataque_criatura", 2.0));
+}
+ 
+float Config::getCriaturaCooldownMovimiento() const {
+    return static_cast<float>(impl->get<double>("ia.cooldown_movimiento_criatura", 2.0));
+}
+
+float Config::getSpawnIntervalo() const {
+    return static_cast<float>(impl->get<double>("ia.intervalo_spawn", 30.0));
+}
 
 // ----------------- Criaturas -----------------
 
@@ -248,6 +265,15 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
         cm.vecinoEste       = t->get("vecino_este")     ? (int)(*t->get("vecino_este")->value<int64_t>())   : -1;
         cm.vecinoOeste      = t->get("vecino_oeste")    ? (int)(*t->get("vecino_oeste")->value<int64_t>())  : -1;
         cm.esZonaSegura     = t->get("es_zona_segura")  ? (*t->get("es_zona_segura")->value<bool>())        : false;
+        cm.poblacionMax     = t->get("poblacion_max")   ? (int)(*t->get("poblacion_max")->value<int64_t>()) : 10;
+
+        if (auto* arr = t->get("criaturas_posibles") ? t->get("criaturas_posibles")->as_array() : nullptr) {
+            for (auto& elem : *arr) {
+                if (auto s = elem.value<std::string>())
+                    cm.criaturasPosibles.push_back(*s);
+            }
+        }
+
         resultado.push_back(cm);
     }
     

@@ -89,6 +89,15 @@ oro_max_exponente       = 1.1
 oro_drop_npc_divisor    = 10      # OroDropNPC = vidaMaxNPC / divisor
 
 # -----------------------------------------------------------------------------
+# IA de criaturas
+# -----------------------------------------------------------------------------
+[ia]
+rango_deteccion_criaturas = 15
+cooldown_movimiento_criaturas = 2.0  # ms entre movimientos de criaturas
+cooldown_ataque_criaturas = 2.0      # ms entre ataques de criaturas
+intervalo_spawn = 30.0  # segundos entre spawns de criaturas
+
+# -----------------------------------------------------------------------------
 # Criaturas
 # -----------------------------------------------------------------------------
 [criaturas.goblin]
@@ -153,6 +162,8 @@ vecino_sur         = -1
 vecino_este        = 2
 vecino_oeste       = -1
 es_zona_segura     = false
+poblacion_max      = 10
+criaturas_posibles = ["goblin", "arana", "zombie"]
  
 [mapas.2]
 ancho              = 100
@@ -162,6 +173,8 @@ vecino_sur         = -1
 vecino_este        = -1
 vecino_oeste       = 1
 es_zona_segura     = false
+poblacion_max      = 8
+criaturas_posibles = ["orco", "golem", "esqueleto"]
 
 [mapas.3]
 ancho              = 100
@@ -171,3 +184,5 @@ vecino_sur         = 1
 vecino_este        = -1
 vecino_oeste       = -1
 es_zona_segura     = true
+poblacion_max      = 0
+criaturas_posibles = []
