@@ -1,14 +1,13 @@
 #include <stdexcept>
+
 #include "mapa.h"
 
-Mapa::Mapa(int ancho, int alto, bool zonaSegura)
-    : ancho(ancho), alto(alto), zonaSegura(zonaSegura),
+Mapa::Mapa(int ancho, int alto)
+    : ancho(ancho), alto(alto),
     grilla(alto, std::vector<Tile>(ancho)) {}
-    
+
 int Mapa::getAncho() const { return ancho; }
 int Mapa::getAlto() const { return alto; }
-bool Mapa::esZonaSegura() const { return zonaSegura; }
-void Mapa::setZonaSegura(bool valor) { zonaSegura = valor; }
 
 bool Mapa::esPosicionValida(int x, int y) const {
     return x >= 0 && x < ancho && y >= 0 && y < alto;
@@ -42,9 +41,7 @@ void Mapa::agregarPersonaje(Character* personaje) {
 }
 
 void Mapa::removerPersonaje(Character* personaje) {
-    int x = personaje->getPosX();
-    int y = personaje->getPosY();
-    personajesEnPosicion.erase({x, y});
+    personajesEnPosicion.erase({personaje->getPosX(), personaje->getPosY()});
 }
 
 std::pair<int, int> Mapa::calcularNuevaPosicion(int x, int y, Direccion dir) const {

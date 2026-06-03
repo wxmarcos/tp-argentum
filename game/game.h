@@ -1,4 +1,5 @@
 #pragma once
+
 #include <map>
 #include <memory>
 #include <string>
@@ -8,13 +9,10 @@
 #include "config.h"
 #include "mundo.h"
 #include "characters/jugador.h"
-#include "criaturas/criatura.h"
 #include "razas/raza.h"
 #include "clases/charClase.h"
-#include "common/command/command.h"
-#include "common/snapshot/snapshot.h"
-#include "server/persistence/persistence_task.h"
-#include "server/persistence/persistence_task_factory.h"
+#include "common/command.h"
+#include "common/snapshot.h"
 
 struct ResultadoAtaque {
     bool exito;
@@ -27,81 +25,41 @@ struct ResultadoAtaque {
 class Game {
 private:
     Config& config;
-    Mundo mundo;
-
-    std::map<std::string, std::unique_ptr<Raza>>      razas;
-    std::map<std::string, std::unique_ptr<CharClase>> clases;
-    std::map<std::string, std::unique_ptr<Jugador>> jugadores;
-    std::map<std::string, std::unique_ptr<Criatura>> criaturas;
-    int nextCriaturaId;
-
-    float tiempoDesdeUltimoSpawn;
-    struct InfoSpawnMapa {
-        int poblacionMax;
-        std::vector<std::string> criaturasPosibles;
-    };
-    std::map<int, InfoSpawnMapa> infoSpawn;
     
+    std::map<std::string, std::unique_ptr<Raza>> razas;
+    std::map<std::string, std::unique_ptr<CharClase>> clases;
+
+    Mundo mundo;
+    std::map<std::string, std::unique_ptr<Jugador>> jugadores;
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
 
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
-    void cargarJugadoresPersistidos();
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     std::string getNombreJugadorPorComando(const Command& cmd) const;
+    Snapshot build_entity_move_snapshot(const std::string& nombre) const;
 
-    bool handle_meditation_interruption(Jugador* jugador, std::vector<Snapshot>& snapshots, const std::string& nombre);
-
-    // Combate contra criaturas (logica separada de PvP)
-    ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
-    void procesarDropCriatura(Jugador* atacante, Criatura* criatura);
-
-    // IA de criaturas
-    void tickCriaturas(float dt, std::vector<Snapshot>& snapshots);
-    int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
-    void spawnCriaturas();
-
-    // Sacerdotes y resurreccion
-    struct InfoSacerdote {
-        int mapaId, x, y;
-    };
-    std::vector<InfoSacerdote> sacerdotes;
-    void cargarSacerdotes();
-    bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
-                                    InfoSacerdote& destino,
-                                    float& distancia) const;
-    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
-
+    // TODO: criaturas
     // TODO: npcs
 
 public:
-    explicit Game(Config& config);
-
-    std::vector<PersistenceTask> build_persistence_tasks_for_command(
-        const Command& cmd) const;
+    Game(Config& config);
+  
     std::vector<Snapshot> process(const Command& cmd);
 
-    // Jugadores
     bool agregarJugador(const std::string& nombre, int mapaId, int posX, int posY,
-                        const std::string& razaNombre,
-                        const std::string& claseNombre);
+                        const std::string& razaNombre, const std::string& claseNombre);
     void removerJugador(const std::string& nombre);
     Jugador* getJugador(const std::string& nombre);
     const Jugador* getJugador(const std::string& nombre) const;
+
     bool moverJugador(const std::string& nombre, Direccion dir);
+    ResultadoAtaque atacar(const std::string& nombreAtacante, const std::string& nombreObjetivo);
 
-    // Criaturas
-    std::string agregarCriatura(const std::string& tipo, int mapaId, int posX, int posY);
-    void removerCriatura(const std::string& id);
-    Criatura* getCriatura(const std::string& id);
+    void tick(float dt);
 
-    // Combate
-    ResultadoAtaque atacar(const std::string& nombreAtacante,
-                           const std::string& nombreObjetivo);
-
-    std::vector<Snapshot> tick(float dt);
     const Mundo& getMundo() const;
 
     bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);

@@ -2,7 +2,7 @@
 #include "clases/charClase.h"
 #include "config.h"
 
-class Guerrero : public CharClase {
+class Guerrero : public charClase {
     float fClaseVida;
     float fClaseMana;
     float fClaseMeditacion;

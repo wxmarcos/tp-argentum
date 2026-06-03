@@ -75,8 +75,7 @@ int Formulas::calcularOroMax(int nivel) {
     return static_cast<int>(100.0 * std::pow(nivel, 1.1));
 }
 int Formulas::calcularOroDropNPC(int vidaMaxNPC) {
-    double r = 0.01 + (static_cast<double>(rand()) / RAND_MAX) * (0.2 - 0.01); // Entre 0.01 y 0.1
-    return static_cast<int>(r * vidaMaxNPC);
+    return vidaMaxNPC / 10;
 }
 int Formulas::calcularOroExceso(int oro, int oroMax) {
     if (oro <= oroMax) return 0;
