@@ -225,6 +225,231 @@ inline SpriteData make_paladin_sprite_data() {
     return d;
 }
  
+inline SpriteData make_goblin_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   3,   6,  18,  25 };
+    d.frame_rects[DIR_SOUTH][1] = {  28,   6,  18,  25 };
+    d.frame_rects[DIR_SOUTH][2] = {  53,   6,  18,  25 };
+    d.frame_rects[DIR_SOUTH][3] = {  78,   6,  18,  25 };
+
+    d.frame_rects[DIR_NORTH][0] = {   3,  36,  18,  25 };
+    d.frame_rects[DIR_NORTH][1] = {  28,  36,  18,  25 };
+    d.frame_rects[DIR_NORTH][2] = {  53,  36,  18,  25 };
+    d.frame_rects[DIR_NORTH][3] = {  78,  36,  18,  25 };
+
+    d.frame_rects[DIR_EAST][0] = {   3,  67,  18,  25 };
+    d.frame_rects[DIR_EAST][1] = {  28,  67,  18,  25 };
+    d.frame_rects[DIR_EAST][2] = {  53,  67,  18,  25 };
+    d.frame_rects[DIR_EAST][3] = {  78,  67,  18,  25 };
+
+    d.frame_rects[DIR_WEST][0] = {   4,  98,  18,  25 };
+    d.frame_rects[DIR_WEST][1] = {  30,  98,  18,  25 };
+    d.frame_rects[DIR_WEST][2] = {  54,  98,  18,  25 };
+    d.frame_rects[DIR_WEST][3] = {  79,  98,  18,  25 };
+
+    return d;
+}
+
+inline SpriteData make_esqueleto_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   4,   2,  21,  45 };
+    d.frame_rects[DIR_SOUTH][1] = {  29,   2,  21,  45 };
+    d.frame_rects[DIR_SOUTH][2] = {  53,   2,  21,  45 };
+    d.frame_rects[DIR_SOUTH][3] = {  80,   2,  21,  45 };
+
+    d.frame_rects[DIR_NORTH][0] = {   1,  49,  21,  45 };
+    d.frame_rects[DIR_NORTH][1] = {  26,  49,  21,  45 };
+    d.frame_rects[DIR_NORTH][2] = {  51,  49,  21,  45 };
+    d.frame_rects[DIR_NORTH][3] = {  75,  49,  21,  45 };
+
+    d.frame_rects[DIR_EAST][0] = {   3, 143,  21,  45 };
+    d.frame_rects[DIR_EAST][1] = {  29, 143,  21,  45 };
+    d.frame_rects[DIR_EAST][2] = {  53, 143,  21,  45 };
+    d.frame_rects[DIR_EAST][3] = {  77, 143,  21,  45 };
+
+    d.frame_rects[DIR_WEST][0] = {   3,  96,  21,  45 };
+    d.frame_rects[DIR_WEST][1] = {  28,  96,  21,  45 };
+    d.frame_rects[DIR_WEST][2] = {  53,  96,  21,  45 };
+    d.frame_rects[DIR_WEST][3] = {  77,  96,  21,  45 };
+
+    return d;
+}
+
+inline SpriteData make_zombie_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   6,   2,  15,  43 };
+    d.frame_rects[DIR_SOUTH][1] = {  33,   2,  15,  43 };
+    d.frame_rects[DIR_SOUTH][2] = {  61,   2,  15,  43 };
+    d.frame_rects[DIR_SOUTH][3] = {  88,   2,  15,  43 };
+
+    d.frame_rects[DIR_NORTH][0] = {   5,  49,  15,  43 };
+    d.frame_rects[DIR_NORTH][1] = {  32,  49,  15,  43 };
+    d.frame_rects[DIR_NORTH][2] = {  60,  49,  15,  43 };
+    d.frame_rects[DIR_NORTH][3] = {  87,  49,  15,  43 };
+
+    d.frame_rects[DIR_EAST][0] = {   6,  95,  15,  43 };
+    d.frame_rects[DIR_EAST][1] = {  33,  95,  15,  43 };
+    d.frame_rects[DIR_EAST][2] = {  61,  95,  15,  43 };
+    d.frame_rects[DIR_EAST][3] = {  88,  95,  15,  43 };
+
+    d.frame_rects[DIR_WEST][0] = {   4, 142,  15,  43 };
+    d.frame_rects[DIR_WEST][1] = {  31, 142,  15,  43 };
+    d.frame_rects[DIR_WEST][2] = {  59, 142,  15,  43 };
+    d.frame_rects[DIR_WEST][3] = {  86, 142,  15,  43 };
+
+    return d;
+}
+
+inline SpriteData make_orco_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   4,   5,  53,  87 };
+    d.frame_rects[DIR_SOUTH][1] = {  60,   5,  53,  87 };
+    d.frame_rects[DIR_SOUTH][2] = { 118,   5,  53,  87 };
+    d.frame_rects[DIR_SOUTH][3] = { 174,   5,  53,  87 };
+
+    d.frame_rects[DIR_NORTH][0] = {   4, 101,  53,  87 };
+    d.frame_rects[DIR_NORTH][1] = {  61, 101,  53,  87 };
+    d.frame_rects[DIR_NORTH][2] = { 117, 101,  53,  87 };
+    d.frame_rects[DIR_NORTH][3] = { 174, 101,  53,  87 };
+
+    d.frame_rects[DIR_EAST][0] = {   4, 201,  53,  87 };
+    d.frame_rects[DIR_EAST][1] = {  60, 201,  53,  87 };
+    d.frame_rects[DIR_EAST][2] = { 117, 201,  53,  87 };
+    d.frame_rects[DIR_EAST][3] = { 174, 201,  53,  87 };
+
+    d.frame_rects[DIR_WEST][0] = {   6, 300,  53,  87 };
+    d.frame_rects[DIR_WEST][1] = {  60, 300,  53,  87 };
+    d.frame_rects[DIR_WEST][2] = { 118, 300,  53,  87 };
+    d.frame_rects[DIR_WEST][3] = { 175, 300,  53,  87 };
+
+    return d;
+}
+
+inline SpriteData make_arana_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   5,  38,  88,  57 };
+    d.frame_rects[DIR_SOUTH][1] = { 103,  38,  88,  57 };
+    d.frame_rects[DIR_SOUTH][2] = { 198,  38,  88,  57 };
+    d.frame_rects[DIR_SOUTH][3] = { 292,  38,  88,  57 };
+
+    d.frame_rects[DIR_NORTH][0] = {   4, 135,  88,  57 };
+    d.frame_rects[DIR_NORTH][1] = { 100, 135,  88,  57 };
+    d.frame_rects[DIR_NORTH][2] = { 197, 135,  88,  57 };
+    d.frame_rects[DIR_NORTH][3] = { 295, 135,  88,  57 };
+
+    d.frame_rects[DIR_EAST][0] = {   3, 230,  88,  57 };
+    d.frame_rects[DIR_EAST][1] = {  98, 230,  88,  57 };
+    d.frame_rects[DIR_EAST][2] = { 195, 230,  88,  57 };
+    d.frame_rects[DIR_EAST][3] = { 291, 230,  88,  57 };
+
+    d.frame_rects[DIR_WEST][0] = {   7, 326,  88,  57 };
+    d.frame_rects[DIR_WEST][1] = { 104, 326,  88,  57 };
+    d.frame_rects[DIR_WEST][2] = { 199, 326,  88,  57 };
+    d.frame_rects[DIR_WEST][3] = { 296, 326,  88,  57 };
+
+    return d;
+}
+
+inline SpriteData make_golem_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {  11,   5,  73,  80 };
+    d.frame_rects[DIR_SOUTH][1] = { 107,   5,  73,  80 };
+    d.frame_rects[DIR_SOUTH][2] = { 203,   5,  73,  80 };
+    d.frame_rects[DIR_SOUTH][3] = { 299,   5,  73,  80 };
+
+    d.frame_rects[DIR_NORTH][0] = {  12, 104,  73,  80 };
+    d.frame_rects[DIR_NORTH][1] = { 108, 104,  73,  80 };
+    d.frame_rects[DIR_NORTH][2] = { 204, 104,  73,  80 };
+    d.frame_rects[DIR_NORTH][3] = { 300, 104,  73,  80 };
+
+    d.frame_rects[DIR_EAST][0] = {   8, 297,  73,  80 };
+    d.frame_rects[DIR_EAST][1] = { 104, 297,  73,  80 };
+    d.frame_rects[DIR_EAST][2] = { 200, 297,  73,  80 };
+    d.frame_rects[DIR_EAST][3] = { 296, 297,  73,  80 };
+
+    d.frame_rects[DIR_WEST][0] = {  16, 203,  73,  80 };
+    d.frame_rects[DIR_WEST][1] = { 111, 203,  73,  80 };
+    d.frame_rects[DIR_WEST][2] = { 208, 203,  73,  80 };
+    d.frame_rects[DIR_WEST][3] = { 303, 203,  73,  80 };
+
+    return d;
+}
+
+inline SpriteData make_banquero_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   3,   1,  19,  47 };
+    d.frame_rects[DIR_SOUTH][1] = {  26,   1,  19,  47 };
+    d.frame_rects[DIR_SOUTH][2] = {  49,   1,  19,  47 };
+    d.frame_rects[DIR_SOUTH][3] = {  72,   1,  19,  47 };
+
+    d.frame_rects[DIR_NORTH][0] = {   3,  47,  19,  47 };
+    d.frame_rects[DIR_NORTH][1] = {  26,  47,  19,  47 };
+    d.frame_rects[DIR_NORTH][2] = {  49,  47,  19,  47 };
+    d.frame_rects[DIR_NORTH][3] = {  72,  47,  19,  47 };
+
+    d.frame_rects[DIR_EAST][0] = {   4,  94,  19,  47 };
+    d.frame_rects[DIR_EAST][1] = {  26,  94,  19,  47 };
+    d.frame_rects[DIR_EAST][2] = {  48,  94,  19,  47 };
+    d.frame_rects[DIR_EAST][3] = {  71,  94,  19,  47 };
+
+    d.frame_rects[DIR_WEST][0] = {   4, 141,  19,  47 };
+    d.frame_rects[DIR_WEST][1] = {  27, 141,  19,  47 };
+    d.frame_rects[DIR_WEST][2] = {  52, 141,  19,  47 };
+    d.frame_rects[DIR_WEST][3] = {  75, 141,  19,  47 };
+
+    return d;
+}
+
+inline SpriteData make_comerciante_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   3,   1,  21,  43 };
+    d.frame_rects[DIR_SOUTH][1] = {  31,   1,  21,  43 };
+    d.frame_rects[DIR_SOUTH][2] = {  58,   1,  21,  43 };
+    d.frame_rects[DIR_SOUTH][3] = {  84,   1,  21,  43 };
+
+    d.frame_rects[DIR_NORTH][0] = {   3,  48,  21,  43 };
+    d.frame_rects[DIR_NORTH][1] = {  30,  48,  21,  43 };
+    d.frame_rects[DIR_NORTH][2] = {  57,  48,  21,  43 };
+    d.frame_rects[DIR_NORTH][3] = {  84,  48,  21,  43 };
+
+    d.frame_rects[DIR_EAST][0] = {   5,  94,  21,  43 };
+    d.frame_rects[DIR_EAST][1] = {  31,  94,  21,  43 };
+    d.frame_rects[DIR_EAST][2] = {  59,  94,  21,  43 };
+    d.frame_rects[DIR_EAST][3] = {  86,  94,  21,  43 };
+
+    d.frame_rects[DIR_WEST][0] = {   3, 141,  21,  43 };
+    d.frame_rects[DIR_WEST][1] = {  31, 141,  21,  43 };
+    d.frame_rects[DIR_WEST][2] = {  57, 141,  21,  43 };
+    d.frame_rects[DIR_WEST][3] = {  84, 141,  21,  43 };
+
+    return d;
+}
+
+inline SpriteData make_sacerdote_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {   4,   0,  17,  45 };
+    d.frame_rects[DIR_SOUTH][1] = {  29,   0,  17,  45 };
+    d.frame_rects[DIR_SOUTH][2] = {  54,   0,  17,  45 };
+    d.frame_rects[DIR_SOUTH][3] = {  79,   0,  17,  45 };
+
+    d.frame_rects[DIR_NORTH][0] = {   4,  45,  17,  45 };
+    d.frame_rects[DIR_NORTH][1] = {  29,  45,  17,  45 };
+    d.frame_rects[DIR_NORTH][2] = {  54,  45,  17,  45 };
+    d.frame_rects[DIR_NORTH][3] = {  79,  45,  17,  45 };
+
+    d.frame_rects[DIR_EAST][0] = {   4,  90,  17,  45 };
+    d.frame_rects[DIR_EAST][1] = {  28,  90,  17,  45 };
+    d.frame_rects[DIR_EAST][2] = {  54,  90,  17,  45 };
+    d.frame_rects[DIR_EAST][3] = {  79,  90,  17,  45 };
+
+    d.frame_rects[DIR_WEST][0] = {   6, 135,  17,  45 };
+    d.frame_rects[DIR_WEST][1] = {  33, 135,  17,  45 };
+    d.frame_rects[DIR_WEST][2] = {  55, 135,  17,  45 };
+    d.frame_rects[DIR_WEST][3] = {  79, 135,  17,  45 };
+
+    return d;
+}
+
 inline SpriteData make_standard_sprite_data() {
     return make_humano_sprite_data();
 }

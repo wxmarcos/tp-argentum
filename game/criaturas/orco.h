@@ -1,8 +1,9 @@
 #pragma once
 #include "criaturas/criatura.h"
+#include "config.h"
 
 class Orco : public Criatura {
 public:
-    Orco(int posX, int posY);
+    Orco(const Config& config, int posX, int posY);
     std::string getTipo() const override;
 };

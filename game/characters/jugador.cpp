@@ -4,9 +4,11 @@
 
 #include <algorithm>
 #include <optional>
+#include <cmath>
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
-                 const Raza* raza, const charClase* clase)
+                 const Raza* raza, const CharClase* clase,
+                 int capacidadInventario)
     : Character(nombre, posX, posY, 1),
       raza(raza),
       clase(clase),
@@ -21,8 +23,16 @@ Jugador::Jugador(const std::string& nombre, int posX, int posY,
       oro(0),
       vidaAcumulada(0.0f),
       manaAcumulado(0.0f),
-      meditando(false) {
-        recalcularStats();
+      meditando(false),
+      resucitando(false),
+      tiempoResucitando(0.0f),
+      destinoMapaId(0),
+      destinoPosX(0),
+      destinoPosY(0),
+      cheatVidaInfinita(false),
+      cheatManaInfinito(false),
+      inventario(capacidadInventario) {
+    recalcularStats();
 }
 
 void Jugador::recalcularStats() {
@@ -63,19 +73,25 @@ void Jugador::restaurarEstado(
     vivo = vidaActual > 0;
 }
 
+// ----------------------- Getters básicos -----------------------
 const Raza* Jugador::getRaza() const { return raza; }
-const charClase* Jugador::getClase() const { return clase; }
+const CharClase* Jugador::getClase() const { return clase; }
 int Jugador::getConstitucion() const { return constitucion; }
 int Jugador::getInteligencia() const { return inteligencia; }
 int Jugador::getFuerza() const { return fuerza; }
 int Jugador::getAgilidad() const { return agilidad; }
 
+
+// ----------------------- Mana -----------------------
 int Jugador::getManaActual() const { return manaActual; }
 int Jugador::getManaMax() const { return manaMax; }
 
-void Jugador::gastarMana(int cantidad) {
-    if (!clase->puedeUsarMagia()) return;
-    manaActual = std::max(0, manaActual - cantidad);
+bool Jugador::gastarMana(int cantidad) {
+    if (!clase->puedeUsarMagia()) return false;
+    if (cheatManaInfinito) return true;
+    if (manaActual < cantidad) return false;
+    manaActual -= cantidad;
+    return true;
 }
 
 void Jugador::recuperarMana(int cantidad) {
@@ -83,6 +99,7 @@ void Jugador::recuperarMana(int cantidad) {
     manaActual = std::min(manaMax, manaActual + cantidad);
 }
 
+// ----------------------- Nivel y Experiencia -----------------------
 int Jugador::getNivel() const { return nivel; }
 int Jugador::getExperiencia() const { return experiencia; }
 
@@ -104,10 +121,14 @@ void Jugador::ganarExperiencia(int exp) {
     verificarSubidaNivel();
 }
 
+// ----------------------- Oro -----------------------
 int Jugador::getOro() const { return oro; }
+int Jugador::getOroMax() const { return Formulas::calcularOroMax(nivel); }
 
 void Jugador::agregarOro(int cantidad) {
-    if (cantidad > 0) oro += cantidad;
+    if (cantidad <= 0) return;
+    int tope = static_cast<int>(getOroMax() * 1.5);
+    oro = std::min(tope, oro + cantidad);
 }
 
 bool Jugador::gastarOro(int cantidad) {
@@ -116,18 +137,16 @@ bool Jugador::gastarOro(int cantidad) {
     return true;
 }
 
+// ----------------------- Meditacion -----------------------
 void Jugador::iniciarMeditacion() {
-    if (!clase->puedeMeditar()) return;
-    if (!vivo) return;
+    if (!clase->puedeMeditar() || !vivo) return;
     meditando = true;
 }
 
-void Jugador::interrumpirMeditacion() {
-    meditando = false;
-}
-
+void Jugador::interrumpirMeditacion() { meditando = false; }
 bool Jugador::estaMeditando() const { return meditando; }
 
+// ----------------------- Inventario -----------------------
 bool Jugador::agarrarItem(std::unique_ptr<Item> item, int cantidad) {
     if (!vivo) return false;
     interrumpirMeditacion();
@@ -194,6 +213,7 @@ bool Jugador::usarPocion(int indice) {
 
 const Inventario& Jugador::getInventario() const { return inventario; }
 
+// ----------------------- Recuperacion pasiva -----------------------
 void Jugador::recuperacionPasiva(float dt) {
     if (!vivo) return;
 
@@ -216,7 +236,34 @@ void Jugador::recuperacionPasiva(float dt) {
     }
 }
 
+// ----------------------- Resurreccion -----------------------
+int Jugador::getDestinoMapaId() const { return destinoMapaId; }
+int Jugador::getDestinoPosX() const { return destinoPosX; }
+int Jugador::getDestinoPosY() const { return destinoPosY; }
+
+void Jugador::iniciarResurreccion(float tiempo, int mapaId, int posX, int posY) {
+    if (vivo || resucitando) return;
+    resucitando = true;
+    tiempoResucitando = tiempo;
+    destinoMapaId = mapaId;
+    destinoPosX = posX;
+    destinoPosY = posY;
+}
+
+void Jugador::tickResurreccion(float dt) {
+    if (!resucitando) return;
+    tiempoResucitando -= dt;
+}
+
+bool Jugador::estaResucitando() const { return resucitando; }
+bool Jugador::resurreccionCompleta() const { return resucitando && tiempoResucitando <= 0.0f; }
+
+// ----------------------- Cheats -----------------------
+void Jugador::activarCheatVidaInfinita() { cheatVidaInfinita = true; }
+void Jugador::activarCheatManaInfinito() { cheatManaInfinito = true; }
+
 void Jugador::morir() {
+    if (cheatVidaInfinita) return;
     Character::morir();
     interrumpirMeditacion();
 }

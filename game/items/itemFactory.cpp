@@ -32,11 +32,11 @@ std::unique_ptr<Baculo> ItemFactory::crearBaculoEngarzado() {
 
 // Armas a distancia
 std::unique_ptr<Arma> ItemFactory::crearArcoSimple() {
-    return std::make_unique<Arma>("Arco simple", 1, 4);
+    return std::make_unique<Arma>("Arco simple", 1, 4, true);
 }
 
 std::unique_ptr<Arma> ItemFactory::crearArcoCompuesto() {
-    return std::make_unique<Arma>("Arco compuesto", 4, 16);
+    return std::make_unique<Arma>("Arco compuesto", 4, 16, true);
 }
 
 // Armaduras
