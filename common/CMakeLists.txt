@@ -1,16 +1,18 @@
 target_sources(taller_common
     PRIVATE
+    # .cpp files
+    command.cpp
+    snapshot.cpp
+    PUBLIC
     # .h files
     thread.h
     queue.h
     sender.h
-    command/command.h
-    snapshot/snapshot.h
+    snapshot.h
+    command.h
     protocol_defs.h
-)
+    )
 
-add_subdirectory(command)
-add_subdirectory(snapshot)
 add_subdirectory(network)
 
 target_include_directories(taller_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

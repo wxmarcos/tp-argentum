@@ -16,15 +16,12 @@ enum class Direction : uint8_t {
 };
 
 enum class ClientOpcode : uint8_t {
-    LOGIN = 0,
-    CREATE_CHARACTER = 1,
+    MOVE = 1,
+    ATTACK = 2,
 
-    MOVE = 2,
-    ATTACK = 3,
-
-    MEDITATE = 4,
-    RESURRECT = 5,
-    HEAL = 6,
+    MEDITATE = 3,
+    RESURRECT = 4,
+    HEAL = 5,
 
     PICK_ITEM = 10,
     DROP_ITEM = 11,
@@ -53,13 +50,10 @@ enum class ServerOpcode : uint8_t {
     ENTITY_SPAWN = 2,
     ENTITY_MOVE = 3,
     ENTITY_REMOVE = 4,
-    ENTITY_CREATED = 5,
-    ENTITY_LOGIN = 6,
 
     PLAYER_STATS = 10,
     INVENTORY_UPDATE = 11,
-    MEDITATION_STATUS = 12,
-    MAP_CHANGE = 13,
+
     CHAT_MESSAGE = 30,
     DAMAGE_EVENT = 40,
     DODGE_EVENT = 41,

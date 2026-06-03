@@ -3,7 +3,7 @@
 
 #include "common/network/socket.h"
 #include "common/queue.h"
-#include "common/snapshot/snapshot.h"
+#include "common/snapshot.h"
 #include "common/thread.h"
 
 #include "protocol/game_update.h"

@@ -7,9 +7,9 @@
 #include "common/thread.h"
 #include "common/network/socket.h"
 #include "common/queue.h"
-#include "common/command/command.h"
-#include "common/snapshot/snapshot.h"
-#include "network/receiver.h"
+#include "common/command.h"
+#include "common/snapshot.h"
+#include "receiver.h"
 #include "common/sender.h"
 
 class ClientHandler: public Thread {

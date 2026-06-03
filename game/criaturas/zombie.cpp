@@ -1,13 +1,6 @@
 #include "criaturas/zombie.h"
 
-Zombie::Zombie(const Config& config, int posX, int posY)
-    : Criatura("Zombie", posX, posY,
-               config.getCriaturaVidaMax("zombie"),
-               config.getCriaturaNivel("zombie"),
-               config.getCriaturaDanioMin("zombie"),
-               config.getCriaturaDanioMax("zombie"),
-               config.getCriaturaFuerza("zombie"),
-               config.getCriaturaCooldownAtaque(),
-               config.getCriaturaCooldownMovimiento()) {}
+Zombie::Zombie(int posX, int posY)
+    : Criatura("Zombie", posX, posY, 100, 1, 5, 10) {}  // TODO: stats desde Config
 
-std::string Zombie::getTipo() const { return "zombie"; }
+std::string Zombie::getTipo() const { return "Zombie"; }

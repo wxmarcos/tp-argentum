@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "common/command/command.h"
+#include "common/command.h"
 #include "common/network/socket.h"
 #include "common/queue.h"
 

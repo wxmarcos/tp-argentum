@@ -1,13 +1,6 @@
 #include "criaturas/goblin.h"
 
-Goblin::Goblin(const Config& config, int posX, int posY)
-    : Criatura("Goblin", posX, posY,
-               config.getCriaturaVidaMax("goblin"),
-               config.getCriaturaNivel("goblin"),
-               config.getCriaturaDanioMin("goblin"),
-               config.getCriaturaDanioMax("goblin"),
-               config.getCriaturaFuerza("goblin"),
-               config.getCriaturaCooldownAtaque(),
-               config.getCriaturaCooldownMovimiento()) {}
+Goblin::Goblin(int posX, int posY)
+    : Criatura("Goblin", posX, posY, 100, 1, 5, 10) {}  // TODO: stats desde Config
 
-std::string Goblin::getTipo() const { return "goblin"; }
+std::string Goblin::getTipo() const { return "Goblin"; }
