@@ -11,7 +11,7 @@
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
 
-#include "client/client_handler.h"
+#include "client/monitor_clients.h"
 
 #include "persistence/persistence_task.h"
 
@@ -21,7 +21,7 @@ private:
     Queue<Command>& commands_queue;
     Queue<PersistenceTask>& persistence_queue;
 
-    std::vector<std::unique_ptr<ClientHandler>>& clients;
+    MonitorClients& clients;
 
     Game game;
 
@@ -32,7 +32,7 @@ public:
     GameLoop(
         Queue<Command>& commands_queue,
         Queue<PersistenceTask>& persistence_queue,
-        std::vector<std::unique_ptr<ClientHandler>>& clients,
+        MonitorClients& clients,
         Config& config);
 
     void run() override;

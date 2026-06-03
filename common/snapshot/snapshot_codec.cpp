@@ -76,6 +76,14 @@ static uint16_t meditation_status_payload_size(const Snapshot& snapshot) {
         sizeof(uint16_t) + snapshot.get_nick().size() +
         sizeof(uint8_t));
 }
+static uint16_t map_change_payload_size(const Snapshot& snapshot) {
+    return static_cast<uint16_t>(
+        sizeof(uint16_t) + snapshot.get_nick().size() +
+        sizeof(uint16_t) + // mapa_id
+        sizeof(uint16_t) + // x
+        sizeof(uint16_t) + // y
+        sizeof(uint8_t));  // direction
+}
 
 uint16_t snapshot_payload_size(const Snapshot& snapshot) {
     switch (snapshot.get_opcode()) {
@@ -104,6 +112,9 @@ uint16_t snapshot_payload_size(const Snapshot& snapshot) {
 
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return meditation_status_payload_size(snapshot);
+
+        case protocol::ServerOpcode::MAP_CHANGE:
+            return map_change_payload_size(snapshot);
 
         case protocol::ServerOpcode::ERROR_MESSAGE:
             return error_payload_size(snapshot);
@@ -176,6 +187,13 @@ static void send_meditation_status(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_nick());
     send_u8(socket, snapshot.is_meditating() ? 1 : 0);
 }
+static void send_map_change(Socket& socket, const Snapshot& snapshot) {
+    send_string(socket, snapshot.get_nick());
+    send_u16(socket, snapshot.get_mapa_id());
+    send_u16(socket, snapshot.get_x());
+    send_u16(socket, snapshot.get_y());
+    send_u8(socket, snapshot.get_direction());
+}
 
 void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
     switch (snapshot.get_opcode()) {
@@ -212,7 +230,9 @@ void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
         case protocol::ServerOpcode::MEDITATION_STATUS:
             send_meditation_status(socket, snapshot);
             return;
-
+        case protocol::ServerOpcode::MAP_CHANGE:
+            send_map_change(socket, snapshot);
+            return;
         case protocol::ServerOpcode::ERROR_MESSAGE:
             send_error_message(socket, snapshot);
             return;
@@ -385,6 +405,33 @@ static Snapshot recv_meditation_status(Socket& socket, uint16_t payload_size) {
     return Snapshot::meditation_status(nick, started != 0);
 }
 
+static Snapshot recv_map_change(Socket& socket, uint16_t payload_size) {
+    std::string nick = recv_string(socket);
+    uint16_t mapa_id = recv_u16(socket);
+    uint16_t x = recv_u16(socket);
+    uint16_t y = recv_u16(socket);
+    uint8_t direction = recv_u8(socket);
+
+    validate_payload_size(
+        payload_size,
+        static_cast<uint16_t>(
+            sizeof(uint16_t) + nick.size() +
+            sizeof(uint16_t) +
+            sizeof(uint16_t) +
+            sizeof(uint16_t) +
+            sizeof(uint8_t)),
+        "Snapshot::recv payload_size invalido MAP_CHANGE"
+    );
+
+    return Snapshot::map_change(
+        nick,
+        mapa_id,
+        x,
+        y,
+        direction
+    );
+}
+
 Snapshot recv_snapshot_payload(
     Socket& socket,
     protocol::ServerOpcode opcode,
@@ -415,7 +462,10 @@ Snapshot recv_snapshot_payload(
 
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return recv_meditation_status(socket, payload_size);
-
+            
+        case protocol::ServerOpcode::MAP_CHANGE:
+            return recv_map_change(socket, payload_size);
+            
         case protocol::ServerOpcode::ERROR_MESSAGE:
             return recv_error_message(socket, payload_size);
 

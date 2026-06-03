@@ -13,7 +13,7 @@
 #include "common/queue.h"
 
 #include "acceptor/acceptor.h"
-#include "client/client_handler.h"
+#include "client/monitor_clients.h"
 #include "config/server_config.h"
 #include "game/game_loop.h"
 #include "game/config.h"
@@ -24,7 +24,7 @@
 class Server {
 
 private:
-    std::vector<std::unique_ptr<ClientHandler>> clients;
+    MonitorClients clients;
 
     Queue<Command> commands_queue;
     Queue<PersistenceTask> persistence_queue;

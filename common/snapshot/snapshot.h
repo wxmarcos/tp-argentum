@@ -55,7 +55,7 @@ public:
         uint16_t x,
         uint16_t y,
         uint8_t direction);
-
+        
     static Snapshot entity_login(
         const std::string& nick,
         uint16_t x,
@@ -128,7 +128,15 @@ public:
     );
     const std::string& get_raza() const;
     const std::string& get_clase() const;
+    static Snapshot map_change(
+    const std::string& nick,
+        uint16_t mapa_id,
+        uint16_t x,
+        uint16_t y,
+        uint8_t direction
+    );
 
+    bool is_map_change() const;
     uint16_t get_mapa_id() const;
     uint16_t get_nivel() const;
 

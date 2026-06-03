@@ -33,6 +33,12 @@ public:
     double getFormulaOroMaxExponente() const;
     int getFormulaOroDropNPCDivisor() const;
 
+    struct ConfigTile {
+        int x;
+        int y;
+        std::string tipo;
+        bool transitable;
+    };
     // Mapas
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;

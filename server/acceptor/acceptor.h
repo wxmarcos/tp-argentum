@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <vector>
 #include <sys/socket.h>
 
 #include "common/thread.h"
@@ -11,7 +10,7 @@
 #include "common/queue.h"
 #include "common/command/command.h"
 
-#include "client/client_handler.h"
+#include "client/monitor_clients.h"
 
 class Acceptor: public Thread {
 
@@ -19,7 +18,7 @@ private:
 
     Socket listener;
 
-    std::vector<std::unique_ptr<ClientHandler>>& clients;
+    MonitorClients& clients;
 
     Queue<Command>& commands_queue;
 
@@ -32,13 +31,13 @@ private:
 public:
 
     Acceptor(
-        const char* port,
-        std::vector<std::unique_ptr<ClientHandler>>& clients,
-        Queue<Command>& commands_queue)
-        :
-        listener(port),
-        clients(clients),
-        commands_queue(commands_queue) {}
+    const char* port,
+    MonitorClients& clients,
+    Queue<Command>& commands_queue)
+    :
+    listener(port),
+    clients(clients),
+    commands_queue(commands_queue) {}
 
     void run() override;
 

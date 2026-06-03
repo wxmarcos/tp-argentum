@@ -34,6 +34,7 @@ void Game::cargarMundo() {
         infoMapasVecinos vecinos{cm.vecinoNorte, cm.vecinoSur, cm.vecinoEste, cm.vecinoOeste};
         mundo.agregarMapa(cm.id, std::move(mapa), vecinos);
     }
+    
 }
 
 void Game::inicializarRazas() {
@@ -212,22 +213,49 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
     switch (cmd.get_type()) {
         case protocol::ClientOpcode::MOVE: {
+
+            Jugador* jugador = getJugador(nombre);
+            if (!jugador) {
+                break;
+            }
+
+            int mapaAnterior = jugador->getMapaId();
+
             bool moved = moverJugador(
                 nombre,
                 static_cast<Direccion>(cmd.get_direction())
             );
 
             if (moved) {
-                Jugador* jugador = getJugador(nombre);
-                snapshots.push_back(
-                    Snapshot::entity_move(
-                        nombre,
-                        static_cast<uint16_t>(jugador->getPosX()),
-                        static_cast<uint16_t>(jugador->getPosY()),
-                        static_cast<uint8_t>(jugador->getDireccion())
-                    )
-                );
+
+                int mapaActual = jugador->getMapaId();
+
+                if (mapaActual != mapaAnterior) {
+
+                    snapshots.push_back(
+                        Snapshot::map_change(
+                            nombre,
+                            static_cast<uint16_t>(jugador->getMapaId()),
+                            static_cast<uint16_t>(jugador->getPosX()),
+                            static_cast<uint16_t>(jugador->getPosY()),
+                            static_cast<uint8_t>(jugador->getDireccion())
+                        )
+                    );
+
+                } else {
+
+                    snapshots.push_back(
+                        Snapshot::entity_move(
+                            nombre,
+                            static_cast<uint16_t>(jugador->getPosX()),
+                            static_cast<uint16_t>(jugador->getPosY()),
+                            static_cast<uint8_t>(jugador->getDireccion())
+                        )
+                    );
+                }
+
             } else {
+
                 snapshots.push_back(
                     Snapshot::error_message(
                         nombre,

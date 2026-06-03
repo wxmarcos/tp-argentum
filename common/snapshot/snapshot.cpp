@@ -195,6 +195,21 @@ Snapshot Snapshot::player_stats(
 
     return snapshot;
 }
+Snapshot Snapshot::map_change(
+    const std::string& nick,
+    uint16_t mapa_id,
+    uint16_t x,
+    uint16_t y,
+    uint8_t direction
+) {
+    Snapshot snapshot(protocol::ServerOpcode::MAP_CHANGE, nick, x, y, direction);
+    snapshot.mapa_id = mapa_id;
+    return snapshot;
+}
+
+bool Snapshot::is_map_change() const {
+    return opcode == protocol::ServerOpcode::MAP_CHANGE;
+}
 
 bool Snapshot::is_chat_message() const {
     return opcode == protocol::ServerOpcode::CHAT_MESSAGE;

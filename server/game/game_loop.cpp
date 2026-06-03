@@ -9,7 +9,7 @@
 GameLoop::GameLoop(
     Queue<Command>& commands_queue,
     Queue<PersistenceTask>& persistence_queue,
-    std::vector<std::unique_ptr<ClientHandler>>& clients,
+    MonitorClients& clients,
     Config& config)
     : commands_queue(commands_queue),
       persistence_queue(persistence_queue),
@@ -160,10 +160,5 @@ void GameLoop::broadcast_snapshot(
     const Snapshot& snapshot) {
 
     debug_snapshot(snapshot);
-
-    for (auto& client : clients) {
-        if (client) {
-            client->push(snapshot);
-        }
-    }
+    clients.broadcast(snapshot);
 }
