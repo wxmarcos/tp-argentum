@@ -7,7 +7,6 @@
 #include "common/protocol_defs.h"
 
 class Socket;
-
 class Snapshot {
 private:
     protocol::ServerOpcode opcode;
@@ -126,6 +125,7 @@ public:
         uint16_t fuerza,
         uint16_t agilidad
     );
+
     const std::string& get_raza() const;
     const std::string& get_clase() const;
     static Snapshot map_change(

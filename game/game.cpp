@@ -20,6 +20,7 @@
 #include "items/escudo.h"
 #include "items/itemFactory.h"
 #include "formulas.h"
+#include "snapshot_factory.h"
 #include "server/persistence/persistance_loader.h"
 
 #include <cstdlib>
@@ -84,7 +85,6 @@ void Game::cargarJugadoresPersistidos() {
         // TODO: restaurar inventario
     }
 }
-
 void Game::cargarSacerdotes() {
     for (const auto& cm : config.getMapas()) {
         for (const auto& pos : cm.sacerdotes) {
@@ -107,29 +107,10 @@ bool Game::handle_meditation_interruption(Jugador* jugador,
 
     jugador->interrumpirMeditacion();
     snapshots.push_back(Snapshot::meditation_status(nombre, false));
-    snapshots.push_back(make_player_stats(jugador));
+    snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
     return true;
 }
 
-static Snapshot make_player_stats(Jugador* j) {
-    return Snapshot::player_stats(
-        j->getNombre(), j->getRaza()->getNombre(), j->getClase()->getNombre(),
-        static_cast<uint16_t>(j->getMapaId()),
-        static_cast<uint16_t>(j->getPosX()),
-        static_cast<uint16_t>(j->getPosY()),
-        static_cast<uint8_t>(j->getDireccion()),
-        static_cast<uint16_t>(j->getNivel()),
-        static_cast<uint16_t>(j->getVidaActual()),
-        static_cast<uint16_t>(j->getVidaMax()),
-        static_cast<uint16_t>(j->getManaActual()),
-        static_cast<uint16_t>(j->getManaMax()),
-        static_cast<uint32_t>(j->getExperiencia()),
-        static_cast<uint32_t>(j->getOro()),
-        static_cast<uint16_t>(j->getConstitucion()),
-        static_cast<uint16_t>(j->getInteligencia()),
-        static_cast<uint16_t>(j->getFuerza()),
-        static_cast<uint16_t>(j->getAgilidad()));
-}
 
 // ----------------- Gestion de jugadores -----------------
 
@@ -183,13 +164,28 @@ std::string Game::agregarCriatura(const std::string& tipo, int mapaId, int posX,
     std::string id = tipo + "_" + std::to_string(nextCriaturaId++);
 
     std::unique_ptr<Criatura> criatura;
-    if      (tipo == "goblin")      criatura = std::make_unique<Goblin>(id, posX, posY);
-    else if (tipo == "esqueleto")   criatura = std::make_unique<Esqueleto>(id, posX, posY);
-    else if (tipo == "arana")       criatura = std::make_unique<Arana>(id, posX, posY);
-    else if (tipo == "golem")       criatura = std::make_unique<Golem>(id, posX, posY);
-    else if (tipo == "orco")        criatura = std::make_unique<Orco>(id, posX, posY);
-    else if (tipo == "zombie")      criatura = std::make_unique<Zombie>(id, posX, posY);
-    else return "";
+
+    if (tipo == "goblin") {
+        criatura = std::make_unique<Goblin>(config, posX, posY);
+
+    } else if (tipo == "esqueleto") {
+        criatura = std::make_unique<Esqueleto>(config, posX, posY);
+
+    } else if (tipo == "arana") {
+        criatura = std::make_unique<Arana>(config, posX, posY);
+
+    } else if (tipo == "golem") {
+        criatura = std::make_unique<Golem>(config, posX, posY);
+
+    } else if (tipo == "orco") {
+        criatura = std::make_unique<Orco>(config, posX, posY);
+
+    } else if (tipo == "zombie") {
+        criatura = std::make_unique<Zombie>(config, posX, posY);
+
+    } else {
+        return "";
+    }
 
     criatura->setMapaId(mapaId);
     mundo.agregarPersonaje(criatura.get());
@@ -410,7 +406,7 @@ std::vector<Snapshot> Game::tick(float dt) {
         jugador->recuperacionPasiva(dt);
         // por ahora mando todo, pero en un futuro podria optimizarse para mandar solo cambios relevantes
         if (wasMeditating && jugador->getManaActual() != oldMana)
-            snapshots.push_back(make_player_stats(jugador.get()));
+            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
     }
 
     tickCriaturas(dt, snapshots);
@@ -641,7 +637,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             jugador->iniciarMeditacion();
             snapshots.push_back(Snapshot::meditation_status(nombre, true));
-            snapshots.push_back(make_player_stats(jugador));
+            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
@@ -672,7 +668,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             if (!ok)
                 snapshots.push_back(Snapshot::error_message(nombre, "No se pudo usar/equipar el item"));
             else
-                snapshots.push_back(make_player_stats(jugador));
+                snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
@@ -723,7 +719,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             float tiempo = distancia / config.getVelocidadResurreccion();
             jugador->iniciarResurreccion(tiempo, destino.mapaId, destino.x, destino.y);
             snapshots.push_back(Snapshot::error_message(nombre,
-                "Resucitando... quedas inmovilizado hasta haber resucitado"));
+                "Resucitando*jugador quedas inmovilizado hasta haber resucitado"));
             break;
         }
 
@@ -749,7 +745,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             jugador->curar(jugador->getVidaMax());
             jugador->recuperarMana(jugador->getManaMax());
-            snapshots.push_back(make_player_stats(jugador));
+            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
@@ -977,7 +973,7 @@ void Game::tickResucitando(float dt, std::vector<Snapshot>& snapshots) {
                 static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
-            snapshots.push_back(make_player_stats(jugador.get()));
+            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
         }
     }
 }

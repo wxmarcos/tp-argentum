@@ -4,7 +4,6 @@
 #include "network/socket_helpers.h"
 #include "snapshot_codec.h"
 #include "common/protocol_defs.h"
-
 #include <stdexcept>
 #include <string>
 

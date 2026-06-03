@@ -24,14 +24,14 @@ Jugador::Jugador(const std::string& nombre, int posX, int posY,
       vidaAcumulada(0.0f),
       manaAcumulado(0.0f),
       meditando(false),
+      inventario(capacidadInventario),
       resucitando(false),
       tiempoResucitando(0.0f),
       destinoMapaId(0),
       destinoPosX(0),
       destinoPosY(0),
       cheatVidaInfinita(false),
-      cheatManaInfinito(false),
-      inventario(capacidadInventario) {
+      cheatManaInfinito(false) {
     recalcularStats();
 }
 
