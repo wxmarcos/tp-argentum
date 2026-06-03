@@ -37,6 +37,7 @@ Game::Game(Config& config)
     for (const auto& cm : config.getMapas()) {
         infoSpawn[cm.id] = {cm.poblacionMax, cm.criaturasPosibles};
     }
+    cargarSacerdotes();
 }
 
 // ----------------- Inicializacion -----------------
@@ -80,6 +81,14 @@ void Game::cargarJugadoresPersistidos() {
                                 p.constitucion, p.inteligencia, p.fuerza, p.agilidad
         );
         // TODO: restaurar inventario
+    }
+}
+
+void Game::cargarSacerdotes() {
+    for (const auto& cm : config.getMapas()) {
+        for (const auto& pos : cm.sacerdotes) {
+            sacerdotes.push_back({cm.id, pos.x, pos.y});
+        }
     }
 }
 
@@ -404,6 +413,7 @@ std::vector<Snapshot> Game::tick(float dt) {
     }
 
     tickCriaturas(dt, snapshots);
+    tickResucitando(dt, snapshots);
 
     tiempoDesdeUltimoSpawn += dt;
     if (tiempoDesdeUltimoSpawn >= config.getSpawnIntervalo()) {
@@ -651,15 +661,55 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         }
 */  
 
+        // -- RESURRECT --------------------------
+        case protocol::ClientOpcode::RESURRECT: {
+            if (!jugador || jugador->estaVivo()) {
+                snapshots.push_back(Snapshot::error_message(nombre,
+                    "Solo un fantasma puede usar /resucitar"));
                 break;
             }
+            if (jugador->estaResucitando()) {
+                snapshots.push_back(Snapshot::error_message(nombre,
+                    "Ya estas resucitando"));
                 break;
             }
+            InfoSacerdote destino;
+            float distancia;
+            if (!encontrarSacerdoteMasCercano(jugador, destino, distancia)) {
+                snapshots.push_back(Snapshot::error_message(nombre,
+                    "No hay ningun sacerdote en el mundo"));
                 break;
             }
+            float tiempo = distancia / config.getVelocidadResurreccion();
+            jugador->iniciarResurreccion(tiempo, destino.mapaId, destino.x, destino.y);
+            snapshots.push_back(Snapshot::error_message(nombre,
+                "Resucitando... quedas inmovilizado hasta haber resucitado"));
             break;
         }
 
+        // -- HEAL --------------------------
+        case protocol::ClientOpcode::HEAL: {
+            if (!jugador || !jugador->estaVivo()) {
+                snapshots.push_back(Snapshot::error_message(nombre,
+                    "No puedes curarte si eres un fantasma"));
+                break;
+            }
+            // Verificar que haya un sacerdote cercano en el mismo mapa
+            bool sacerdoteCercano = false;
+            for (const auto& s : sacerdotes) {
+                if (s.mapaId != jugador->getMapaId()) continue;
+                int dx = std::abs(s.x - jugador->getPosX());
+                int dy = std::abs(s.y - jugador->getPosY());
+                if (dx + dy <= 10) { sacerdoteCercano = true; break; }
+            }
+            if (!sacerdoteCercano) {
+                snapshots.push_back(Snapshot::error_message(nombre,
+                    "Debes estar cerca de un sacerdote para curarte"));
+                break;
+            }
+            jugador->curar(jugador->getVidaMax());
+            jugador->recuperarMana(jugador->getManaMax());
+            snapshots.push_back(make_player_stats(jugador));
             break;
         }
 
@@ -848,13 +898,39 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
     }    
 }
 
+bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
+                                        InfoSacerdote& destino,
+                                        float& distancia) const {
+    bool encontrado = false;
+    float distMin = std::numeric_limits<float>::max();
+
+    for (const auto& s : sacerdotes) {
+        float dx = static_cast<float>(s.x - fantasma->getPosX());
+        float dy = static_cast<float>(s.y - fantasma->getPosY());
+        float dist = std::sqrt(dx*dx + dy*dy);
+        if (dist < distMin) {
+            distMin = dist;
+            destino = s;
+            encontrado = true;
+        }
     }
 
     distancia = distMin;
     return encontrado;
 }
 
+void Game::tickResucitando(float dt, std::vector<Snapshot>& snapshots) {
     for (auto& [nombre, jugador] : jugadores) {
+        if (!jugador->estaResucitando()) continue;
+ 
+        jugador->tickResurreccion(dt);
+ 
+        if (jugador->resurreccionCompleta()) {
+            mundo.removerPersonaje(jugador.get());
+            jugador->setPosicion(jugador->getDestinoPosX(), jugador->getDestinoPosY());
+            jugador->setMapaId(jugador->getDestinoMapaId());
+            mundo.agregarPersonaje(jugador.get());
+            jugador->revivir(jugador->getVidaMax());
  
             snapshots.push_back(Snapshot::entity_move(
                 nombre,

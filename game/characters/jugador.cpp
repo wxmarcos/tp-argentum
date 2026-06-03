@@ -24,6 +24,11 @@ Jugador::Jugador(const std::string& nombre, int posX, int posY,
       vidaAcumulada(0.0f),
       manaAcumulado(0.0f),
       meditando(false),
+      resucitando(false),
+      tiempoResucitando(0.0f),
+      destinoMapaId(0),
+      destinoPosX(0),
+      destinoPosY(0),
       cheatVidaInfinita(false),
       cheatManaInfinito(false),
       inventario(capacidadInventario) {
@@ -230,6 +235,28 @@ void Jugador::recuperacionPasiva(float dt) {
         manaAcumulado -= static_cast<int>(manaAcumulado);
     }
 }
+
+// ----------------------- Resurreccion -----------------------
+int Jugador::getDestinoMapaId() const { return destinoMapaId; }
+int Jugador::getDestinoPosX() const { return destinoPosX; }
+int Jugador::getDestinoPosY() const { return destinoPosY; }
+
+void Jugador::iniciarResurreccion(float tiempo, int mapaId, int posX, int posY) {
+    if (vivo || resucitando) return;
+    resucitando = true;
+    tiempoResucitando = tiempo;
+    destinoMapaId = mapaId;
+    destinoPosX = posX;
+    destinoPosY = posY;
+}
+
+void Jugador::tickResurreccion(float dt) {
+    if (!resucitando) return;
+    tiempoResucitando -= dt;
+}
+
+bool Jugador::estaResucitando() const { return resucitando; }
+bool Jugador::resurreccionCompleta() const { return resucitando && tiempoResucitando <= 0.0f; }
 
 // ----------------------- Cheats -----------------------
 void Jugador::activarCheatVidaInfinita() { cheatVidaInfinita = true; }

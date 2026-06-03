@@ -164,6 +164,7 @@ vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 10
 criaturas_posibles = ["goblin", "arana", "zombie"]
+sacerdotes         = []
  
 [mapas.2]
 ancho              = 100
@@ -175,6 +176,7 @@ vecino_oeste       = 1
 es_zona_segura     = false
 poblacion_max      = 8
 criaturas_posibles = ["orco", "golem", "esqueleto"]
+sacerdotes         = []
 
 [mapas.3]
 ancho              = 100
@@ -186,3 +188,4 @@ vecino_oeste       = -1
 es_zona_segura     = true
 poblacion_max      = 0
 criaturas_posibles = []
+sacerdotes         = [{x = 50, y = 50}]

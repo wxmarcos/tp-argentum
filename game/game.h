@@ -63,6 +63,17 @@ private:
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
     void spawnCriaturas();
 
+    // Sacerdotes y resurreccion
+    struct InfoSacerdote {
+        int mapaId, x, y;
+    };
+    std::vector<InfoSacerdote> sacerdotes;
+    void cargarSacerdotes();
+    bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
+                                    InfoSacerdote& destino,
+                                    float& distancia) const;
+    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
+
     // TODO: npcs
 
 public:

@@ -176,6 +176,10 @@ float Config::getSpawnIntervalo() const {
     return static_cast<float>(impl->get<double>("ia.intervalo_spawn", 30.0));
 }
 
+float Config::getVelocidadResurreccion() const {
+    return static_cast<float>(impl->get<double>("ia.velocidad_resurreccion", 0.5));
+}
+
 // ----------------- Criaturas -----------------
 
 int Config::getCriaturaVidaMax(const std::string& tipo) const {
@@ -271,6 +275,17 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
             for (auto& elem : *arr) {
                 if (auto s = elem.value<std::string>())
                     cm.criaturasPosibles.push_back(*s);
+            }
+        }
+
+        if (auto* arr = t->get("sacerdotes") ? t->get("sacerdotes")->as_array() : nullptr) {
+            for (auto& elem : *arr) {
+                if (auto* tbl = elem.as_table()) {
+                    PosicionNPC pos;
+                    pos.x = tbl->get("x") ? (int)(*tbl->get("x")->value<int64_t>()) : 0;
+                    pos.y = tbl->get("y") ? (int)(*tbl->get("y")->value<int64_t>()) : 0;
+                    cm.sacerdotes.push_back(pos);
+                }
             }
         }
 

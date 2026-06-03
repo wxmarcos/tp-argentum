@@ -38,6 +38,7 @@ public:
     float getCriaturaCooldownMovimiento() const;
     float getCriaturaCooldownAtaque() const;
     float getSpawnIntervalo() const;
+    float getVelocidadResurreccion() const;
 
     // Criaturas
     int getCriaturaVidaMax(const std::string& tipo) const;
@@ -47,11 +48,16 @@ public:
     int getCriaturaFuerza(const std::string& tipo) const;
 
     // Mapas
+    struct PosicionNPC {
+        int x, y;
+    };
+
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;
         bool esZonaSegura;
         int poblacionMax;
         std::vector<std::string> criaturasPosibles;
+        std::vector<PosicionNPC> sacerdotes;
     };
 
     std::vector<ConfigMapa> getMapas() const;

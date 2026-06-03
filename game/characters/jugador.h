@@ -22,6 +22,17 @@ private:
     bool meditando;
     Inventario inventario;
 
+    // Resurreccion
+    bool resucitando;
+    float tiempoResucitando;
+    int destinoMapaId;
+    int destinoPosX;
+    int destinoPosY;
+
+    // Cheats
+    bool cheatVidaInfinita;
+    bool cheatManaInfinito;
+
     void recalcularStats();
     int expParaSiguienteNivel() const;
     void verificarSubidaNivel();
@@ -90,6 +101,16 @@ public:
 
     // Recuperacion pasiva
     void recuperacionPasiva(float dt);
+
+    // Resurreccion
+    int getDestinoMapaId() const;
+    int getDestinoPosX() const;
+    int getDestinoPosY() const;
+
+    void iniciarResurreccion(float tiempo, int mapaId, int posX, int posY);
+    void tickResurreccion(float dt);
+    bool estaResucitando() const;
+    bool resurreccionCompleta() const;
 
     // Cheats
     void activarCheatVidaInfinita();
