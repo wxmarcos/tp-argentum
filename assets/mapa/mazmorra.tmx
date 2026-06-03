@@ -3,18 +3,18 @@
  <tileset firstgid="1" name="pisos" tilewidth="32" tileheight="32" tilecount="256" columns="16">
   <image source="../../../../Descargas/imagenes/mapa/estructuras/pisos.png" width="512" height="512"/>
  </tileset>
- <tileset firstgid="257" source="../../../../Descargas/map/pulpo.tsx"/>
- <tileset firstgid="1281" source="../../../../Descargas/map/accesorios5.tsx"/>
- <tileset firstgid="2305" source="../../../../Descargas/map/paredesMazmorra.tsx"/>
- <tileset firstgid="3329" source="../../../../Descargas/map/pisos2.tsx"/>
- <tileset firstgid="3585" source="../../../../Descargas/map/dragon.tsx"/>
- <tileset firstgid="4609" source="../../../../Descargas/map/reja.tsx"/>
- <tileset firstgid="4618" source="../../../../Descargas/map/rejavertical.tsx"/>
- <tileset firstgid="4627" source="../../../../Descargas/map/castillo2partes.tsx"/>
- <tileset firstgid="5651" source="../../../../Descargas/map/altar.tsx"/>
- <tileset firstgid="5907" source="../../../../Descargas/map/altarIglesia.tsx"/>
- <tileset firstgid="6931" source="../../../../Descargas/map/accesorios.tsx"/>
- <tileset firstgid="7955" source="../../../../Descargas/map/carteles.tsx"/>
+ <tileset firstgid="257" source="./pulpo.tsx"/>
+ <tileset firstgid="1281" source="./accesorios5.tsx"/>
+ <tileset firstgid="2305" source="./paredesMazmorra.tsx"/>
+ <tileset firstgid="3329" source="./pisos2.tsx"/>
+ <tileset firstgid="3585" source="./dragon.tsx"/>
+ <tileset firstgid="4609" source="./reja.tsx"/>
+ <tileset firstgid="4618" source="./rejavertical.tsx"/>
+ <tileset firstgid="4627" source="./castillo2partes.tsx"/>
+ <tileset firstgid="5651" source="./altar.tsx"/>
+ <tileset firstgid="5907" source="./altarIglesia.tsx"/>
+ <tileset firstgid="6931" source="./accesorios.tsx"/>
+ <tileset firstgid="7955" source="./carteles.tsx"/>
  <layer id="1" name="suelo" width="100" height="100">
   <data encoding="csv">
 1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,

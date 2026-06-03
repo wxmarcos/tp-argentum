@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.8" tiledversion="1.8.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="109">
- <tileset firstgid="1" source="../../../../Descargas/map/cespednegro.tsx"/>
- <tileset firstgid="1025" source="../../../../Descargas/map/rocasArboles.tsx"/>
- <tileset firstgid="2049" source="../../../../Descargas/map/accesorioscespednegro.tsx"/>
- <tileset firstgid="3073" source="../../../../Descargas/map/cuerno1.tsx"/>
- <tileset firstgid="3137" source="../../../../Descargas/map/cuerno2.tsx"/>
- <tileset firstgid="3201" source="../../../../Descargas/map/carteles.tsx"/>
- <tileset firstgid="4225" source="../../../../Descargas/map/accesoriosOscuros.tsx"/>
- <tileset firstgid="8321" source="../../../../Descargas/map/estatuillas1.tsx"/>
- <tileset firstgid="9345" source="../../../../Descargas/map/accesorios1.tsx"/>
- <tileset firstgid="9601" source="../../../../Descargas/map/casaOscura.tsx"/>
- <tileset firstgid="10625" source="../../../../Descargas/map/casaRota.tsx"/>
+ <tileset firstgid="1" source="./cespednegro.tsx"/>
+ <tileset firstgid="1025" source="./rocasArboles.tsx"/>
+ <tileset firstgid="2049" source="./accesorioscespednegro.tsx"/>
+ <tileset firstgid="3073" source="./cuerno1.tsx"/>
+ <tileset firstgid="3137" source="./cuerno2.tsx"/>
+ <tileset firstgid="3201" source="./carteles.tsx"/>
+ <tileset firstgid="4225" source="./accesoriosOscuros.tsx"/>
+ <tileset firstgid="8321" source="./estatuillas1.tsx"/>
+ <tileset firstgid="9345" source="./accesorios1.tsx"/>
+ <tileset firstgid="9601" source="./casaOscura.tsx"/>
+ <tileset firstgid="10625" source="./casaRota.tsx"/>
  <layer id="1" name="Suelo" width="100" height="100">
   <data encoding="csv">
 61,62,63,64,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,

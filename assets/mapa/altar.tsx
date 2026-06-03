@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.8" tiledversion="1.8.0" name="altar" tilewidth="32" tileheight="32" tilecount="256" columns="16">
- <image source="../imagenes/mapa/accesorios/altar.png" width="512" height="512"/>
+ <image source="./accesorios/altar.png" width="512" height="512"/>
 </tileset>
