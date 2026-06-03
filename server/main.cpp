@@ -4,7 +4,7 @@
 #include <atomic>
 
 #include "server.h"
-#include "server_config.h"
+#include "config/server_config.h"
 #include "game/config.h"
 
 static std::atomic<bool> running(true);
@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
     }
 
     try {
-        ServerConfig::load("config/server.toml");
+        ServerConfig::load("config.toml");
 
         std::string port = argv[1];
         Config game_config("config.toml");

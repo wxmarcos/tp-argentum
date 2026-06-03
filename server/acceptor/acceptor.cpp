@@ -30,8 +30,7 @@ void Acceptor::run() {
 
                 handler->start();
 
-                clients.push_back(
-                    std::move(handler));
+                    clients.add(std::move(handler));
 
             } catch (const std::exception& ex) {
 
@@ -70,21 +69,8 @@ void Acceptor::close_listener() {
 }
 
 void Acceptor::stop_clients() {
-
-    for (auto& client : clients) {
-
-        if (client) {
-            client->stop();
-        }
-    }
-
-    for (auto& client : clients) {
-
-        if (client) {
-            client->join();
-        }
-    }
-
+    clients.stop_all();
+    clients.join_all();
     clients.clear();
 }
 

@@ -21,7 +21,7 @@ struct SlotInventario {
 
 class Inventario {
 private:
-    static constexpr int CAPACIDAD_MAX = 30;        // TODO: cargar desde Config
+    int capacidadMax;
 
     std::vector<SlotInventario> slots;
     Item* armaOBaculoEquipado;
@@ -32,10 +32,11 @@ private:
     int buscarSlotApilable(const Item& item) const;
 
 public:
-    Inventario();
+    explicit Inventario(int capacidadMax = 30);
 
     bool estaLleno() const;
     int cantidadSlots() const;
+    int getCapacidadMax() const;
     const std::vector<SlotInventario>& getSlots() const;
 
     bool agregar(std::unique_ptr<Item> item, int cantidad = 1);

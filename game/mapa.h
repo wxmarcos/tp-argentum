@@ -20,13 +20,15 @@ struct Tile {
     bool esTransitable;
 
     Tile() : tipo(TipoTile::PISO), esTransitable(true) {}
-    Tile(TipoTile tipo, bool esTransitable) : tipo(tipo), esTransitable(esTransitable) {}
+    Tile(TipoTile tipo, bool esTransitable)
+        : tipo(tipo), esTransitable(esTransitable) {}
 };
 
 class Mapa {
 private:
     int ancho;
     int alto;
+    bool zonaSegura;
     std::vector<std::vector<Tile>> grilla;
     std::map<std::pair<int, int>, Character*> personajesEnPosicion;
     std::map<std::pair<int, int>, std::vector<SlotInventario>> itemsEnPiso;
@@ -34,10 +36,12 @@ private:
     std::pair<int, int> calcularNuevaPosicion(int x, int y, Direccion dir) const;
 
 public:
-    Mapa(int ancho, int alto);
+    Mapa(int ancho, int alto, bool zonaSegura = false);
 
     int getAncho() const;
     int getAlto() const;
+    bool esZonaSegura() const;
+    void setZonaSegura(bool valor);
 
     bool esPosicionValida(int x, int y) const;
     bool esTransitable(int x, int y) const;

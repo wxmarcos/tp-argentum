@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <SDL2/SDL.h>
 
-#include "common/command.h"
+#include "common/command/command.h"
 #include "common/protocol_defs.h"
 #include "input/key_action.h"
 
