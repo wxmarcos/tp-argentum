@@ -8,15 +8,17 @@
 
 #include <optional>
 
-Inventario::Inventario()
-    : armaOBaculoEquipado(nullptr), armaduraEquipada(nullptr),
+Inventario::Inventario(int capacidadMax)
+    : capacidadMax(capacidadMax),
+      armaOBaculoEquipado(nullptr), armaduraEquipada(nullptr),
       cascoEquipado(nullptr), escudoEquipado(nullptr) {}
 
 bool Inventario::estaLleno() const {
-    return (int)slots.size() >= CAPACIDAD_MAX;
+    return (int)slots.size() >= capacidadMax;
 }
 
 int Inventario::cantidadSlots() const { return (int)slots.size(); }
+int Inventario::getCapacidadMax() const { return capacidadMax; }
 
 const std::vector<SlotInventario>& Inventario::getSlots() const { return slots; }
 
