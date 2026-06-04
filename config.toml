@@ -144,6 +144,31 @@ danio_max = 20
 fuerza    = 3
 
 # -----------------------------------------------------------------------------
+# Comercio — precios de compra (lo que paga el jugador)
+# El precio de venta (lo que recibe el jugador) es la mitad
+# -----------------------------------------------------------------------------
+[precios]
+espada             = 100
+hacha              = 120
+martillo           = 90
+arco_simple        = 150
+arco_compuesto     = 400
+vara_de_fresno     = 200
+flauta_elfica      = 800
+baculo_nudoso      = 350
+baculo_engarzado   = 600
+armadura_de_cuero  = 80
+armadura_de_placas = 500
+tunica_azul        = 200
+capucha            = 40
+casco_de_hierro    = 150
+sombrero_magico    = 300
+escudo_de_tortuga  = 60
+escudo_de_hierro   = 120
+pocion_de_vida     = 50
+pocion_de_mana     = 50
+
+# -----------------------------------------------------------------------------
 # Servidor
 # -----------------------------------------------------------------------------
 [server]
@@ -166,6 +191,8 @@ es_zona_segura     = false
 poblacion_max      = 10
 criaturas_posibles = ["goblin", "arana", "zombie"]
 sacerdotes         = []
+comerciantes       = []
+banqueros          = []
 portales           = [{x = 50, y = 50, mapa_destino = 4, destino_x = 5, destino_y = 5}]
  
 [mapas.2]
@@ -179,6 +206,8 @@ es_zona_segura     = false
 poblacion_max      = 8
 criaturas_posibles = ["orco", "golem", "esqueleto"]
 sacerdotes         = []
+comerciantes       = []
+banqueros          = []
 portales           = []
 
 [mapas.3]
@@ -192,6 +221,8 @@ es_zona_segura     = true
 poblacion_max      = 0
 criaturas_posibles = []
 sacerdotes         = [{x = 50, y = 50}]
+comerciantes       = [{x = 55, y = 50}]
+banqueros          = [{x = 45, y = 50}]
 portales           = []
 
 [mapas.4]
@@ -205,4 +236,6 @@ es_zona_segura     = false
 poblacion_max      = 5
 criaturas_posibles = ["orco", "golem"]
 sacerdotes         = []
+comerciantes       = []
+banqueros          = []
 portales           = [{x = 1, y = 1, mapa_destino = 1, destino_x = 51, destino_y = 50}]

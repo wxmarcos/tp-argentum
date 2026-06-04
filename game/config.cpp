@@ -3,6 +3,7 @@
 #include <toml++/toml.hpp>
 #include <stdexcept>
 #include <string>
+#include <cctype>
 
 // Impl — contiene el árbol TOML parseado
 
@@ -180,6 +181,17 @@ float Config::getVelocidadResurreccion() const {
     return static_cast<float>(impl->get<double>("ia.velocidad_resurreccion", 0.5));
 }
 
+// ----------------- Precio de items -----------------
+
+int Config::getPrecioItem(const std::string& nombre) const {
+    std::string clave = "precios.";
+    for (char c : nombre) {
+        if (c == ' ')   clave += '_';
+        else            clave += static_cast<char>(std::tolower(c));
+    }
+    return impl->get<int64_t>(clave, 0);
+}
+
 // ----------------- Criaturas -----------------
 
 int Config::getCriaturaVidaMax(const std::string& tipo) const {
@@ -278,16 +290,21 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
             }
         }
 
-        if (auto* arr = t->get("sacerdotes") ? t->get("sacerdotes")->as_array() : nullptr) {
-            for (auto& elem : *arr) {
-                if (auto* tbl = elem.as_table()) {
-                    PosicionNPC pos;
-                    pos.x = tbl->get("x") ? (int)(*tbl->get("x")->value<int64_t>()) : 0;
-                    pos.y = tbl->get("y") ? (int)(*tbl->get("y")->value<int64_t>()) : 0;
-                    cm.sacerdotes.push_back(pos);
+        auto leerNPCs = [&](const char* clave, std::vector<PosicionNPC>& destino) {
+            if (auto* arr = t->get(clave) ? t->get(clave)->as_array() : nullptr) {
+                for (auto& elem : *arr) {
+                    if (auto* tbl = elem.as_table()) {
+                        PosicionNPC pos;
+                        pos.x = tbl->get("x") ? (int)(*tbl->get("x")->value<int64_t>()) : 0;
+                        pos.y = tbl->get("y") ? (int)(*tbl->get("y")->value<int64_t>()) : 0;
+                        destino.push_back(pos);
+                    }
                 }
             }
-        }
+        };
+        leerNPCs("sacerdotes", cm.sacerdotes);
+        leerNPCs("comerciantes", cm.comerciantes);
+        leerNPCs("banqueros", cm.banqueros);
 
         if (auto* arr = t->get("portales") ? t->get("portales")->as_array() : nullptr) {
             for (auto& elem : *arr) {
