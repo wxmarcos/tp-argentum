@@ -96,6 +96,7 @@ rango_deteccion_criaturas = 15
 cooldown_movimiento_criaturas = 2.0  # ms entre movimientos de criaturas
 cooldown_ataque_criaturas = 2.0      # ms entre ataques de criaturas
 intervalo_spawn = 30.0  # segundos entre spawns de criaturas
+velocidad_resurreccion = 0.5
 
 # -----------------------------------------------------------------------------
 # Criaturas
@@ -165,6 +166,7 @@ es_zona_segura     = false
 poblacion_max      = 10
 criaturas_posibles = ["goblin", "arana", "zombie"]
 sacerdotes         = []
+portales           = [{x = 50, y = 50, mapa_destino = 4, destino_x = 5, destino_y = 5}]
  
 [mapas.2]
 ancho              = 100
@@ -177,6 +179,7 @@ es_zona_segura     = false
 poblacion_max      = 8
 criaturas_posibles = ["orco", "golem", "esqueleto"]
 sacerdotes         = []
+portales           = []
 
 [mapas.3]
 ancho              = 100
@@ -189,3 +192,17 @@ es_zona_segura     = true
 poblacion_max      = 0
 criaturas_posibles = []
 sacerdotes         = [{x = 50, y = 50}]
+portales           = []
+
+[mapas.4]
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 5
+criaturas_posibles = ["orco", "golem"]
+sacerdotes         = []
+portales           = [{x = 1, y = 1, mapa_destino = 1, destino_x = 51, destino_y = 50}]

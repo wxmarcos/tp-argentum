@@ -45,9 +45,10 @@ Game::Game(Config& config)
 // ----------------- Inicializacion -----------------
 
 void Game::cargarMundo() {
-    auto mapasConfig = config.getMapas();
-    for (const auto& cm : mapasConfig) {
+    for (const auto& cm : config.getMapas()) {
         auto mapa = std::make_unique<Mapa>(cm.ancho, cm.alto, cm.esZonaSegura);
+        for (const auto& p : cm.portales)
+            mapa->registrarPortal(p.x, p.y, p.mapaDestino, p.destinoX, p.destinoY);
         infoMapasVecinos vecinos{cm.vecinoNorte, cm.vecinoSur, cm.vecinoEste, cm.vecinoOeste};
         mundo.agregarMapa(cm.id, std::move(mapa), vecinos);
     }
