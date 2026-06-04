@@ -78,7 +78,7 @@ public:
     // Rutas de Persistencia
     std::string getRutaJugadores() const;
     std::string getRutaNPCsCriaturas() const;
-
+    ~Config();
 private:
     struct Impl;
     Impl* impl;

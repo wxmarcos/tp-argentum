@@ -308,3 +308,7 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
     
     return resultado;
 }
+
+Config::~Config() {
+    delete impl;
+}
