@@ -9,7 +9,7 @@
 #include "common/network/socket.h"
 #include "common/queue.h"
 #include "common/command/command.h"
-
+#include "common/snapshot/snapshot.h"
 #include "client/monitor_clients.h"
 
 class Acceptor: public Thread {
@@ -22,6 +22,8 @@ private:
 
     Queue<Command>& commands_queue;
 
+    size_t max_clients;
+
     uint16_t next_player_id = 1;
 
     void close_listener();
@@ -33,11 +35,12 @@ public:
     Acceptor(
     const char* port,
     MonitorClients& clients,
-    Queue<Command>& commands_queue)
+    Queue<Command>& commands_queue, size_t max_clients)
     :
     listener(port),
     clients(clients),
-    commands_queue(commands_queue) {}
+    commands_queue(commands_queue),
+    max_clients(max_clients) {}
 
     void run() override;
 

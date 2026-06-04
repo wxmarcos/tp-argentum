@@ -13,7 +13,33 @@ void Acceptor::run() {
             try {
 
                 Socket client = listener.accept();
+                clients.remove_finished();
+                if (clients.size() >= max_clients) {
+                    std::cout
+                        << "[Acceptor] Limite de clientes alcanzado ("
+                        << max_clients
+                        << ")\n";
 
+                    try {
+                        Snapshot::error_message(
+                            "",
+                            "Servidor lleno"
+                        ).send(client);
+                    } catch (...) {
+                    }
+
+                    try {
+                        client.shutdown(SHUT_RDWR);
+                    } catch (...) {
+                    }
+
+                    try {
+                        client.close();
+                    } catch (...) {
+                    }
+
+                    continue;
+                }
                 uint16_t player_id =
                     next_player_id++;
 

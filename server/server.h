@@ -14,7 +14,6 @@
 
 #include "acceptor/acceptor.h"
 #include "client/monitor_clients.h"
-#include "config/server_config.h"
 #include "game/game_loop.h"
 #include "game/config.h"
 
@@ -42,7 +41,8 @@ public:
         acceptor(
             port,
             clients,
-            commands_queue),
+            commands_queue,
+            game_config.getServerMaxClients()),
 
         gameloop(
             commands_queue,

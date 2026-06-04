@@ -23,6 +23,8 @@ private:
 
     MonitorClients& clients;
 
+    Config& config;
+
     Game game;
 
     void enqueue_persistence_tasks(const Command& cmd);

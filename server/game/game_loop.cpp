@@ -4,7 +4,6 @@
 #include <iostream>
 #include <thread>
 
-#include "config/server_config.h"
 
 GameLoop::GameLoop(
     Queue<Command>& commands_queue,
@@ -14,15 +13,16 @@ GameLoop::GameLoop(
     : commands_queue(commands_queue),
       persistence_queue(persistence_queue),
       clients(clients),
+      config(config),
       game(config) {}
 
 void GameLoop::run() {
 
     std::cout << "[GameLoop] iniciado\n";
-
+    int ticks_per_second = config.getServerTicksPerSecond();
     const auto tick_duration =
         std::chrono::milliseconds(
-            1000 / ServerConfig::TICKS_PER_SECOND);
+            1000 / ticks_per_second);
 
     while (should_keep_running()) {
 

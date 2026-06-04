@@ -11,11 +11,12 @@
 class MonitorClients {
 private:
     std::vector<std::unique_ptr<ClientHandler>> clients;
-    std::mutex mutex;
+    mutable std::mutex mutex;
 
 public:
+    size_t size() const;
     void add(std::unique_ptr<ClientHandler> client);
-
+    void remove_finished();
     void broadcast(const Snapshot& snapshot);
 
     void stop_all();

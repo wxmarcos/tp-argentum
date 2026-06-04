@@ -237,7 +237,23 @@ int Config::getCriaturaFuerza(const std::string& tipo) const {
     return impl->get<int64_t>(clave, 1);
 }
 
+// ----------------- Servidor -----------------
 
+int Config::getServerMapWidth() const {
+    return impl->get<int64_t>("server.map_width", 100);
+}
+
+int Config::getServerMapHeight() const {
+    return impl->get<int64_t>("server.map_height", 100);
+}
+
+int Config::getServerTicksPerSecond() const {
+    return impl->get<int64_t>("server.ticks_per_second", 30);
+}
+
+int Config::getServerMaxClients() const {
+    return impl->get<int64_t>("server.max_clients", 100);
+}
 // ----------------- Rutas de Persistencia -----------------
 
 std::string Config::getRutaJugadores() const {

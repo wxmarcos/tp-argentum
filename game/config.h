@@ -52,7 +52,11 @@ public:
     int getCriaturaDanioMin(const std::string& tipo) const;
     int getCriaturaDanioMax(const std::string& tipo) const;
     int getCriaturaFuerza(const std::string& tipo) const;
-
+    // Servidor
+    int getServerMapWidth() const;
+    int getServerMapHeight() const;
+    int getServerTicksPerSecond() const;
+    int getServerMaxClients() const;
     // Mapas
     struct PosicionNPC {
         int x, y;
