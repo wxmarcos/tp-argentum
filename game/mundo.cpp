@@ -76,9 +76,28 @@ bool Mundo::moverPersonaje(Character* personaje, Direccion dir) {
     }
 
     if (!saleBorde) {
-        return mapaActual->moverPersonaje(personaje, dir);
+        bool movido = mapaActual->moverPersonaje(personaje, dir);
+        if (!movido) return false;
+
+        // Verificar si pisó un portal
+        auto destino = mapaActual->getPortalDestino(personaje->getPosX(),
+                                                    personaje->getPosY());
+        if (destino) {
+            Mapa* mapaDestino = getMapa(destino->mapaDestinoId);
+            if (mapaDestino &&
+                mapaDestino->esTransitable(destino->destinoX, destino->destinoY) &&
+                !mapaDestino->estaOcupada(destino->destinoX, destino->destinoY)) {
+                    mapaActual->removerPersonaje(personaje);
+                    personaje->setPosicion(destino->destinoX, destino->destinoY);
+                    personaje->setMapaId(destino->mapaDestinoId);
+                    mapaDestino->agregarPersonaje(personaje);
+            }
+        }
+
+        return true;
     }
 
+    // Movimiento entre mapas por borde
     auto vecinoId = getMapaVecino(mapaActualId, dir);
     if (!vecinoId) return false;
 
@@ -87,6 +106,7 @@ bool Mundo::moverPersonaje(Character* personaje, Direccion dir) {
 
     int posActual = (dir == Direccion::NORTE || dir == Direccion::SUR) ? x : y;
     auto [entradaX, entradaY] = posicionEntrada(*mapaVecino, dir, posActual);
+    
     if (!mapaVecino->esTransitable(entradaX, entradaY) || mapaVecino->estaOcupada(entradaX, entradaY)) {
         return false;
     }

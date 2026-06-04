@@ -44,9 +44,10 @@ Game::Game(Config& config)
 // ----------------- Inicializacion -----------------
 
 void Game::cargarMundo() {
-    auto mapasConfig = config.getMapas();
-    for (const auto& cm : mapasConfig) {
+    for (const auto& cm : config.getMapas()) {
         auto mapa = std::make_unique<Mapa>(cm.ancho, cm.alto, cm.esZonaSegura);
+        for (const auto& p : cm.portales)
+            mapa->registrarPortal(p.x, p.y, p.mapaDestino, p.destinoX, p.destinoY);
         infoMapasVecinos vecinos{cm.vecinoNorte, cm.vecinoSur, cm.vecinoEste, cm.vecinoOeste};
         mundo.agregarMapa(cm.id, std::move(mapa), vecinos);
     }
@@ -164,28 +165,13 @@ std::string Game::agregarCriatura(const std::string& tipo, int mapaId, int posX,
     std::string id = tipo + "_" + std::to_string(nextCriaturaId++);
 
     std::unique_ptr<Criatura> criatura;
-
-    if (tipo == "goblin") {
-        criatura = std::make_unique<Goblin>(config, posX, posY);
-
-    } else if (tipo == "esqueleto") {
-        criatura = std::make_unique<Esqueleto>(config, posX, posY);
-
-    } else if (tipo == "arana") {
-        criatura = std::make_unique<Arana>(config, posX, posY);
-
-    } else if (tipo == "golem") {
-        criatura = std::make_unique<Golem>(config, posX, posY);
-
-    } else if (tipo == "orco") {
-        criatura = std::make_unique<Orco>(config, posX, posY);
-
-    } else if (tipo == "zombie") {
-        criatura = std::make_unique<Zombie>(config, posX, posY);
-
-    } else {
-        return "";
-    }
+    if      (tipo == "goblin")      criatura = std::make_unique<Goblin>(config, posX, posY);
+    else if (tipo == "esqueleto")   criatura = std::make_unique<Esqueleto>(config, posX, posY);
+    else if (tipo == "arana")       criatura = std::make_unique<Arana>(config, posX, posY);
+    else if (tipo == "golem")       criatura = std::make_unique<Golem>(config, posX, posY);
+    else if (tipo == "orco")        criatura = std::make_unique<Orco>(config, posX, posY);
+    else if (tipo == "zombie")      criatura = std::make_unique<Zombie>(config, posX, posY);
+    else return "";
 
     criatura->setMapaId(mapaId);
     mundo.agregarPersonaje(criatura.get());

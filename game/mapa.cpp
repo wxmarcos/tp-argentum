@@ -117,3 +117,15 @@ const std::vector<SlotInventario>* Mapa::getItemsEnPosicion(int x, int y) const 
     if (it == itemsEnPiso.end()) return nullptr;
     return &it->second;
 }
+
+void Mapa::registrarPortal(int x, int y, int mapaDestinoId, int destinoX, int destinoY) {
+    if (!esPosicionValida(x, y)) return;
+    setTile(x, y, TipoTile::PORTAL, true);
+    portales[{x, y}] = {mapaDestinoId, destinoX, destinoY};
+}
+
+std::optional<DestinoPortal> Mapa::getPortalDestino(int x, int y) const {
+    auto it = portales.find({x, y});
+    if (it == portales.end()) return std::nullopt;
+    return it->second;
+}

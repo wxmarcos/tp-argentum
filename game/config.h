@@ -58,12 +58,19 @@ public:
         int x, y;
     };
 
+    struct ConfigPortal {
+        int x, y;
+        int mapaDestino;
+        int destinoX, destinoY;
+    };
+
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;
         bool esZonaSegura;
         int poblacionMax;
         std::vector<std::string> criaturasPosibles;
         std::vector<PosicionNPC> sacerdotes;
+        std::vector<ConfigPortal> portales;
     };
 
     std::vector<ConfigMapa> getMapas() const;

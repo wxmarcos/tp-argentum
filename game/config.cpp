@@ -289,6 +289,20 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
             }
         }
 
+        if (auto* arr = t->get("portales") ? t->get("portales")->as_array() : nullptr) {
+            for (auto& elem : *arr) {
+                if (auto* tbl = elem.as_table()) {
+                    ConfigPortal p;
+                    p.x             = tbl->get("x")             ? (int)(*tbl->get("x")->value<int64_t>())               : 0;
+                    p.y             = tbl->get("y")             ? (int)(*tbl->get("y")->value<int64_t>())               : 0;
+                    p.mapaDestino   = tbl->get("mapa_destino")  ? (int)(*tbl->get("mapa_destino")->value<int64_t>())    : -1;
+                    p.destinoX      = tbl->get("destino_x")     ? (int)(*tbl->get("destino_x")->value<int64_t>())       : 0;
+                    p.destinoY      = tbl->get("destino_y")     ? (int)(*tbl->get("destino_y")->value<int64_t>())       : 0;
+                    cm.portales.push_back(p);
+                }
+            }
+        }
+
         resultado.push_back(cm);
     }
     
