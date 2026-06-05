@@ -50,6 +50,20 @@ Command parse_item_and_amount(const std::vector<uint8_t>& payload,
     return cmd;
 }
 
+Command parse_text(const std::vector<uint8_t>& payload, size_t& offset,
+                   protocol::ClientOpcode opcode, uint16_t player_id) {
+    Command cmd(player_id, opcode);
+    cmd.text = read_string(payload, offset);
+    return cmd;
+}
+
+Command parse_amount(const std::vector<uint8_t>& payload, size_t& offset,
+                     protocol::ClientOpcode opcode, uint16_t player_id) {
+    Command cmd(player_id, opcode);
+    cmd.amount = read_u32(payload, offset);
+    return cmd;
+}
+
 Command parse_slot(const std::vector<uint8_t>& payload, size_t& offset,
                    protocol::ClientOpcode opcode, uint16_t player_id) {
     Command cmd(player_id, opcode);
@@ -118,7 +132,7 @@ Command parse_command_payload(const std::vector<uint8_t>& payload,
             break;
 
         case protocol::ClientOpcode::BUY_ITEM:
-            cmd = parse_item_and_amount(payload, offset, type, player_id);
+            cmd = parse_text(payload, offset, type, player_id);
             break;
 
         case protocol::ClientOpcode::SELL_ITEM:
@@ -128,6 +142,11 @@ Command parse_command_payload(const std::vector<uint8_t>& payload,
 
         case protocol::ClientOpcode::WITHDRAW_ITEM:
             cmd = parse_item_and_amount(payload, offset, type, player_id);
+            break;
+
+        case protocol::ClientOpcode::DEPOSIT_GOLD:
+        case protocol::ClientOpcode::WITHDRAW_GOLD:
+            cmd = parse_amount(payload, offset, type, player_id);
             break;
 
         case protocol::ClientOpcode::PRIVATE_MESSAGE:
@@ -244,7 +263,7 @@ std::vector<uint8_t> build_command_payload(const Command& command) {
             break;
 
         case protocol::ClientOpcode::BUY_ITEM:
-            serialize_item_and_amount(command, payload);
+            push_string(payload, command.get_text());
             break;
 
         case protocol::ClientOpcode::SELL_ITEM:
@@ -254,6 +273,11 @@ std::vector<uint8_t> build_command_payload(const Command& command) {
 
         case protocol::ClientOpcode::WITHDRAW_ITEM:
             serialize_item_and_amount(command, payload);
+            break;
+
+        case protocol::ClientOpcode::DEPOSIT_GOLD:
+        case protocol::ClientOpcode::WITHDRAW_GOLD:
+            push_u32(payload, command.get_amount());
             break;
 
         case protocol::ClientOpcode::PRIVATE_MESSAGE:
