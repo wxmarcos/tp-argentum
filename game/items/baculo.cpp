@@ -1,9 +1,11 @@
-#include "baculo.h"
+#include "game/items/baculo.h"
 
 Baculo::Baculo(const std::string& nombre, const std::string& nombreHechizo,
-               TipoHechizo tipoHechizo, int efectoMin, int efectoMax, int costoMana)
-    : nombre(nombre), nombreHechizo(nombreHechizo), tipoHechizo(tipoHechizo),
-      efectoMin(efectoMin), efectoMax(efectoMax), costoMana(costoMana) {}
+               TipoHechizo tipoHechizo, int efectoMin, int efectoMax,
+               int costoMana):
+    nombre(nombre),
+    nombreHechizo(nombreHechizo), tipoHechizo(tipoHechizo),
+    efectoMin(efectoMin), efectoMax(efectoMax), costoMana(costoMana) {}
 
 std::string Baculo::getNombre() const { return nombre; }
 TipoItem Baculo::getTipo() const { return TipoItem::BACULO; }

@@ -1,80 +1,88 @@
-#include "snapshot_codec.h"
-#include "common/network/socket_helpers.h"
+#include "common/snapshot/snapshot_codec.h"
 
 #include <stdexcept>
 
-static void validate_payload_size(uint16_t payload_size, uint16_t expected, const char* error_prefix) {
+#include "common/network/socket_helpers.h"
+
+static void validate_payload_size(uint16_t payload_size, uint16_t expected,
+                                  const char* error_prefix) {
     if (payload_size != expected) {
-        throw std::runtime_error(std::string(error_prefix) + " payload_size invalido");
+        throw std::runtime_error(std::string(error_prefix) +
+                                 " payload_size invalido");
     }
 }
 
 static uint16_t position_payload_size(const Snapshot& snapshot) {
-    return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_nick().size() +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint8_t));
+    return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
+                                 sizeof(uint16_t) + sizeof(uint16_t) +
+                                 sizeof(uint8_t));
 }
 
 static uint16_t damage_payload_size(const Snapshot& snapshot) {
     return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_attacker().size() +
-        sizeof(uint16_t) + snapshot.get_target().size() +
-        sizeof(uint16_t) +
-        sizeof(uint8_t));
+        sizeof(uint16_t) + snapshot.get_attacker().size() + sizeof(uint16_t) +
+        snapshot.get_target().size() + sizeof(uint16_t) + sizeof(uint8_t));
 }
 
 static uint16_t dodge_payload_size(const Snapshot& snapshot) {
     return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_attacker().size() +
-        sizeof(uint16_t) + snapshot.get_target().size());
+        sizeof(uint16_t) + snapshot.get_attacker().size() + sizeof(uint16_t) +
+        snapshot.get_target().size());
 }
 
 static uint16_t death_payload_size(const Snapshot& snapshot) {
-    return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_target().size());
+    return static_cast<uint16_t>(sizeof(uint16_t) +
+                                 snapshot.get_target().size());
 }
 
 static uint16_t chat_payload_size(const Snapshot& snapshot) {
-    return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_nick().size() +
-        sizeof(uint16_t) + snapshot.get_target().size() +
-        sizeof(uint16_t) + snapshot.get_text().size());
+    return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
+                                 sizeof(uint16_t) +
+                                 snapshot.get_target().size() +
+                                 sizeof(uint16_t) + snapshot.get_text().size());
 }
 
 static uint16_t player_stats_payload_size(const Snapshot& snapshot) {
     return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_nick().size() +
-        sizeof(uint16_t) + snapshot.get_raza().size() +
-        sizeof(uint16_t) + snapshot.get_clase().size() +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint8_t) +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint32_t) +
-        sizeof(uint32_t) +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
-        sizeof(uint16_t) +
+        sizeof(uint16_t) + snapshot.get_nick().size() + sizeof(uint16_t) +
+        snapshot.get_raza().size() + sizeof(uint16_t) +
+        snapshot.get_clase().size() + sizeof(uint16_t) + sizeof(uint16_t) +
+        sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint16_t) +
+        sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
+        sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) +
+        sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
         sizeof(uint16_t));
 }
+static uint16_t inventory_update_payload_size(const Snapshot& snapshot) {
+    uint16_t size = 0;
 
+    size += sizeof(uint16_t) + snapshot.get_nick().size();
+    size += sizeof(uint16_t);
+
+    for (const auto& item : snapshot.get_inventory_items()) {
+        size += sizeof(uint16_t);
+        size += sizeof(uint16_t) + item.item.size();
+        size += sizeof(uint16_t);
+        size += sizeof(uint8_t);
+    }
+
+    return size;
+}
 static uint16_t error_payload_size(const Snapshot& snapshot) {
-    return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_nick().size() +
-        sizeof(uint16_t) + snapshot.get_text().size());
+    return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
+                                 sizeof(uint16_t) + snapshot.get_text().size());
 }
 
 static uint16_t meditation_status_payload_size(const Snapshot& snapshot) {
-    return static_cast<uint16_t>(
-        sizeof(uint16_t) + snapshot.get_nick().size() +
-        sizeof(uint8_t));
+    return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
+                                 sizeof(uint8_t));
+}
+static uint16_t map_change_payload_size(const Snapshot& snapshot) {
+    return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
+                                 sizeof(uint16_t) +  // mapa_id
+                                 sizeof(uint16_t) +  // x
+                                 sizeof(uint16_t) +  // y
+                                 sizeof(uint8_t));   // direction
 }
 
 uint16_t snapshot_payload_size(const Snapshot& snapshot) {
@@ -85,7 +93,8 @@ uint16_t snapshot_payload_size(const Snapshot& snapshot) {
             return position_payload_size(snapshot);
 
         case protocol::ServerOpcode::ENTITY_REMOVE:
-            return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size());
+            return static_cast<uint16_t>(sizeof(uint16_t) +
+                                         snapshot.get_nick().size());
 
         case protocol::ServerOpcode::DAMAGE_EVENT:
             return damage_payload_size(snapshot);
@@ -101,9 +110,13 @@ uint16_t snapshot_payload_size(const Snapshot& snapshot) {
 
         case protocol::ServerOpcode::PLAYER_STATS:
             return player_stats_payload_size(snapshot);
-
+        case protocol::ServerOpcode::INVENTORY_UPDATE:
+            return inventory_update_payload_size(snapshot);
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return meditation_status_payload_size(snapshot);
+
+        case protocol::ServerOpcode::MAP_CHANGE:
+            return map_change_payload_size(snapshot);
 
         case protocol::ServerOpcode::ERROR_MESSAGE:
             return error_payload_size(snapshot);
@@ -167,6 +180,21 @@ static void send_player_stats(Socket& socket, const Snapshot& snapshot) {
     send_u16(socket, snapshot.get_agilidad());
 }
 
+static void send_inventory_update(Socket& socket, const Snapshot& snapshot) {
+    send_string(socket, snapshot.get_nick());
+
+    const auto& items = snapshot.get_inventory_items();
+
+    send_u16(socket, static_cast<uint16_t>(items.size()));
+
+    for (const auto& item : items) {
+        send_u16(socket, item.slot_id);
+        send_string(socket, item.item);
+        send_u16(socket, item.cantidad);
+        send_u8(socket, item.equipado ? 1 : 0);
+    }
+}
+
 static void send_error_message(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_nick());
     send_string(socket, snapshot.get_text());
@@ -175,6 +203,13 @@ static void send_error_message(Socket& socket, const Snapshot& snapshot) {
 static void send_meditation_status(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_nick());
     send_u8(socket, snapshot.is_meditating() ? 1 : 0);
+}
+static void send_map_change(Socket& socket, const Snapshot& snapshot) {
+    send_string(socket, snapshot.get_nick());
+    send_u16(socket, snapshot.get_mapa_id());
+    send_u16(socket, snapshot.get_x());
+    send_u16(socket, snapshot.get_y());
+    send_u8(socket, snapshot.get_direction());
 }
 
 void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
@@ -208,11 +243,15 @@ void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
         case protocol::ServerOpcode::PLAYER_STATS:
             send_player_stats(socket, snapshot);
             return;
-
+        case protocol::ServerOpcode::INVENTORY_UPDATE:
+            send_inventory_update(socket, snapshot);
+            return;
         case protocol::ServerOpcode::MEDITATION_STATUS:
             send_meditation_status(socket, snapshot);
             return;
-
+        case protocol::ServerOpcode::MAP_CHANGE:
+            send_map_change(socket, snapshot);
+            return;
         case protocol::ServerOpcode::ERROR_MESSAGE:
             send_error_message(socket, snapshot);
             return;
@@ -222,18 +261,18 @@ void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
     }
 }
 
-static Snapshot recv_position_snapshot(Socket& socket, uint16_t payload_size, protocol::ServerOpcode opcode) {
+static Snapshot recv_position_snapshot(Socket& socket, uint16_t payload_size,
+                                       protocol::ServerOpcode opcode) {
     std::string nick = recv_string(socket);
     uint16_t x = recv_u16(socket);
     uint16_t y = recv_u16(socket);
     uint8_t direction = recv_u8(socket);
 
-    validate_payload_size(payload_size,
-        static_cast<uint16_t>(
-            sizeof(uint16_t) + nick.size() +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint8_t)),
+    validate_payload_size(
+        payload_size,
+        static_cast<uint16_t>(sizeof(uint16_t) + nick.size() +
+                              sizeof(uint16_t) + sizeof(uint16_t) +
+                              sizeof(uint8_t)),
         "Snapshot::recv payload_size invalido");
 
     if (opcode == protocol::ServerOpcode::ENTITY_CREATED) {
@@ -250,8 +289,8 @@ static Snapshot recv_position_snapshot(Socket& socket, uint16_t payload_size, pr
 static Snapshot recv_entity_remove(Socket& socket, uint16_t payload_size) {
     std::string nick = recv_string(socket);
     validate_payload_size(payload_size,
-        static_cast<uint16_t>(sizeof(uint16_t) + nick.size()),
-        "Snapshot::recv payload_size invalido");
+                          static_cast<uint16_t>(sizeof(uint16_t) + nick.size()),
+                          "Snapshot::recv payload_size invalido");
     return Snapshot::entity_remove(nick);
 }
 
@@ -260,12 +299,11 @@ static Snapshot recv_damage_event(Socket& socket, uint16_t payload_size) {
     std::string target = recv_string(socket);
     uint16_t damage = recv_u16(socket);
     uint8_t critical = recv_u8(socket);
-    validate_payload_size(payload_size,
-        static_cast<uint16_t>(
-            sizeof(uint16_t) + attacker.size() +
-            sizeof(uint16_t) + target.size() +
-            sizeof(uint16_t) +
-            sizeof(uint8_t)),
+    validate_payload_size(
+        payload_size,
+        static_cast<uint16_t>(sizeof(uint16_t) + attacker.size() +
+                              sizeof(uint16_t) + target.size() +
+                              sizeof(uint16_t) + sizeof(uint8_t)),
         "Snapshot::recv payload_size invalido");
     return Snapshot::damage_event(attacker, target, damage, critical != 0);
 }
@@ -273,18 +311,18 @@ static Snapshot recv_damage_event(Socket& socket, uint16_t payload_size) {
 static Snapshot recv_dodge_event(Socket& socket, uint16_t payload_size) {
     std::string attacker = recv_string(socket);
     std::string target = recv_string(socket);
-    validate_payload_size(payload_size,
-        static_cast<uint16_t>(
-            sizeof(uint16_t) + attacker.size() +
-            sizeof(uint16_t) + target.size()),
+    validate_payload_size(
+        payload_size,
+        static_cast<uint16_t>(sizeof(uint16_t) + attacker.size() +
+                              sizeof(uint16_t) + target.size()),
         "Snapshot::recv payload_size invalido");
     return Snapshot::dodge_event(attacker, target);
 }
 
 static Snapshot recv_death_event(Socket& socket, uint16_t payload_size) {
     std::string target = recv_string(socket);
-    validate_payload_size(payload_size,
-        static_cast<uint16_t>(sizeof(uint16_t) + target.size()),
+    validate_payload_size(
+        payload_size, static_cast<uint16_t>(sizeof(uint16_t) + target.size()),
         "Snapshot::recv payload_size invalido");
     return Snapshot::death_event(target);
 }
@@ -294,11 +332,10 @@ static Snapshot recv_chat_message(Socket& socket, uint16_t payload_size) {
     std::string to = recv_string(socket);
     std::string text = recv_string(socket);
     validate_payload_size(payload_size,
-        static_cast<uint16_t>(
-            sizeof(uint16_t) + from.size() +
-            sizeof(uint16_t) + to.size() +
-            sizeof(uint16_t) + text.size()),
-        "Snapshot::recv payload_size invalido");
+                          static_cast<uint16_t>(sizeof(uint16_t) + from.size() +
+                                                sizeof(uint16_t) + to.size() +
+                                                sizeof(uint16_t) + text.size()),
+                          "Snapshot::recv payload_size invalido");
     return Snapshot::chat_message(from, to, text);
 }
 
@@ -321,74 +358,94 @@ static Snapshot recv_player_stats(Socket& socket, uint16_t payload_size) {
     uint16_t inteligencia = recv_u16(socket);
     uint16_t fuerza = recv_u16(socket);
     uint16_t agilidad = recv_u16(socket);
-    validate_payload_size(payload_size,
+    validate_payload_size(
+        payload_size,
         static_cast<uint16_t>(
-            sizeof(uint16_t) + nick.size() +
-            sizeof(uint16_t) + raza.size() +
-            sizeof(uint16_t) + clase.size() +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint8_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint32_t) +
-            sizeof(uint32_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t) +
-            sizeof(uint16_t)),
+            sizeof(uint16_t) + nick.size() + sizeof(uint16_t) + raza.size() +
+            sizeof(uint16_t) + clase.size() + sizeof(uint16_t) +
+            sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint8_t) +
+            sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
+            sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) +
+            sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) +
+            sizeof(uint16_t) + sizeof(uint16_t)),
         "Snapshot::recv payload_size invalido");
-    return Snapshot::player_stats(
-        nick,
-        raza,
-        clase,
-        mapa_id,
-        x,
-        y,
-        direction,
-        nivel,
-        vida,
-        vida_max,
-        mana,
-        mana_max,
-        experiencia,
-        oro,
-        constitucion,
-        inteligencia,
-        fuerza,
-        agilidad);
+    return Snapshot::player_stats(nick, raza, clase, mapa_id, x, y, direction,
+                                  nivel, vida, vida_max, mana, mana_max,
+                                  experiencia, oro, constitucion, inteligencia,
+                                  fuerza, agilidad);
+}
+
+static Snapshot recv_inventory_update(Socket& socket, uint16_t payload_size) {
+    std::string nick = recv_string(socket);
+
+    uint16_t slots_count = recv_u16(socket);
+
+    std::vector<InventorySnapshotItem> items;
+
+    uint16_t expected_payload_size = static_cast<uint16_t>(
+        sizeof(uint16_t) + nick.size() + sizeof(uint16_t));
+
+    for (uint16_t i = 0; i < slots_count; ++i) {
+        InventorySnapshotItem item;
+
+        item.slot_id = recv_u16(socket);
+        item.item = recv_string(socket);
+        item.cantidad = recv_u16(socket);
+        item.equipado = recv_u8(socket) != 0;
+
+        expected_payload_size = static_cast<uint16_t>(
+            expected_payload_size + sizeof(uint16_t) + sizeof(uint16_t) +
+            item.item.size() + sizeof(uint16_t) + sizeof(uint8_t));
+
+        items.push_back(item);
+    }
+
+    validate_payload_size(
+        payload_size, expected_payload_size,
+        "Snapshot::recv payload_size invalido INVENTORY_UPDATE");
+
+    return Snapshot::inventory_update(nick, items);
 }
 
 static Snapshot recv_error_message(Socket& socket, uint16_t payload_size) {
     std::string nick = recv_string(socket);
     std::string text = recv_string(socket);
     validate_payload_size(payload_size,
-        static_cast<uint16_t>(
-            sizeof(uint16_t) + nick.size() +
-            sizeof(uint16_t) + text.size()),
-        "Snapshot::recv payload_size invalido");
+                          static_cast<uint16_t>(sizeof(uint16_t) + nick.size() +
+                                                sizeof(uint16_t) + text.size()),
+                          "Snapshot::recv payload_size invalido");
     return Snapshot::error_message(nick, text);
 }
 
 static Snapshot recv_meditation_status(Socket& socket, uint16_t payload_size) {
     std::string nick = recv_string(socket);
     uint8_t started = recv_u8(socket);
-    validate_payload_size(payload_size,
-        static_cast<uint16_t>(
-            sizeof(uint16_t) + nick.size() +
-            sizeof(uint8_t)),
+    validate_payload_size(
+        payload_size,
+        static_cast<uint16_t>(sizeof(uint16_t) + nick.size() + sizeof(uint8_t)),
         "Snapshot::recv payload_size invalido");
     return Snapshot::meditation_status(nick, started != 0);
 }
 
-Snapshot recv_snapshot_payload(
-    Socket& socket,
-    protocol::ServerOpcode opcode,
-    uint16_t payload_size) {
+static Snapshot recv_map_change(Socket& socket, uint16_t payload_size) {
+    std::string nick = recv_string(socket);
+    uint16_t mapa_id = recv_u16(socket);
+    uint16_t x = recv_u16(socket);
+    uint16_t y = recv_u16(socket);
+    uint8_t direction = recv_u8(socket);
+
+    validate_payload_size(
+        payload_size,
+        static_cast<uint16_t>(sizeof(uint16_t) + nick.size() +
+                              sizeof(uint16_t) + sizeof(uint16_t) +
+                              sizeof(uint16_t) + sizeof(uint8_t)),
+        "Snapshot::recv payload_size invalido MAP_CHANGE");
+
+    return Snapshot::map_change(nick, mapa_id, x, y, direction);
+}
+
+Snapshot recv_snapshot_payload(Socket& socket, protocol::ServerOpcode opcode,
+                               uint16_t payload_size) {
     switch (opcode) {
         case protocol::ServerOpcode::ENTITY_CREATED:
         case protocol::ServerOpcode::ENTITY_LOGIN:
@@ -412,9 +469,13 @@ Snapshot recv_snapshot_payload(
 
         case protocol::ServerOpcode::PLAYER_STATS:
             return recv_player_stats(socket, payload_size);
-
+        case protocol::ServerOpcode::INVENTORY_UPDATE:
+            return recv_inventory_update(socket, payload_size);
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return recv_meditation_status(socket, payload_size);
+
+        case protocol::ServerOpcode::MAP_CHANGE:
+            return recv_map_change(socket, payload_size);
 
         case protocol::ServerOpcode::ERROR_MESSAGE:
             return recv_error_message(socket, payload_size);

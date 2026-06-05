@@ -1,15 +1,14 @@
 #include "render/character_animator.h"
+
 #include <SDL2/SDL.h>
 
 static constexpr uint32_t MOVE_ANIM_DURATION_MS = 400;
 
 CharacterAnimator::CharacterAnimator(int frame_count, int ms_per_frame):
-        anim(frame_count, ms_per_frame),
-        last_dir(protocol::Direction::SOUTH),
-        moving_ms_remaining(0) {}
+    anim(frame_count, ms_per_frame), last_dir(protocol::Direction::SOUTH),
+    moving_ms_remaining(0) {}
 
-void CharacterAnimator::update(uint32_t delta_ms,
-                               protocol::Direction dir,
+void CharacterAnimator::update(uint32_t delta_ms, protocol::Direction dir,
                                bool moved) {
     if (dir != last_dir) {
         anim.reset();

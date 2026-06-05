@@ -9,22 +9,18 @@
 #include <thread>
 #include <vector>
 
+#include "acceptor/acceptor.h"
+#include "client/monitor_clients.h"
 #include "common/command/command.h"
 #include "common/queue.h"
-
-#include "acceptor/acceptor.h"
-#include "client/client_handler.h"
-#include "config/server_config.h"
-#include "game/game_loop.h"
 #include "game/config.h"
-
+#include "game/game_loop.h"
 #include "persistence/persistence_task.h"
 #include "persistence/persistence_worker.h"
 
 class Server {
-
 private:
-    std::vector<std::unique_ptr<ClientHandler>> clients;
+    MonitorClients clients;
 
     Queue<Command> commands_queue;
     Queue<PersistenceTask> persistence_queue;
@@ -34,25 +30,15 @@ private:
     PersistenceWorker persistence_worker;
 
 public:
-    Server(const char* port, Config& game_config)
-        :
-        commands_queue(),
-        persistence_queue(),
+    Server(const char* port, Config& game_config):
+        commands_queue(), persistence_queue(),
 
-        acceptor(
-            port,
-            clients,
-            commands_queue),
+        acceptor(port, clients, commands_queue,
+                 game_config.getServerMaxClients()),
 
-        gameloop(
-            commands_queue,
-            persistence_queue,
-            clients,
-            game_config),
+        gameloop(commands_queue, persistence_queue, clients, game_config),
 
-        persistence_worker(
-            persistence_queue,
-            game_config.getRutaJugadores()) {}
+        persistence_worker(persistence_queue, game_config.getRutaJugadores()) {}
 
     void start() {
         persistence_worker.start();
@@ -75,14 +61,13 @@ public:
         persistence_worker.join();
     }
 
-    void run(std::atomic<bool>& running) {
+    void run(const std::atomic<bool>& running) {
         start();
 
         std::cout << "[Server] Servidor corriendo.\n";
 
         while (running) {
-            std::this_thread::sleep_for(
-                std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         std::cout << "[Server] Deteniendo servidor...\n";
@@ -90,8 +75,7 @@ public:
         stop();
         join();
 
-        std::cout
-            << "[Server] Servidor detenido correctamente.\n";
+        std::cout << "[Server] Servidor detenido correctamente.\n";
     }
 };
 

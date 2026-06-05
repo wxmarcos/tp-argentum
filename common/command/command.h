@@ -27,59 +27,50 @@ private:
 public:
     explicit Command(uint16_t player_id, protocol::ClientOpcode type);
 
-    friend Command parse_command_payload(
-        const std::vector<uint8_t>& payload,
-        protocol::ClientOpcode type,
-        uint16_t player_id);
+    friend Command parse_command_payload(const std::vector<uint8_t>& payload,
+                                         protocol::ClientOpcode type,
+                                         uint16_t player_id);
 
-    friend Command parse_login(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        uint16_t player_id);
+    friend Command parse_login(const std::vector<uint8_t>& payload,
+                               size_t& offset, uint16_t player_id);
 
-    friend Command parse_create_character(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        uint16_t player_id);
+    friend Command parse_create_character(const std::vector<uint8_t>& payload,
+                                          size_t& offset, uint16_t player_id);
 
-    friend Command parse_move(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        uint16_t player_id);
+    friend Command parse_move(const std::vector<uint8_t>& payload,
+                              size_t& offset, uint16_t player_id);
 
-    friend Command parse_attack(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        uint16_t player_id);
+    friend Command parse_attack(const std::vector<uint8_t>& payload,
+                                size_t& offset, uint16_t player_id);
 
-    friend Command parse_item_id(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        protocol::ClientOpcode opcode,
-        uint16_t player_id);
+    friend Command parse_item_id(const std::vector<uint8_t>& payload,
+                                 size_t& offset, protocol::ClientOpcode opcode,
+                                 uint16_t player_id);
 
-    friend Command parse_item_and_amount(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        protocol::ClientOpcode opcode,
-        uint16_t player_id);
+    friend Command parse_item_and_amount(const std::vector<uint8_t>& payload,
+                                         size_t& offset,
+                                         protocol::ClientOpcode opcode,
+                                         uint16_t player_id);
 
-    friend Command parse_private_message(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        uint16_t player_id);
+    friend Command parse_slot(const std::vector<uint8_t>& payload,
+                              size_t& offset, protocol::ClientOpcode opcode,
+                              uint16_t player_id);
+    friend Command parse_slot_and_amount(const std::vector<uint8_t>& payload,
+                                         size_t& offset,
+                                         protocol::ClientOpcode opcode,
+                                         uint16_t player_id);
+    friend Command parse_private_message(const std::vector<uint8_t>& payload,
+                                         size_t& offset, uint16_t player_id);
 
-    friend Command parse_clan_name(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        protocol::ClientOpcode opcode,
-        uint16_t player_id);
+    friend Command parse_clan_name(const std::vector<uint8_t>& payload,
+                                   size_t& offset,
+                                   protocol::ClientOpcode opcode,
+                                   uint16_t player_id);
 
-    friend Command parse_nick_only(
-        const std::vector<uint8_t>& payload,
-        size_t& offset,
-        protocol::ClientOpcode opcode,
-        uint16_t player_id);
+    friend Command parse_nick_only(const std::vector<uint8_t>& payload,
+                                   size_t& offset,
+                                   protocol::ClientOpcode opcode,
+                                   uint16_t player_id);
 
     friend std::vector<uint8_t> build_command_payload(const Command& command);
 
@@ -87,10 +78,9 @@ public:
     void send(Socket& socket) const;
 
     static Command login(const std::string& nick);
-    static Command create_character(
-        const std::string& nick,
-        const std::string& raza,
-        const std::string& clase);
+    static Command create_character(const std::string& nick,
+                                    const std::string& raza,
+                                    const std::string& clase);
 
     static Command move(uint8_t direction);
     static Command attack(const std::string& nick);

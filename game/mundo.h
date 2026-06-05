@@ -5,8 +5,8 @@
 #include <optional>
 #include <string>
 
-#include "mapa.h"
-#include "characters/jugador.h"
+#include "game/characters/jugador.h"
+#include "game/mapa.h"
 
 struct infoMapasVecinos {
     int norte;
@@ -21,10 +21,12 @@ private:
     std::map<int, infoMapasVecinos> mapasVecinos;
 
     std::optional<int> getMapaVecino(int mapaId, Direccion dir) const;
-    std::pair<int, int> posicionEntrada(const Mapa& mapa, Direccion dirOrigen, int posActual) const;
+    std::pair<int, int> posicionEntrada(const Mapa& mapa, Direccion dirOrigen,
+                                        int posActual) const;
 
 public:
-    void agregarMapa(int id, std::unique_ptr<Mapa> mapa, infoMapasVecinos vecinos);
+    void agregarMapa(int id, std::unique_ptr<Mapa> mapa,
+                     infoMapasVecinos vecinos);
 
     Mapa* getMapa(int id);
     const Mapa* getMapa(int id) const;
@@ -35,5 +37,6 @@ public:
     bool moverPersonaje(Character* personaje, Direccion dir);
 
     void tirarItem(int mapaId, int x, int y, SlotInventario slot);
-    std::optional<SlotInventario> tomarItemEnPosicion(int mapaId, int x, int y, int indice);
+    std::optional<SlotInventario> tomarItemEnPosicion(int mapaId, int x, int y,
+                                                      int indice);
 };

@@ -1,13 +1,13 @@
 #include "razas/gnomo.h"
 
-Gnomo::Gnomo(const Config& config)
-    : constitucionBase(config.getRazaConstitucionBase("gnomo")),
-      inteligenciaBase(config.getRazaInteligenciaBase("gnomo")),
-      fuerzaBase(config.getRazaFuerzaBase("gnomo")),
-      agilidadBase(config.getRazaAgilidadBase("gnomo")),
-      fRazaVida(config.getRazaFVida("gnomo")),
-      fRazaMana(config.getRazaFMana("gnomo")),
-      fRazaRecuperacion(config.getRazaFRecuperacion("gnomo")) {}
+Gnomo::Gnomo(const Config& config):
+    constitucionBase(config.getRazaConstitucionBase("gnomo")),
+    inteligenciaBase(config.getRazaInteligenciaBase("gnomo")),
+    fuerzaBase(config.getRazaFuerzaBase("gnomo")),
+    agilidadBase(config.getRazaAgilidadBase("gnomo")),
+    fRazaVida(config.getRazaFVida("gnomo")),
+    fRazaMana(config.getRazaFMana("gnomo")),
+    fRazaRecuperacion(config.getRazaFRecuperacion("gnomo")) {}
 
 std::string Gnomo::getNombre() const { return "Gnomo"; }
 int Gnomo::getConstitucionBase() const { return constitucionBase; }

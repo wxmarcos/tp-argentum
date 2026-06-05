@@ -1,11 +1,7 @@
-#include "persistence_task_factory.h"
-#include "persistence_task_factory.h"
-#include "items/arma.h"
-#include "items/baculo.h"
-#include "items/armadura.h"
-#include "items/casco.h"
-#include "items/escudo.h"
+#include "server/persistence/persistence_task_factory.h"
+
 #include "common/protocol_defs.h"
+#include "game/items/inventario.h"
 
 static void add_unique_name(std::vector<std::string>& names,
                             const std::string& name) {
@@ -24,8 +20,9 @@ static void add_unique_name(std::vector<std::string>& names,
 
 PersistenceTask PersistenceTaskFactory::from_player(const Jugador& jugador) {
     PersistenceTask task;
+
     task.nick = jugador.getNombre();
-    
+
     task.raza = jugador.getRaza()->getNombre();
     task.clase = jugador.getClase()->getNombre();
 
@@ -37,52 +34,43 @@ PersistenceTask PersistenceTaskFactory::from_player(const Jugador& jugador) {
     task.nivel = static_cast<uint16_t>(jugador.getNivel());
     task.vida = static_cast<uint16_t>(jugador.getVidaActual());
     task.vida_max = static_cast<uint16_t>(jugador.getVidaMax());
-    
+
     task.mana = static_cast<uint16_t>(jugador.getManaActual());
     task.mana_max = static_cast<uint16_t>(jugador.getManaMax());
-    
+
     task.experiencia = static_cast<uint32_t>(jugador.getExperiencia());
     task.oro = static_cast<uint32_t>(jugador.getOro());
-    
+
     task.constitucion = static_cast<uint16_t>(jugador.getConstitucion());
     task.inteligencia = static_cast<uint16_t>(jugador.getInteligencia());
     task.fuerza = static_cast<uint16_t>(jugador.getFuerza());
     task.agilidad = static_cast<uint16_t>(jugador.getAgilidad());
+
     const Inventario& inventario = jugador.getInventario();
     const auto& slots = inventario.getSlots();
-    
-    for (const auto& slot : slots) {
+
+    for (size_t i = 0; i < slots.size(); ++i) {
+        if (!slots[i].has_value()) {
+            continue;
+        }
+
+        const SlotInventario& slot = *slots[i];
+
         PersistenceInventoryItem item;
-        
-    item.nombre = slot.item->getNombre();
-    item.cantidad = slot.cantidad;
 
-    const std::string nombreItem = slot.item->getNombre();
-
-    item.equipado =
-            (inventario.getArmaEquipada() &&
-            nombreItem == inventario.getArmaEquipada()->getNombre()) ||
-
-            (inventario.getBaculoEquipado() &&
-            nombreItem == inventario.getBaculoEquipado()->getNombre()) ||
-
-            (inventario.getArmaduraEquipada() &&
-            nombreItem == inventario.getArmaduraEquipada()->getNombre()) ||
-
-            (inventario.getCascoEquipado() &&
-            nombreItem == inventario.getCascoEquipado()->getNombre()) ||
-
-            (inventario.getEscudoEquipado() &&
-            nombreItem == inventario.getEscudoEquipado()->getNombre());
+        item.slot_id = static_cast<int>(i);
+        item.item = slot.item->getNombre();
+        item.cantidad = slot.cantidad;
+        item.equipado = inventario.estaEquipado(slot.item.get());
 
         task.inventario.push_back(item);
     }
+
     return task;
 }
 
 std::vector<std::string> PersistenceTaskFactory::get_affected_players(
-    const Command& cmd,
-    const std::string& actor) {
+    const Command& cmd, const std::string& actor) {
     std::vector<std::string> names;
 
     switch (cmd.get_type()) {

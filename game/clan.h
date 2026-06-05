@@ -7,6 +7,7 @@ private:
     std::string nombre;
     std::string fundador;
     std::vector<std::string> miembros;
+
 public:
     Clan(const std::string& nombre, const std::string& fundador);
     const std::string& getNombre() const;

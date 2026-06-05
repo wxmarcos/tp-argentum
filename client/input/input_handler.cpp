@@ -40,8 +40,7 @@ bool InputHandler::process_key(const SDL_KeyboardEvent& key,
     return action_to_command(it->second, out_cmd);
 }
 
-bool InputHandler::action_to_command(KeyAction action,
-                                     Command& out_cmd) const {
+bool InputHandler::action_to_command(KeyAction action, Command& out_cmd) const {
     auto move_it = move_directions.find(action);
     if (move_it != move_directions.end()) {
         out_cmd = Command::move(static_cast<uint8_t>(move_it->second));

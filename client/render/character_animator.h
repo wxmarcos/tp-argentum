@@ -7,17 +7,17 @@
 #include "render/animation.h"
 
 class CharacterAnimator {
-    private:
+private:
     Animation anim;
     protocol::Direction last_dir;
     uint32_t moving_ms_remaining;
 
-    public:
+public:
     CharacterAnimator(int frame_count, int ms_per_frame);
 
     void update(uint32_t delta_ms, protocol::Direction dir, bool moved);
 
-    int current_frame() const { return anim.current_frame();}
+    int current_frame() const { return anim.current_frame(); }
 
     protocol::Direction current_dir() const { return last_dir; }
 };

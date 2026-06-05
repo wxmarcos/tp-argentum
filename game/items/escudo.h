@@ -1,7 +1,7 @@
 #pragma once
-#include "item.h"
+#include "game/items/item.h"
 
-class Escudo : public Item {
+class Escudo: public Item {
 private:
     std::string nombre;
     int defensaMin;

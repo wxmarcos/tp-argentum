@@ -3,11 +3,17 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "common/protocol_defs.h"
 
 class Socket;
-
+struct InventorySnapshotItem {
+    uint16_t slot_id;
+    std::string item;
+    uint16_t cantidad;
+    bool equipado;
+};
 class Snapshot {
 private:
     protocol::ServerOpcode opcode;
@@ -41,48 +47,31 @@ private:
     uint16_t damage = 0;
     bool critical = false;
     bool meditating = false;
+    std::vector<InventorySnapshotItem> inventory_items;
 
 public:
-    Snapshot(
-        protocol::ServerOpcode opcode,
-        const std::string& nick,
-        uint16_t x = 0,
-        uint16_t y = 0,
-        uint8_t direction = 0);
+    Snapshot(protocol::ServerOpcode opcode, const std::string& nick,
+             uint16_t x = 0, uint16_t y = 0, uint8_t direction = 0);
 
-    static Snapshot entity_created(
-        const std::string& nick,
-        uint16_t x,
-        uint16_t y,
-        uint8_t direction);
+    static Snapshot entity_created(const std::string& nick, uint16_t x,
+                                   uint16_t y, uint8_t direction);
 
-    static Snapshot entity_login(
-        const std::string& nick,
-        uint16_t x,
-        uint16_t y,
-        uint8_t direction);
+    static Snapshot entity_login(const std::string& nick, uint16_t x,
+                                 uint16_t y, uint8_t direction);
 
-    static Snapshot entity_move(
-        const std::string& nick,
-        uint16_t x,
-        uint16_t y,
-        uint8_t direction);
+    static Snapshot entity_move(const std::string& nick, uint16_t x, uint16_t y,
+                                uint8_t direction);
 
-    static Snapshot entity_remove(
-        const std::string& nick);
+    static Snapshot entity_remove(const std::string& nick);
 
-    static Snapshot damage_event(
-        const std::string& attacker,
-        const std::string& target,
-        uint16_t damage,
-        bool critical);
+    static Snapshot damage_event(const std::string& attacker,
+                                 const std::string& target, uint16_t damage,
+                                 bool critical);
 
-    static Snapshot dodge_event(
-        const std::string& attacker,
-        const std::string& target);
+    static Snapshot dodge_event(const std::string& attacker,
+                                const std::string& target);
 
-    static Snapshot death_event(
-        const std::string& target);
+    static Snapshot death_event(const std::string& target);
 
     void send(Socket& socket) const;
 
@@ -90,45 +79,34 @@ public:
 
     protocol::ServerOpcode get_opcode() const;
 
-    static Snapshot error_message(
-        const std::string& nick,
-        const std::string& text
-    );
+    static Snapshot error_message(const std::string& nick,
+                                  const std::string& text);
 
     bool is_error_message() const;
 
-    static Snapshot chat_message(
-        const std::string& from,
-        const std::string& to,
-        const std::string& text
-    );
-    static Snapshot meditation_status(
-        const std::string& nick,
-        bool started
-    );
+    static Snapshot chat_message(const std::string& from, const std::string& to,
+                                 const std::string& text);
+    static Snapshot meditation_status(const std::string& nick, bool started);
     static Snapshot player_stats(
+        const std::string& nick, const std::string& raza,
+        const std::string& clase, uint16_t mapa_id, uint16_t x, uint16_t y,
+        uint8_t direction, uint16_t nivel, uint16_t vida, uint16_t vida_max,
+        uint16_t mana, uint16_t mana_max, uint32_t experiencia, uint32_t oro,
+        uint16_t constitucion, uint16_t inteligencia, uint16_t fuerza,
+        uint16_t agilidad);
+    static Snapshot inventory_update(
         const std::string& nick,
-        const std::string& raza,
-        const std::string& clase,
-        uint16_t mapa_id,
-        uint16_t x,
-        uint16_t y,
-        uint8_t direction,
-        uint16_t nivel,
-        uint16_t vida,
-        uint16_t vida_max,
-        uint16_t mana,
-        uint16_t mana_max,
-        uint32_t experiencia,
-        uint32_t oro,
-        uint16_t constitucion,
-        uint16_t inteligencia,
-        uint16_t fuerza,
-        uint16_t agilidad
-    );
+        const std::vector<InventorySnapshotItem>& items);
+
+    bool is_inventory_update() const;
+
+    const std::vector<InventorySnapshotItem>& get_inventory_items() const;
     const std::string& get_raza() const;
     const std::string& get_clase() const;
+    static Snapshot map_change(const std::string& nick, uint16_t mapa_id,
+                               uint16_t x, uint16_t y, uint8_t direction);
 
+    bool is_map_change() const;
     uint16_t get_mapa_id() const;
     uint16_t get_nivel() const;
 
