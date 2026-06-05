@@ -19,20 +19,20 @@ public:
     // Combate - Ataque
     static int calcularDanio(int fuerza, int danioMin, int danioMax);
     static bool calcularEsquive(int agilidad);
-    static bool calcularCritico();
+    static bool calcularCritico(int porcentaje);
 
     // Combate - Defensa
     static int calcularDefensa(int armaduraMin, int armaduraMax, int escudoMin,
                                int escudoMax, int cascoMin, int cascoMax);
 
     // Experiencia
-    static int calcularLimiteExp(int nivel);
+    static int calcularLimiteExp(int nivel, double coeficiente, double exponente);
     static int calcularExpAtaque(int danio, int nivelOtro, int nivelPropio);
     static int calcularExpMatar(int vidaMaxOtro, int nivelOtro,
                                 int nivelPropio);
 
     // Oro
-    static int calcularOroMax(int nivel);
+    static int calcularOroMax(int nivel, double coeficiente, double exponente);
     static int calcularOroDropNPC(int vidaMaxNPC);
     static int calcularOroExceso(int oro, int oroMax);
 };
