@@ -13,41 +13,46 @@ GameLoop::GameLoop(Queue<Command>& commands_queue,
 
 void GameLoop::run() {
     std::cout << "[GameLoop] iniciado\n";
-    int ticks_per_second = config.getServerTicksPerSecond();
+
+    const int ticks_per_second = config.getServerTicksPerSecond();
+
     const auto tick_duration =
         std::chrono::milliseconds(1000 / ticks_per_second);
+
+    const float dt = 1.0f / static_cast<float>(ticks_per_second);
 
     while (should_keep_running()) {
         auto tick_start = std::chrono::steady_clock::now();
 
         try {
-            Command cmd = commands_queue.pop();
+            Command cmd;
 
-            std::cout << "[GameLoop] Comando recibido: player_id="
-                      << cmd.get_player_id()
-                      << " type=" << static_cast<int>(cmd.get_type()) << "\n";
+            while (commands_queue.try_pop(cmd)) {
+                std::cout << "[GameLoop] Comando recibido: player_id="
+                          << cmd.get_player_id()
+                          << " type=" << static_cast<int>(cmd.get_type())
+                          << "\n";
 
-            std::vector<Snapshot> snapshots = game.process(cmd);
+                std::vector<Snapshot> snapshots = game.process(cmd);
 
-            enqueue_persistence_tasks(cmd);
+                enqueue_persistence_tasks(cmd);
 
-            for (const Snapshot& snapshot : snapshots) {
-                broadcast_snapshot(snapshot);
+                for (const Snapshot& snapshot : snapshots) {
+                    broadcast_snapshot(snapshot);
+                }
             }
 
         } catch (const ClosedQueue&) {
             break;
         }
 
-        float dt = std::chrono::duration<float>(tick_duration).count();
+        std::vector<Snapshot> tick_snapshots = game.tick(dt);
 
-        std::vector<Snapshot> tickSnapshots = game.tick(dt);
-        for (const Snapshot& snapshot : tickSnapshots) {
+        for (const Snapshot& snapshot : tick_snapshots) {
             broadcast_snapshot(snapshot);
         }
 
         auto tick_end = std::chrono::steady_clock::now();
-
         auto elapsed = tick_end - tick_start;
 
         if (elapsed < tick_duration) {
