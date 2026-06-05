@@ -7,6 +7,7 @@
 
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
+#include "game/banco/cuentaBanco.h"
 #include "game/characters/jugador.h"
 #include "game/clases/charClase.h"
 #include "game/config.h"
