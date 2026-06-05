@@ -28,6 +28,8 @@ enum class ClientOpcode : uint8_t {
     SELL_ITEM = 14,
     DEPOSIT_ITEM = 15,
     WITHDRAW_ITEM = 16,
+    DEPOSIT_GOLD = 17,
+    WITHDRAW_GOLD = 18,
 
     PRIVATE_MESSAGE = 30,
 
