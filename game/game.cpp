@@ -308,6 +308,15 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     const Arma* arma = atacante->getInventario().getArmaEquipada();
     const Baculo* baculo = atacante->getInventario().getBaculoEquipado();
 
+    // Flauta elfica: Se cura a si mismo, ignora objetivo
+    if (baculo && baculo->getTipoHechizo() == TipoHechizo::CURACION) {
+        if (!atacante->gastarMana(baculo->getCostoMana())) return resultado;
+        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(), baculo->getEfectoMax());
+        atacante->curar(curacion);
+        resultado.danioAplicado = curacion;
+        return resultado;
+    }
+
     bool esAtaqueDeRango = (arma && arma->esDeRango()) || (baculo != nullptr);
     if (!esAtaqueDeRango) {
         int dx = std::abs(atacante->getPosX() - objetivo->getPosX());
@@ -333,7 +342,7 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     resultado.objetivoMurio = !objetivo->estaVivo();
     if (resultado.objetivoMurio) {
         atacante->ganarExperiencia(
-            Formulas::calcularExpMatar(objetivo->getVidaMax(), atacante->getNivel(),
+            Formulas::calcularExpMatar(objetivo->getVidaMax(), objetivo->getNivel(),
                                         atacante->getNivel()));
 
         procesarDropCriatura(atacante, objetivo);
@@ -367,6 +376,15 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
     int fuerza = atacante->getFuerza();
     const Arma* arma = atacante->getInventario().getArmaEquipada();
     const Baculo* baculo = atacante->getInventario().getBaculoEquipado();
+
+    // Flauta elfica - se cura a si mismo, ignora objetivo
+    if (baculo && baculo->getTipoHechizo() == TipoHechizo::CURACION) {
+        if (!atacante->gastarMana(baculo->getCostoMana())) return resultado;
+        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(), baculo->getEfectoMax());
+        atacante->curar(curacion);
+        resultado.danioAplicado = curacion;
+        return resultado;
+    }
 
     bool esAtaqueDeRango = (arma && arma->esDeRango()) || (baculo != nullptr);
     if (!esAtaqueDeRango) {
@@ -668,30 +686,31 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             break;
         }
 
-/*
         // -- CHEATS --------------------------
         case protocol::ClientOpcode::CHEAT_GOD: {
             if (jugador) jugador->activarCheatVidaInfinita();
             snapshots.push_back(Snapshot::error_message(nombre, "Cheat: vida infinita activado"));
             break;
         }
+
         case protocol::ClientOpcode::CHEAT_MANA: {
             if (jugador) jugador->activarCheatManaInfinito();
             snapshots.push_back(Snapshot::error_message(nombre, "Cheat: mana infinito activado"));
             break;
         }
+
         case protocol::ClientOpcode::CHEAT_DIE: {
             if (jugador) jugador->morir();
             snapshots.push_back(Snapshot::death_event(nombre));
             snapshots.push_back(Snapshot::entity_remove(nombre));
             break;
         }
+        
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
             if (jugador) jugador->revivir(jugador->getVidaMax());
             snapshots.push_back(Snapshot::error_message(nombre, "Cheat: resucitado"));
             break;
         }
-*/  
 
         // -- RESURRECT --------------------------
         case protocol::ClientOpcode::RESURRECT: {
