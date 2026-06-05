@@ -50,10 +50,10 @@ private:
     void cargarJugadoresPersistidos();
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
+    // Helpers
     std::string getNombreJugadorPorComando(const Command& cmd) const;
-
     bool handle_meditation_interruption(Jugador* jugador, std::vector<Snapshot>& snapshots, const std::string& nombre);
-
+    std::unique_ptr<Item> crear_item_por_nombre(const std::string& nombre);
     // Combate contra criaturas (logica separada de PvP)
     ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
     void procesarDropCriatura(Jugador* atacante, Criatura* criatura);
@@ -104,6 +104,6 @@ public:
     std::vector<Snapshot> tick(float dt);
     const Mundo& getMundo() const;
 
-    bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
-    bool tomarItem(const std::string& nombre, int indice);
+    bool tirarItem(const std::string& nombre,int indice,int cantidad = -1);
+    std::optional<int> tomarItem(const std::string& nombre, int indice);
 };

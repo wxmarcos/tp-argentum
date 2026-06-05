@@ -10,19 +10,28 @@ Jugador::Jugador(const std::string& nombre, int posX, int posY,
                  const Raza* raza, const CharClase* clase,
                  int capacidadInventario)
     : Character(nombre, posX, posY, 1),
-      raza(raza), clase(clase),
+      raza(raza),
+      clase(clase),
       constitucion(raza->getConstitucionBase()),
       inteligencia(raza->getInteligenciaBase()),
       fuerza(raza->getFuerzaBase()),
       agilidad(raza->getAgilidadBase()),
-      manaActual(0), manaMax(0),
-      nivel(1), experiencia(0), oro(0),
-      vidaAcumulada(0.0f), manaAcumulado(0.0f),
+      manaActual(0),
+      manaMax(0),
+      nivel(1),
+      experiencia(0),
+      oro(0),
+      vidaAcumulada(0.0f),
+      manaAcumulado(0.0f),
       meditando(false),
       inventario(capacidadInventario),
-      resucitando(false), tiempoResucitando(0.0f),
-      destinoMapaId(0), destinoPosX(0), destinoPosY(0),
-      cheatVidaInfinita(false), cheatManaInfinito(false) {
+      resucitando(false),
+      tiempoResucitando(0.0f),
+      destinoMapaId(0),
+      destinoPosX(0),
+      destinoPosY(0),
+      cheatVidaInfinita(false),
+      cheatManaInfinito(false) {
     recalcularStats();
 }
 
@@ -138,10 +147,20 @@ void Jugador::interrumpirMeditacion() { meditando = false; }
 bool Jugador::estaMeditando() const { return meditando; }
 
 // ----------------------- Inventario -----------------------
-bool Jugador::agarrarItem(std::unique_ptr<Item> item, int cantidad) {
-    if (!vivo) return false;
+std::optional<int> Jugador::agarrarItem(
+    std::unique_ptr<Item> item,
+    int cantidad
+) {
+    if (!vivo) {
+        return std::nullopt;
+    }
+
     interrumpirMeditacion();
-    return inventario.agregar(std::move(item), cantidad);
+
+    return inventario.agregar(
+        std::move(item),
+        cantidad
+    );
 }
 
 std::optional<SlotInventario> Jugador::soltarItem(int indice, int cantidad) {

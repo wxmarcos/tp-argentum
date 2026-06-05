@@ -1,5 +1,5 @@
 #include "persistence_worker.h"
-#include "game/items/item.h"
+#include "persistance_loader.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -34,8 +34,9 @@ static void write_task_toml(std::ofstream& out,
     out << "agilidad = " << task.agilidad << "\n\n";
 
     for (const auto& item : task.inventario) {
-        out << "[[players." << task.nick << ".inventario]]\n";
-        out << "nombre = \"" << item.nombre << "\"\n";
+        out << "[[players." << task.nick << ".inventario.slot]]\n";
+        out << "slot_id = " << item.slot_id << "\n";
+        out << "item = \"" << item.item << "\"\n";
         out << "cantidad = " << item.cantidad << "\n";
         out << "equipado = " << (item.equipado ? "true" : "false") << "\n\n";
     }
@@ -47,7 +48,7 @@ static void save_all_players(
     std::ofstream out(file_path, std::ios::trunc);
 
     if (!out) {
-        std::cerr << "[PersistenceWorker] no se pudo abrir "
+        std::cout << "[PersistenceWorker] no se pudo abrir "
                   << file_path << "\n";
         return;
     }
@@ -65,12 +66,27 @@ void PersistenceWorker::run() {
         try {
             std::filesystem::create_directories(directory);
         } catch (const std::exception& ex) {
-            std::cerr << "[PersistenceWorker] no se pudo crear directorio: "
+            std::cout << "[PersistenceWorker] no se pudo crear directorio: "
                       << ex.what() << "\n";
         }
     }
 
     std::map<std::string, PersistenceTask> players;
+
+    try {
+        auto loaded_players =
+            PersistenceLoader::load_players(save_file_path);
+
+        for (const auto& player : loaded_players) {
+            players[player.nick] = player;
+        }
+
+    } catch (const std::exception& ex) {
+        std::cout
+            << "[PersistenceWorker] no se pudo cargar persistencia inicial: "
+            << ex.what()
+            << "\n";
+    }
 
     while (true) {
         try {
@@ -83,7 +99,7 @@ void PersistenceWorker::run() {
         } catch (const ClosedQueue&) {
             break;
         } catch (const std::exception& ex) {
-            std::cerr << "[PersistenceWorker] error: "
+            std::cout << "[PersistenceWorker] error: "
                       << ex.what() << "\n";
         }
     }

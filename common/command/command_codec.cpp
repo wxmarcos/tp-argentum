@@ -48,6 +48,29 @@ Command parse_item_and_amount(
     return cmd;
 }
 
+Command parse_slot(
+    const std::vector<uint8_t>& payload,
+    size_t& offset,
+    protocol::ClientOpcode opcode,
+    uint16_t player_id
+) {
+    Command cmd(player_id, opcode);
+    cmd.slot = read_u16(payload, offset);
+    return cmd;
+}
+
+Command parse_slot_and_amount(
+    const std::vector<uint8_t>& payload,
+    size_t& offset,
+    protocol::ClientOpcode opcode,
+    uint16_t player_id
+) {
+    Command cmd(player_id, opcode);
+    cmd.slot = read_u16(payload, offset);
+    cmd.amount = read_u32(payload, offset);
+    return cmd;
+}
+
 Command parse_private_message(const std::vector<uint8_t>& payload, size_t& offset, uint16_t player_id) {
     Command cmd(player_id, protocol::ClientOpcode::PRIVATE_MESSAGE);
     cmd.nick = read_string(payload, offset);
@@ -92,13 +115,21 @@ Command parse_command_payload(
             break;
 
         case protocol::ClientOpcode::DROP_ITEM:
+            cmd = parse_slot(payload, offset, type, player_id);
+            break;
         case protocol::ClientOpcode::EQUIP_ITEM:
-            cmd = parse_item_id(payload, offset, type, player_id);
+            cmd = parse_slot(payload, offset, type, player_id);
             break;
 
         case protocol::ClientOpcode::BUY_ITEM:
+            cmd = parse_item_and_amount(payload, offset, type, player_id);
+            break;
+
         case protocol::ClientOpcode::SELL_ITEM:
         case protocol::ClientOpcode::DEPOSIT_ITEM:
+            cmd = parse_slot_and_amount(payload, offset, type, player_id);
+            break;
+
         case protocol::ClientOpcode::WITHDRAW_ITEM:
             cmd = parse_item_and_amount(payload, offset, type, player_id);
             break;
@@ -155,12 +186,22 @@ static void serialize_attack(const Command& command, std::vector<uint8_t>& paylo
     push_string(payload, command.get_nick());
 }
 
-static void serialize_item_id(const Command& command, std::vector<uint8_t>& payload) {
-    push_u16(payload, command.get_item_id());
-}
-
 static void serialize_item_and_amount(const Command& command, std::vector<uint8_t>& payload) {
     push_u16(payload, command.get_item_id());
+    push_u32(payload, command.get_amount());
+}
+static void serialize_slot(
+    const Command& command,
+    std::vector<uint8_t>& payload
+) {
+    push_u16(payload, command.get_slot());
+}
+
+static void serialize_slot_and_amount(
+    const Command& command,
+    std::vector<uint8_t>& payload
+) {
+    push_u16(payload, command.get_slot());
     push_u32(payload, command.get_amount());
 }
 
@@ -199,12 +240,18 @@ std::vector<uint8_t> build_command_payload(const Command& command) {
 
         case protocol::ClientOpcode::DROP_ITEM:
         case protocol::ClientOpcode::EQUIP_ITEM:
-            serialize_item_id(command, payload);
+            serialize_slot(command, payload);
             break;
 
         case protocol::ClientOpcode::BUY_ITEM:
+            serialize_item_and_amount(command, payload);
+            break;
+
         case protocol::ClientOpcode::SELL_ITEM:
         case protocol::ClientOpcode::DEPOSIT_ITEM:
+            serialize_slot_and_amount(command, payload);
+            break;
+
         case protocol::ClientOpcode::WITHDRAW_ITEM:
             serialize_item_and_amount(command, payload);
             break;

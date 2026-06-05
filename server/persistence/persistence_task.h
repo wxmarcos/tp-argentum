@@ -4,7 +4,8 @@
 #include <string>
 
 struct PersistenceInventoryItem {
-    std::string nombre;
+    int slot_id;
+    std::string item;
     int cantidad;
     bool equipado;
 };

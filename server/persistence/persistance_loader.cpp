@@ -76,7 +76,54 @@ std::vector<PersistenceTask> PersistenceLoader::load_players(
         task.inteligencia = static_cast<uint16_t>(p->get("inteligencia")->value_or<int64_t>(0));
         task.fuerza = static_cast<uint16_t>(p->get("fuerza")->value_or<int64_t>(0));
         task.agilidad = static_cast<uint16_t>(p->get("agilidad")->value_or<int64_t>(0));
+        auto* inventario_table =
+            p->get("inventario")
+                ? p->get("inventario")->as_table()
+                : nullptr;
 
+        if (inventario_table) {
+            auto* slots_array =
+                inventario_table->get("slot")
+                    ? inventario_table->get("slot")->as_array()
+                    : nullptr;
+
+            if (slots_array) {
+                for (auto& elem : *slots_array) {
+                    auto* slot_table = elem.as_table();
+                    if (!slot_table) {
+                        continue;
+                    }
+
+                    PersistenceInventoryItem item;
+
+                    item.slot_id = static_cast<int>(
+                        slot_table->get("slot_id")
+                            ? slot_table->get("slot_id")->value_or<int64_t>(0)
+                            : 0
+                    );
+
+                    item.item =
+                        slot_table->get("item")
+                            ? slot_table->get("item")->value_or(std::string(""))
+                            : std::string("");
+
+                    item.cantidad = static_cast<int>(
+                        slot_table->get("cantidad")
+                            ? slot_table->get("cantidad")->value_or<int64_t>(1)
+                            : 1
+                    );
+
+                    item.equipado =
+                        slot_table->get("equipado")
+                            ? slot_table->get("equipado")->value_or(false)
+                            : false;
+
+                    if (!item.item.empty() && item.cantidad > 0) {
+                        task.inventario.push_back(item);
+                    }
+                }
+            }
+        }
         players.push_back(task);
     }
 

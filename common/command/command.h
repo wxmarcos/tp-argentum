@@ -64,6 +64,18 @@ public:
         protocol::ClientOpcode opcode,
         uint16_t player_id);
 
+    friend Command parse_slot(
+        const std::vector<uint8_t>& payload,
+        size_t& offset,
+        protocol::ClientOpcode opcode,
+        uint16_t player_id
+    );
+    friend Command parse_slot_and_amount(
+        const std::vector<uint8_t>& payload,
+        size_t& offset,
+        protocol::ClientOpcode opcode,
+        uint16_t player_id
+    );
     friend Command parse_private_message(
         const std::vector<uint8_t>& payload,
         size_t& offset,

@@ -6,6 +6,7 @@
 #include "casco.h"
 #include "escudo.h"
 #include "pocion.h"
+#include "item_defs.h"
 
 class ItemFactory {
 public:

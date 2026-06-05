@@ -194,6 +194,22 @@ Snapshot Snapshot::player_stats(
 
     return snapshot;
 }
+Snapshot Snapshot::inventory_update(
+    const std::string& nick,
+    const std::vector<InventorySnapshotItem>& items
+) {
+    Snapshot snapshot(protocol::ServerOpcode::INVENTORY_UPDATE, nick);
+    snapshot.inventory_items = items;
+    return snapshot;
+}
+bool Snapshot::is_inventory_update() const {
+    return opcode == protocol::ServerOpcode::INVENTORY_UPDATE;
+}
+
+const std::vector<InventorySnapshotItem>& Snapshot::get_inventory_items() const {
+    return inventory_items;
+}
+
 Snapshot Snapshot::map_change(
     const std::string& nick,
     uint16_t mapa_id,

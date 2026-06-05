@@ -64,7 +64,21 @@ static uint16_t player_stats_payload_size(const Snapshot& snapshot) {
         sizeof(uint16_t) +
         sizeof(uint16_t));
 }
+static uint16_t inventory_update_payload_size(const Snapshot& snapshot) {
+    uint16_t size = 0;
 
+    size += sizeof(uint16_t) + snapshot.get_nick().size();
+    size += sizeof(uint16_t); 
+
+    for (const auto& item : snapshot.get_inventory_items()) {
+        size += sizeof(uint16_t); 
+        size += sizeof(uint16_t) + item.item.size();
+        size += sizeof(uint16_t); 
+        size += sizeof(uint8_t);  
+    }
+
+    return size;
+}
 static uint16_t error_payload_size(const Snapshot& snapshot) {
     return static_cast<uint16_t>(
         sizeof(uint16_t) + snapshot.get_nick().size() +
@@ -109,7 +123,8 @@ uint16_t snapshot_payload_size(const Snapshot& snapshot) {
 
         case protocol::ServerOpcode::PLAYER_STATS:
             return player_stats_payload_size(snapshot);
-
+        case protocol::ServerOpcode::INVENTORY_UPDATE:
+            return inventory_update_payload_size(snapshot);
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return meditation_status_payload_size(snapshot);
 
@@ -178,6 +193,21 @@ static void send_player_stats(Socket& socket, const Snapshot& snapshot) {
     send_u16(socket, snapshot.get_agilidad());
 }
 
+static void send_inventory_update(Socket& socket, const Snapshot& snapshot) {
+    send_string(socket, snapshot.get_nick());
+
+    const auto& items = snapshot.get_inventory_items();
+
+    send_u16(socket, static_cast<uint16_t>(items.size()));
+
+    for (const auto& item : items) {
+        send_u16(socket, item.slot_id);
+        send_string(socket, item.item);
+        send_u16(socket, item.cantidad);
+        send_u8(socket, item.equipado ? 1 : 0);
+    }
+}
+
 static void send_error_message(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_nick());
     send_string(socket, snapshot.get_text());
@@ -226,7 +256,9 @@ void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
         case protocol::ServerOpcode::PLAYER_STATS:
             send_player_stats(socket, snapshot);
             return;
-
+        case protocol::ServerOpcode::INVENTORY_UPDATE:
+            send_inventory_update(socket, snapshot);
+            return;
         case protocol::ServerOpcode::MEDITATION_STATUS:
             send_meditation_status(socket, snapshot);
             return;
@@ -383,6 +415,48 @@ static Snapshot recv_player_stats(Socket& socket, uint16_t payload_size) {
         agilidad);
 }
 
+static Snapshot recv_inventory_update(Socket& socket, uint16_t payload_size) {
+    std::string nick = recv_string(socket);
+
+    uint16_t slots_count = recv_u16(socket);
+
+    std::vector<InventorySnapshotItem> items;
+
+    uint16_t expected_payload_size =
+        static_cast<uint16_t>(
+            sizeof(uint16_t) + nick.size() +
+            sizeof(uint16_t)
+        );
+
+    for (uint16_t i = 0; i < slots_count; ++i) {
+        InventorySnapshotItem item;
+
+        item.slot_id = recv_u16(socket);
+        item.item = recv_string(socket);
+        item.cantidad = recv_u16(socket);
+        item.equipado = recv_u8(socket) != 0;
+
+        expected_payload_size =
+            static_cast<uint16_t>(
+                expected_payload_size +
+                sizeof(uint16_t) +
+                sizeof(uint16_t) + item.item.size() +
+                sizeof(uint16_t) +
+                sizeof(uint8_t)
+            );
+
+        items.push_back(item);
+    }
+
+    validate_payload_size(
+        payload_size,
+        expected_payload_size,
+        "Snapshot::recv payload_size invalido INVENTORY_UPDATE"
+    );
+
+    return Snapshot::inventory_update(nick, items);
+}
+
 static Snapshot recv_error_message(Socket& socket, uint16_t payload_size) {
     std::string nick = recv_string(socket);
     std::string text = recv_string(socket);
@@ -459,7 +533,8 @@ Snapshot recv_snapshot_payload(
 
         case protocol::ServerOpcode::PLAYER_STATS:
             return recv_player_stats(socket, payload_size);
-
+        case protocol::ServerOpcode::INVENTORY_UPDATE:
+            return recv_inventory_update(socket, payload_size);
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return recv_meditation_status(socket, payload_size);
             

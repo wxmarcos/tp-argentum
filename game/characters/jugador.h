@@ -80,7 +80,7 @@ public:
     bool estaMeditando() const;
 
     // Inventario
-    bool agarrarItem(std::unique_ptr<Item> item, int cantidad = 1);
+    std::optional<int> agarrarItem(std::unique_ptr<Item> item, int cantidad = 1);
     std::optional<SlotInventario> soltarItem(int indice, int cantidad = -1);
     std::vector<SlotInventario> soltarTodosLosItems();
 

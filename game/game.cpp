@@ -22,7 +22,8 @@
 #include "formulas.h"
 #include "snapshot_factory.h"
 #include "server/persistence/persistance_loader.h"
-
+#include "game/items/item_defs.h"
+#include <iostream>
 #include <cstdlib>
 #include <cmath>
 
@@ -68,6 +69,8 @@ void Game::inicializarClases() {
     clases["paladin"]  = std::make_unique<Paladin>(config);
 }
 
+// ----------------- Persistencia -----------------
+
 void Game::cargarJugadoresPersistidos() {
     auto players = PersistenceLoader::load_players(config.getRutaJugadores());
 
@@ -79,11 +82,93 @@ void Game::cargarJugadoresPersistidos() {
         if (!jugador) continue;
 
         jugador->setDireccion(static_cast<Direccion>(p.direction));
-        jugador->restaurarEstado(p.nivel, p.vida, p.vida_max, p.mana,p.mana_max,
-                                p.experiencia, p.oro,
-                                p.constitucion, p.inteligencia, p.fuerza, p.agilidad
+
+        jugador->restaurarEstado(
+            p.nivel,
+            p.vida,
+            p.vida_max,
+            p.mana,
+            p.mana_max,
+            p.experiencia,
+            p.oro,
+            p.constitucion,
+            p.inteligencia,
+            p.fuerza,
+            p.agilidad
         );
-        // TODO: restaurar inventario
+        auto inventario = p.inventario;
+
+        std::sort(
+            inventario.begin(),
+            inventario.end(),
+            [](const auto& a, const auto& b) {
+                return a.slot_id < b.slot_id;
+            }
+        );
+        for (const auto& item_persistido : inventario) {
+            auto item = crear_item_por_nombre(item_persistido.item);
+
+            if (!item) {
+                //debug
+                std::cout
+                    << "[Game] item desconocido en persistencia: "
+                    << item_persistido.item
+                    << "\n";
+                continue;
+            }
+
+            std::optional<int> slot_agregado = jugador->agarrarItem(
+                std::move(item),
+                item_persistido.cantidad
+            );
+
+            if (!slot_agregado.has_value()) {
+                std::cout
+                    << "[Game] no se pudo cargar item: "
+                    << item_persistido.item
+                    << "\n";
+                continue;
+            }
+
+            if (!item_persistido.equipado) {
+                continue;
+            }
+
+            int slot = item_persistido.slot_id;
+            const auto& slots = jugador->getInventario().getSlots();
+
+            if (slot < 0 || slot >= static_cast<int>(slots.size())) {
+                continue;
+            }
+            if (!slots[slot].has_value()) {
+                continue;
+            }
+
+            switch (slots[slot]->item->getTipo()){
+                case TipoItem::ARMA:
+                    jugador->equiparArma(slot);
+                    break;
+
+                case TipoItem::BACULO:
+                    jugador->equiparBaculo(slot);
+                    break;
+
+                case TipoItem::ARMADURA:
+                    jugador->equiparArmadura(slot);
+                    break;
+
+                case TipoItem::CASCO:
+                    jugador->equiparCasco(slot);
+                    break;
+
+                case TipoItem::ESCUDO:
+                    jugador->equiparEscudo(slot);
+                    break;
+
+                default:
+                    break;
+            }
+        }
     }
 }
 void Game::cargarSacerdotes() {
@@ -112,6 +197,37 @@ bool Game::handle_meditation_interruption(Jugador* jugador,
     return true;
 }
 
+std::unique_ptr<Item> Game::crear_item_por_nombre(
+    const std::string& nombre
+) {
+    if (nombre == item_defs::ESPADA) return ItemFactory::crearEspada();
+    if (nombre == item_defs::HACHA) return ItemFactory::crearHacha();
+    if (nombre == item_defs::MARTILLO) return ItemFactory::crearMartillo();
+
+    if (nombre == item_defs::VARA_DE_FRESNO) return ItemFactory::crearVaraDeFresno();
+    if (nombre == item_defs::FLAUTA_ELFICA) return ItemFactory::crearFlautaElfica();
+    if (nombre == item_defs::BACULO_NUDOSO) return ItemFactory::crearBaculoNudoso();
+    if (nombre == item_defs::BACULO_ENGARZADO) return ItemFactory::crearBaculoEngarzado();
+
+    if (nombre == item_defs::ARCO_SIMPLE) return ItemFactory::crearArcoSimple();
+    if (nombre == item_defs::ARCO_COMPUESTO) return ItemFactory::crearArcoCompuesto();
+
+    if (nombre == item_defs::ARMADURA_DE_CUERO) return ItemFactory::crearArmaduraDeCuero();
+    if (nombre == item_defs::ARMADURA_DE_PLACAS) return ItemFactory::crearArmaduraDePlacas();
+    if (nombre == item_defs::TUNICA_AZUL) return ItemFactory::crearTunicaAzul();
+
+    if (nombre == item_defs::CAPUCHA) return ItemFactory::crearCapucha();
+    if (nombre == item_defs::CASCO_DE_HIERRO) return ItemFactory::crearCascoDeHierro();
+    if (nombre == item_defs::SOMBRERO_MAGICO) return ItemFactory::crearSombreroMagico();
+
+    if (nombre == item_defs::ESCUDO_DE_TORTUGA) return ItemFactory::crearEscudoDeTortuga();
+    if (nombre == item_defs::ESCUDO_DE_HIERRO) return ItemFactory::crearEscudoDeHierro();
+
+    if (nombre == item_defs::POCION_DE_VIDA) return ItemFactory::crearPocionDeVida();
+    if (nombre == item_defs::POCION_DE_MANA) return ItemFactory::crearPocionDeMana();
+
+    return nullptr;
+}
 
 // ----------------- Gestion de jugadores -----------------
 
@@ -432,7 +548,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             )
         );
         snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
-
+        snapshots.push_back(SnapshotFactory::player_inventory_from_player(*jugador));
+        
         return snapshots;
     }
 
@@ -455,6 +572,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             static_cast<uint8_t>(jugador->getDireccion())));
 
         snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+        snapshots.push_back(SnapshotFactory::player_inventory_from_player(*jugador));
         return snapshots;
     }
 
@@ -563,21 +681,56 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             break;
         }
 
-        // -- PICK ITEM --------------------------
+       // -- PICK ITEM --------------------------
         case protocol::ClientOpcode::PICK_ITEM: {
-            if (tomarItem(nombre, 0))
-                snapshots.push_back(Snapshot::error_message(nombre, "Item recogido"));
-            else
-                snapshots.push_back(Snapshot::error_message(nombre, "No hay item para recoger"));
+            std::optional<int> slot = tomarItem(nombre, 0);
+
+            if (slot.has_value()) {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "Item recogido"
+                    )
+                );
+
+                snapshots.push_back(
+                    SnapshotFactory::player_inventory_slot_from_player(
+                        *jugador,
+                        *slot
+                    )
+                );
+
+            } else {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No hay item para recoger"
+                    )
+                );
+            }
+
             break;
         }
 
-        // -- DROP ITEM --------------------------
         case protocol::ClientOpcode::DROP_ITEM: {
-            if (tirarItem(nombre, cmd.get_item_id()))
-                snapshots.push_back(Snapshot::error_message(nombre, "Item arrojado"));
-            else
-                snapshots.push_back(Snapshot::error_message(nombre, "No se pudo arrojar el item"));
+            int slot = static_cast<int>(cmd.get_slot());
+
+            if (tirarItem(nombre, slot)) {
+                snapshots.push_back(
+                    SnapshotFactory::player_inventory_slot_from_player(
+                        *jugador,
+                        slot
+                    )
+                );
+            } else {
+                snapshots.push_back(
+                    Snapshot::error_message(
+                        nombre,
+                        "No se pudo arrojar el item"
+                    )
+                );
+            }
+
             break;
         }
 
@@ -631,35 +784,94 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         }
 
         // -- EQUIP ITEM --------------------------
-        case protocol::ClientOpcode::EQUIP_ITEM: {
-            if (!jugador || !jugador->estaVivo()) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "No puedes equipar items si no estas vivo"));
-                break;
-            }
-            int slot = static_cast<int>(cmd.get_item_id());
-            const auto& slots = jugador->getInventario().getSlots();
-            if (slot < 0 || slot >= (int)slots.size()) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Slot de inventario invalido"));
-                break;
-            }
-            bool ok = false;
-            switch (slots[slot].item->getTipo()) {
-                case TipoItem::ARMA:     ok = jugador->equiparArma(slot);     break;
-                case TipoItem::BACULO:   ok = jugador->equiparBaculo(slot);   break;
-                case TipoItem::ARMADURA: ok = jugador->equiparArmadura(slot); break;
-                case TipoItem::CASCO:    ok = jugador->equiparCasco(slot);    break;
-                case TipoItem::ESCUDO:   ok = jugador->equiparEscudo(slot);   break;
-                case TipoItem::POCION:   ok = jugador->usarPocion(slot);      break;
-                default: break;
-            }
-            if (!ok)
-                snapshots.push_back(Snapshot::error_message(nombre, "No se pudo usar/equipar el item"));
-            else
-                snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+    case protocol::ClientOpcode::EQUIP_ITEM: {
+        if (!jugador || !jugador->estaVivo()) {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "No puedes equipar items si no estas vivo"
+                )
+            );
             break;
         }
+
+        int slot = static_cast<int>(cmd.get_slot());
+        const auto& slots = jugador->getInventario().getSlots();
+
+        if (slot < 0 || slot >= static_cast<int>(slots.size())) {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Slot de inventario invalido"
+                )
+            );
+            break;
+        }
+
+        if (!slots[slot].has_value()) {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "Slot vacio"
+                )
+            );
+            break;
+        }
+
+        bool ok = false;
+
+        switch (slots[slot]->item->getTipo()) {
+            case TipoItem::ARMA:
+                ok = jugador->equiparArma(slot);
+                break;
+
+            case TipoItem::BACULO:
+                ok = jugador->equiparBaculo(slot);
+                break;
+
+            case TipoItem::ARMADURA:
+                ok = jugador->equiparArmadura(slot);
+                break;
+
+            case TipoItem::CASCO:
+                ok = jugador->equiparCasco(slot);
+                break;
+
+            case TipoItem::ESCUDO:
+                ok = jugador->equiparEscudo(slot);
+                break;
+
+            case TipoItem::POCION:
+                ok = jugador->usarPocion(slot);
+                break;
+
+            default:
+                break;
+        }
+
+        if (!ok) {
+            snapshots.push_back(
+                Snapshot::error_message(
+                    nombre,
+                    "No se pudo usar/equipar el item"
+                )
+            );
+            break;
+        }
+
+        snapshots.push_back(
+            SnapshotFactory::player_stats_from_player(*jugador)
+        );
+
+        snapshots.push_back(
+            SnapshotFactory::player_inventory_slot_from_player(
+                *jugador,
+                slot
+            )
+        );
+
+        break;
+    }
 
 /*
         // -- CHEATS --------------------------
@@ -739,26 +951,35 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         }
 
         // -- Comandos con NPCs (pendientes) --------------------------
-        case protocol::ClientOpcode::BUY_ITEM:
-            snapshots.push_back(Snapshot::error_message(nombre,
-                "Compra en comercio no implementada"));
-            break;
+        case protocol::ClientOpcode::BUY_ITEM: {
+            //int item = static_cast<int>(cmd.get_item_id());
 
-        case protocol::ClientOpcode::SELL_ITEM:
+            snapshots.push_back(Snapshot::error_message(
+                nombre,
+                "Compra en comercio no implementada"
+            ));
+            break;
+        }
+        
+        case protocol::ClientOpcode::SELL_ITEM: {
+            //int slot = static_cast<int>(cmd.get_slot());
             snapshots.push_back(Snapshot::error_message(nombre,
                 "Venta en comercio no implementada"));
             break;
+        }
 
-        case protocol::ClientOpcode::DEPOSIT_ITEM:
+        case protocol::ClientOpcode::DEPOSIT_ITEM: {
+            //int slot = static_cast<int>(cmd.get_slot());
             snapshots.push_back(Snapshot::error_message(nombre,
                 "Deposito en banco no implementado"));
             break;
-
-        case protocol::ClientOpcode::WITHDRAW_ITEM:
+        }
+        case protocol::ClientOpcode::WITHDRAW_ITEM: {
+            //int item = static_cast<int>(cmd.get_item_id());
             snapshots.push_back(Snapshot::error_message(nombre,
                 "Extraccion de banco no implementada"));
             break;
-
+        }  
         // -- Chat privado --------------------------
         case protocol::ClientOpcode::PRIVATE_MESSAGE: {
             const std::string destino = cmd.get_nick();
@@ -963,33 +1184,80 @@ void Game::tickResucitando(float dt, std::vector<Snapshot>& snapshots) {
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
             snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+            snapshots.push_back(SnapshotFactory::player_inventory_from_player(*jugador));
         }
     }
 }
  
-bool Game::tirarItem(const std::string& nombre, int indice, int cantidad) {
+bool Game::tirarItem(
+    const std::string& nombre,
+    int indice,
+    int cantidad
+) {
     Jugador* jugador = getJugador(nombre);
-    if (!jugador || !jugador->estaVivo()) return false;
+
+    if (!jugador || !jugador->estaVivo()) {
+        return false;
+    }
+
     auto slot = jugador->soltarItem(indice, cantidad);
-    if (!slot) return false;
-    mundo.tirarItem(jugador->getMapaId(),
-                    jugador->getPosX(), jugador->getPosY(),
-                    std::move(*slot));
+
+    if (!slot) {
+        return false;
+    }
+
+    mundo.tirarItem(
+        jugador->getMapaId(),
+        jugador->getPosX(),
+        jugador->getPosY(),
+        std::move(*slot)
+    );
+
     return true;
 }
  
-bool Game::tomarItem(const std::string& nombre, int indice) {
+std::optional<int> Game::tomarItem(
+    const std::string& nombre,
+    int indice
+) {
     Jugador* jugador = getJugador(nombre);
-    if (!jugador || !jugador->estaVivo()) return false;
-    if (jugador->getInventario().estaLleno()) return false;
-    auto slot = mundo.tomarItemEnPosicion(jugador->getMapaId(),
-                                           jugador->getPosX(),
-                                           jugador->getPosY(), indice);
-    if (!slot) return false;
-    jugador->agarrarItem(std::move(slot->item), slot->cantidad);
-    return true;
+
+    if (!jugador || !jugador->estaVivo()) {
+        return std::nullopt;
+    }
+
+    if (jugador->getInventario().estaLleno()) {
+        return std::nullopt;
+    }
+
+    auto slot_piso = mundo.tomarItemEnPosicion(
+        jugador->getMapaId(),
+        jugador->getPosX(),
+        jugador->getPosY(),
+        indice
+    );
+
+    if (!slot_piso) {
+        return std::nullopt;
+    }
+
+    std::optional<int> slot_inventario = jugador->agarrarItem(
+        std::move(slot_piso->item),
+        slot_piso->cantidad
+    );
+
+    if (!slot_inventario.has_value()) {
+        // OJO: acá ya sacamos el item del piso, pero no pudimos ponerlo en el inventario. Para no perder el item, lo tiramos de nuevo al piso.
+        mundo.tirarItem(jugador->getMapaId(),
+                        jugador->getPosX(),
+                        jugador->getPosY(),
+                        std::move(slot_piso->item));
+        return std::nullopt;
+    }
+
+    return slot_inventario;
 }
- 
+
 std::vector<PersistenceTask>
 Game::build_persistence_tasks_for_command(const Command& cmd) const {
     std::vector<PersistenceTask> tasks;

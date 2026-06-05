@@ -23,7 +23,7 @@ class Inventario {
 private:
     int capacidadMax;
 
-    std::vector<SlotInventario> slots;
+    std::vector<std::optional<SlotInventario>> slots;
     Item* armaOBaculoEquipado;
     Armadura* armaduraEquipada;
     Casco* cascoEquipado;
@@ -37,9 +37,9 @@ public:
     bool estaLleno() const;
     int cantidadSlots() const;
     int getCapacidadMax() const;
-    const std::vector<SlotInventario>& getSlots() const;
+    const std::vector<std::optional<SlotInventario>>& getSlots() const;
 
-    bool agregar(std::unique_ptr<Item> item, int cantidad = 1);
+    std::optional<int> agregar(std::unique_ptr<Item> item, int cantidad = 1);
     std::optional<SlotInventario> soltar(int indice, int cantidad = -1);
     std::vector<SlotInventario> soltarTodo();
 
@@ -64,4 +64,5 @@ public:
     std::pair<int, int> calcularRangoAtaque() const;
 
     bool usarPocion(int indice, Jugador& jugador);
+    bool estaEquipado(const Item* item) const;
 };
