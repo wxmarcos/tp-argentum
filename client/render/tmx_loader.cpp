@@ -35,6 +35,11 @@ static void parse_csv_layer(const std::string& csv,
 
         if (gid != 0) {
             map.set(x, y, layer_idx, static_cast<TileId>(gid));
+            uint8_t flip = 0;
+            if (raw & 0x80000000u) flip |= 0x4;  // horizontal
+            if (raw & 0x40000000u) flip |= 0x2;  // vertical
+            if (raw & 0x20000000u) flip |= 0x1;  // diagonal
+            map.set_flip(x, y, layer_idx, flip);
         }
 
         x++;

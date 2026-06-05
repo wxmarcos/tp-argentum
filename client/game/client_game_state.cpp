@@ -19,13 +19,21 @@ bool classify_creature(const std::string& nick, std::string& type) {
     }
     return !type.empty();
 }
-}  // namespace
+
+std::string to_lower(std::string s) {
+    for (char& c : s) {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+    return s;
+}
+}
 
 ClientGameState::ClientGameState(const std::string& local_nick, int map_width,
                                  int map_height):
     local_nick(local_nick),
     has_local_pos(false), local_x(0), local_y(0),
     local_dir(protocol::Direction::SOUTH), local_moved(false),
+    current_map_id(0), has_stats(false), has_error(false),
     map_width(map_width), map_height(map_height) {}
 
 void ClientGameState::begin_frame() {
@@ -168,8 +176,44 @@ void ClientGameState::apply_entity_remove(const Snapshot& snapshot) {
     others.erase(nick);
 }
 
-void ClientGameState::apply_player_stats(const Snapshot&) {
-    // TODO
+void ClientGameState::apply_player_stats(const Snapshot& snapshot) {
+    const std::string& nick = snapshot.get_nick();
+
+    if (nick == local_nick) {
+        local_stats.raza = to_lower(snapshot.get_raza());
+        local_stats.clase = to_lower(snapshot.get_clase());
+        local_stats.nivel = snapshot.get_nivel();
+        local_stats.vida = snapshot.get_vida();
+        local_stats.vida_max = snapshot.get_vida_max();
+        local_stats.mana = snapshot.get_mana();
+        local_stats.mana_max = snapshot.get_mana_max();
+        local_stats.experiencia = snapshot.get_experiencia();
+        local_stats.oro = snapshot.get_oro();
+        local_stats.constitucion = snapshot.get_constitucion();
+        local_stats.inteligencia = snapshot.get_inteligencia();
+        local_stats.fuerza = snapshot.get_fuerza();
+        local_stats.agilidad = snapshot.get_agilidad();
+        has_stats = true;
+        has_error = false;
+        return;
+    }
+
+    std::string type;
+    if (classify_creature(nick, type)) {
+        return;
+    }
+
+    const bool is_new = others.find(nick) == others.end();
+    PlayerView& pv = others[nick];
+    pv.nick = nick;
+    pv.raza = to_lower(snapshot.get_raza());
+    pv.clase = to_lower(snapshot.get_clase());
+    if (is_new) {
+        pv.x = snapshot.get_x();
+        pv.y = snapshot.get_y();
+        pv.direction =
+            static_cast<protocol::Direction>(snapshot.get_direction());
+    }
 }
 
 void ClientGameState::apply_inventory_update(const Snapshot&) {
@@ -196,6 +240,7 @@ void ClientGameState::apply_chat_message(const Snapshot&) {
     // TODO
 }
 
-void ClientGameState::apply_error_message(const Snapshot&) {
-    // TODO
+void ClientGameState::apply_error_message(const Snapshot& snapshot) {
+    last_error = snapshot.get_text();
+    has_error = true;
 }

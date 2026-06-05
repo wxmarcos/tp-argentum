@@ -8,8 +8,26 @@
 #include "common/protocol_defs.h"
 #include "protocol/game_update.h"
 
+struct PlayerStats {
+    std::string raza;
+    std::string clase;
+    uint16_t nivel = 0;
+    uint16_t vida = 0;
+    uint16_t vida_max = 0;
+    uint16_t mana = 0;
+    uint16_t mana_max = 0;
+    uint32_t experiencia = 0;
+    uint32_t oro = 0;
+    uint16_t constitucion = 0;
+    uint16_t inteligencia = 0;
+    uint16_t fuerza = 0;
+    uint16_t agilidad = 0;
+};
+
 struct PlayerView {
     std::string nick;
+    std::string raza;
+    std::string clase;
     uint16_t x = 0;
     uint16_t y = 0;
     protocol::Direction direction = protocol::Direction::SOUTH;
@@ -35,13 +53,19 @@ private:
     protocol::Direction local_dir;
     bool local_moved;
     uint16_t current_map_id;
+
+    PlayerStats local_stats;
+    bool has_stats;
+
+    std::string last_error;
+    bool has_error;
+
     std::unordered_map<std::string, PlayerView> others;
     std::unordered_map<std::string, CreatureView> creatures;
 
     int map_width;
     int map_height;
 
-private:
     void apply_snapshot(const Snapshot& snapshot);
     void apply_entity_position(const Snapshot& snapshot);
     void apply_entity_remove(const Snapshot& snapshot);
@@ -68,6 +92,13 @@ public:
     protocol::Direction get_local_dir() const { return local_dir; }
     bool get_local_moved() const { return local_moved; }
     const std::string& get_local_nick() const { return local_nick; }
+
+    bool has_local_stats() const { return has_stats; }
+    const PlayerStats& get_local_stats() const { return local_stats; }
+    uint16_t get_current_map_id() const { return current_map_id; }
+
+    bool has_pending_error() const { return has_error; }
+    const std::string& get_last_error() const { return last_error; }
 
     const std::unordered_map<std::string, PlayerView>& get_others() const {
         return others;

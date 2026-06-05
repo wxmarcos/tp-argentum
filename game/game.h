@@ -54,6 +54,8 @@ private:
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     // Helpers
     std::string getNombreJugadorPorComando(const Command& cmd) const;
+    void agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
+                                  const std::string& nickQueEntra) const;
     bool handle_meditation_interruption(Jugador* jugador,
                                         std::vector<Snapshot>& snapshots,
                                         const std::string& nombre);

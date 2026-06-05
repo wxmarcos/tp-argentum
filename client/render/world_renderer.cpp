@@ -125,7 +125,29 @@ void WorldRenderer::draw_map_layer(int layer,
                 src.w,
                 src.h
             };
-            SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
+
+            uint8_t flip = map->get_flip(gx, gy, layer);
+            if (flip == 0) {
+                SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
+            } else {
+                double angle = 0.0;
+                SDL_RendererFlip sdl_flip = SDL_FLIP_NONE;
+                bool d = flip & 0x1;
+                bool h = flip & 0x4;
+                bool v = flip & 0x2;
+
+                if (d) {
+                    if (h && v)       { angle = 270.0; sdl_flip = SDL_FLIP_HORIZONTAL; }
+                    else if (h)       { angle = 90.0; }
+                    else if (v)       { angle = 270.0; }
+                    else              { angle = 90.0; sdl_flip = SDL_FLIP_HORIZONTAL; }
+                } else {
+                    if (h) sdl_flip = static_cast<SDL_RendererFlip>(sdl_flip | SDL_FLIP_HORIZONTAL);
+                    if (v) sdl_flip = static_cast<SDL_RendererFlip>(sdl_flip | SDL_FLIP_VERTICAL);
+                }
+                SDL_RenderCopyEx(renderer.Get(), tex, &src, &dst,
+                                 angle, nullptr, sdl_flip);
+            }
         }
     }
 }
@@ -264,11 +286,19 @@ void WorldRenderer::render(const ClientGameState& state,
         local_anim.update(delta_ms,
                           state.get_local_dir(),
                           state.get_local_moved());
- 
+
+        std::string local_clase = config.character_clase;
+        std::string local_raza  = config.character_raza;
+        if (state.has_local_stats()) {
+            const PlayerStats& s = state.get_local_stats();
+            if (!s.clase.empty()) local_clase = s.clase;
+            if (!s.raza.empty())  local_raza  = s.raza;
+        }
+
         draw_character(state.get_local_x(), state.get_local_y(),
                        state.get_local_dir(),
-                       config.character_clase,
-                       config.character_raza,
+                       local_clase,
+                       local_raza,
                        local_anim.current_frame(),
                        cam_offset_x, cam_offset_y);
     }
@@ -281,8 +311,8 @@ void WorldRenderer::render(const ClientGameState& state,
         it->second.update(delta_ms, pv.direction, pv.moved);
  
         draw_character(pv.x, pv.y, pv.direction,
-                       "humano",
-                       "humano",
+                       pv.clase.empty() ? "humano" : pv.clase,
+                       pv.raza.empty()  ? "humano" : pv.raza,
                        it->second.current_frame(),
                        cam_offset_x, cam_offset_y);
     }

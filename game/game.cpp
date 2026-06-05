@@ -177,6 +177,20 @@ std::string Game::getNombreJugadorPorComando(const Command& cmd) const {
     return (it != player_id_to_nick.end()) ? it->second : "";
 }
 
+void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
+                                    const std::string& nickQueEntra) const {
+    for (const auto& [nombre, otro] : jugadores) {
+        if (nombre == nickQueEntra) {
+            continue;
+        }
+        snapshots.push_back(Snapshot::entity_created(
+            nombre, static_cast<uint16_t>(otro->getPosX()),
+            static_cast<uint16_t>(otro->getPosY()),
+            static_cast<uint8_t>(otro->getDireccion())));
+        snapshots.push_back(SnapshotFactory::player_stats_from_player(*otro));
+    }
+}
+
 bool Game::handle_meditation_interruption(Jugador* jugador,
                                           std::vector<Snapshot>& snapshots,
                                           const std::string& nombre) {
@@ -614,6 +628,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         snapshots.push_back(
             SnapshotFactory::player_inventory_from_player(*jugador));
 
+        agregarReplayDeJugadores(snapshots, cmd.get_nick());
+
         return snapshots;
     }
 
@@ -638,6 +654,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             SnapshotFactory::player_stats_from_player(*jugador));
         snapshots.push_back(
             SnapshotFactory::player_inventory_from_player(*jugador));
+
+        agregarReplayDeJugadores(snapshots, cmd.get_nick());
+
         return snapshots;
     }
 
