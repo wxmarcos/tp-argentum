@@ -79,7 +79,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input);
+        running = process_input(connection, input, state);
         if (running) {
             running = process_updates(connection, state);
         }
@@ -98,13 +98,19 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 }
 
 bool ClientApp::process_input(ServerConnection& connection,
-                              const InputHandler& input) {
+                              const InputHandler& input,
+                              const ClientGameState& state) {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             connection.send(Command::disconnect());
             return false;
+        }
+
+        if (event.type == SDL_MOUSEBUTTONDOWN &&
+            event.button.button == SDL_BUTTON_LEFT) {
+            handle_click(connection, state, event.button.x, event.button.y);
         }
 
         if (event.type == SDL_KEYDOWN) {
@@ -115,7 +121,6 @@ bool ClientApp::process_input(ServerConnection& connection,
             }
 
             Command cmd = Command::disconnect();
-
             if (input.process_key(event.key, cmd)) {
                 connection.send(cmd);
             }
@@ -123,6 +128,31 @@ bool ClientApp::process_input(ServerConnection& connection,
     }
 
     return true;
+}
+
+void ClientApp::handle_click(ServerConnection& connection,
+                             const ClientGameState& state, int mouse_x,
+                             int mouse_y) {
+    if (!state.has_local_position()) {
+        return;
+    }
+    const int ts = config.tile_size;
+    const int cam_offset_x =
+        config.window_width / 2 - state.get_local_x() * ts - ts / 2;
+    const int cam_offset_y =
+        config.window_height / 2 - state.get_local_y() * ts - ts / 2;
+
+    const int tile_x = (mouse_x - cam_offset_x) / ts;
+    const int tile_y = (mouse_y - cam_offset_y) / ts;
+    if (tile_x < 0 || tile_y < 0) {
+        return;
+    }
+
+    std::string target;
+    if (state.entity_at(static_cast<uint16_t>(tile_x),
+                        static_cast<uint16_t>(tile_y), target)) {
+        connection.send(Command::attack(target));
+    }
 }
 
 void ClientApp::process_login_response(ServerConnection& connection,

@@ -253,6 +253,23 @@ bool ClientGameState::resolve_entity_pos(const std::string& nick, uint16_t& x,
     return false;
 }
 
+bool ClientGameState::entity_at(uint16_t x, uint16_t y,
+                                std::string& out_nick) const {
+    for (const auto& [nick, cv] : creatures) {
+        if (cv.x == x && cv.y == y) {
+            out_nick = nick;
+            return true;
+        }
+    }
+    for (const auto& [nick, pv] : others) {
+        if (pv.x == x && pv.y == y) {
+            out_nick = nick;
+            return true;
+        }
+    }
+    return false;
+}
+
 void ClientGameState::apply_inventory_update(const Snapshot&) {
     // TODO
 }

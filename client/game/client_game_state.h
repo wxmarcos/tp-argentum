@@ -129,6 +129,8 @@ public:
         return creatures;
     }
 
+    bool entity_at(uint16_t x, uint16_t y, std::string& out_nick) const;
+
     int get_map_width() const { return map_width; }
     int get_map_height() const { return map_height; }
 };
