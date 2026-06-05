@@ -1,13 +1,17 @@
 #pragma once
 
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
 
 class Config {
 public:
     explicit Config(const std::string& rutaArchivo);
+    Config(const Config&) = delete;
+    Config& operator=(const Config&) = delete;
 
+    Config(Config&&) = delete;
+    Config& operator=(Config&&) = delete;
     // Inventario
     int getInventarioCapacidadMax() const;
 
@@ -33,12 +37,56 @@ public:
     double getFormulaOroMaxExponente() const;
     int getFormulaOroDropNPCDivisor() const;
 
+    struct ConfigTile {
+        int x;
+        int y;
+        std::string tipo;
+        bool transitable;
+    };
+    // IA de criaturas
+    int getCriaturaRangoDeteccion() const;
+    float getCriaturaCooldownMovimiento() const;
+    float getCriaturaCooldownAtaque() const;
+    float getSpawnIntervalo() const;
+    float getVelocidadResurreccion() const;
+
+    // Criaturas
+    int getCriaturaVidaMax(const std::string& tipo) const;
+    int getCriaturaNivel(const std::string& tipo) const;
+    int getCriaturaDanioMin(const std::string& tipo) const;
+    int getCriaturaDanioMax(const std::string& tipo) const;
+    int getCriaturaFuerza(const std::string& tipo) const;
+    // Servidor
+    int getServerMapWidth() const;
+    int getServerMapHeight() const;
+    int getServerTicksPerSecond() const;
+    int getServerMaxClients() const;
     // Mapas
+    struct PosicionNPC {
+        int x, y;
+    };
+
+    struct ConfigPortal {
+        int x, y;
+        int mapaDestino;
+        int destinoX, destinoY;
+    };
+
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;
+        bool esZonaSegura;
+        int poblacionMax;
+        std::vector<std::string> criaturasPosibles;
+        std::vector<PosicionNPC> sacerdotes;
+        std::vector<ConfigPortal> portales;
     };
 
     std::vector<ConfigMapa> getMapas() const;
+
+    // Rutas de Persistencia
+    std::string getRutaJugadores() const;
+    std::string getRutaNPCsCriaturas() const;
+    ~Config();
 
 private:
     struct Impl;

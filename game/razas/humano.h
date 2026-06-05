@@ -1,8 +1,8 @@
 #pragma once
-#include "razas/raza.h"
 #include "config.h"
+#include "razas/raza.h"
 
-class Humano : public Raza {
+class Humano: public Raza {
     int constitucionBase;
     int inteligenciaBase;
     int fuerzaBase;
@@ -10,6 +10,7 @@ class Humano : public Raza {
     float fRazaVida;
     float fRazaMana;
     float fRazaRecuperacion;
+
 public:
     explicit Humano(const Config& config);
     std::string getNombre() const override;

@@ -1,9 +1,9 @@
 #include "clases/guerrero.h"
 
-Guerrero::Guerrero(const Config& config)
-    : fClaseVida(config.getClaseFVida("guerrero")),
-      fClaseMana(config.getClaseFMana("guerrero")),
-      fClaseMeditacion(config.getClaseFMeditacion("guerrero")) {}
+Guerrero::Guerrero(const Config& config):
+    fClaseVida(config.getClaseFVida("guerrero")),
+    fClaseMana(config.getClaseFMana("guerrero")),
+    fClaseMeditacion(config.getClaseFMeditacion("guerrero")) {}
 
 std::string Guerrero::getNombre() const { return "Guerrero"; }
 float Guerrero::getFClaseVida() const { return fClaseVida; }

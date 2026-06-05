@@ -1,8 +1,9 @@
 #include "banco/cuentaBanco.h"
+
 #include <algorithm>
 
-CuentaBanco::CuentaBanco(const std::string& nombreJugador)
-    : nombreJugador(nombreJugador), oro(0) {}
+CuentaBanco::CuentaBanco(const std::string& nombreJugador):
+    nombreJugador(nombreJugador), oro(0) {}
 
 bool CuentaBanco::depositarOro(int cantidad) {
     if (cantidad <= 0) return false;
@@ -24,10 +25,13 @@ bool CuentaBanco::depositarItem(SlotInventario slot) {
 }
 
 std::optional<SlotInventario> CuentaBanco::retirarItem(int indice) {
-    if (indice < 0 || indice >= (int)items.size()) return std::nullopt;
+    if (indice < 0 || indice >= static_cast<int>(items.size()))
+        return std::nullopt;
     SlotInventario resultado = std::move(items[indice]);
     items.erase(items.begin() + indice);
     return resultado;
 }
 
-const std::vector<SlotInventario>& CuentaBanco::getItems() const { return items; }
+const std::vector<SlotInventario>& CuentaBanco::getItems() const {
+    return items;
+}

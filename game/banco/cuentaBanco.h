@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+
 #include "items/inventario.h"
 
 class CuentaBanco {
@@ -8,6 +9,7 @@ private:
     std::string nombreJugador;
     int oro;
     std::vector<SlotInventario> items;
+
 public:
     explicit CuentaBanco(const std::string& nombreJugador);
     bool depositarOro(int cantidad);

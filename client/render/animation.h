@@ -4,13 +4,13 @@
 #include <cstdint>
 
 class Animation {
-    private:
+private:
     int frame_count;
     int ms_per_frame;
     int current;
     uint32_t elapsed_ms;
 
-    public:
+public:
     Animation(int frame_count, int ms_per_frame);
 
     void update(uint32_t delta_ms);

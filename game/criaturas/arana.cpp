@@ -1,6 +1,11 @@
 #include "criaturas/arana.h"
 
-Arana::Arana(int posX, int posY)
-    : Criatura("Arana", posX, posY, 100, 1, 5, 10) {}  // TODO: stats desde Config
+Arana::Arana(const Config& config, int posX, int posY):
+    Criatura(
+        "Arana", posX, posY, config.getCriaturaVidaMax("arana"),
+        config.getCriaturaNivel("arana"), config.getCriaturaDanioMin("arana"),
+        config.getCriaturaDanioMax("arana"), config.getCriaturaFuerza("arana"),
+        config.getCriaturaCooldownAtaque(),
+        config.getCriaturaCooldownMovimiento()) {}
 
-std::string Arana::getTipo() const { return "Arana"; }
+std::string Arana::getTipo() const { return "arana"; }

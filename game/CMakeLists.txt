@@ -51,7 +51,8 @@ target_sources(taller_game PRIVATE
 
     # Banco
     banco/cuentaBanco.cpp
-
+    #Snapshot
+    snapshot_factory.cpp
     # Mapa y juego
     mapa.cpp
     mundo.cpp

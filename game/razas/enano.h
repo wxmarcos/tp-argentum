@@ -1,8 +1,8 @@
 #pragma once
+#include "game/config.h"
 #include "razas/raza.h"
-#include "config.h"
 
-class Enano : public Raza {
+class Enano: public Raza {
     int constitucionBase;
     int inteligenciaBase;
     int fuerzaBase;
@@ -10,8 +10,9 @@ class Enano : public Raza {
     float fRazaVida;
     float fRazaMana;
     float fRazaRecuperacion;
+
 public:
-    explicit Enano(const Config& config);   
+    explicit Enano(const Config& config);
     std::string getNombre() const override;
     int getConstitucionBase() const override;
     int getInteligenciaBase() const override;

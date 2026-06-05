@@ -1,8 +1,9 @@
-#include "clan.h"
+#include "game/clan.h"
+
 #include <algorithm>
 
-Clan::Clan(const std::string& nombre, const std::string& fundador)
-    : nombre(nombre), fundador(fundador) {
+Clan::Clan(const std::string& nombre, const std::string& fundador):
+    nombre(nombre), fundador(fundador) {
     miembros.push_back(fundador);
 }
 
@@ -24,7 +25,8 @@ bool Clan::removerMiembro(const std::string& nombre) {
 }
 
 bool Clan::esMiembro(const std::string& nombre) const {
-    return std::find(miembros.begin(), miembros.end(), nombre) != miembros.end();
+    return std::find(miembros.begin(), miembros.end(), nombre) !=
+           miembros.end();
 }
 
 const std::vector<std::string>& Clan::getMiembros() const { return miembros; }

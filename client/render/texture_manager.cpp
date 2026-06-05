@@ -1,14 +1,14 @@
 #include "render/texture_manager.h"
 
+#include <SDL2/SDL_image.h>
+
 #include <iostream>
 #include <stdexcept>
 
-#include <SDL2/SDL_image.h>
-
 TextureManager::TextureManager(SDL_Renderer* renderer,
                                std::filesystem::path assets_root):
-        renderer(renderer),
-        assets_root(std::move(assets_root)) {}
+    renderer(renderer),
+    assets_root(std::move(assets_root)) {}
 
 TextureManager::~TextureManager() {
     for (auto& [key, tex] : cache) {
@@ -16,8 +16,7 @@ TextureManager::~TextureManager() {
     }
 }
 
-SDL_Texture* TextureManager::load_png(
-        const std::filesystem::path& full_path) {
+SDL_Texture* TextureManager::load_png(const std::filesystem::path& full_path) {
     SDL_Surface* surface = IMG_Load(full_path.c_str());
     if (!surface) {
         return nullptr;
@@ -35,9 +34,8 @@ void TextureManager::load(const std::string& key,
     std::filesystem::path full = assets_root / relative_path;
     SDL_Texture* tex = load_png(full);
     if (!tex) {
-        throw std::runtime_error(
-                "[TextureManager] No se pudo cargar: " +
-                full.string() + " — " + IMG_GetError());
+        throw std::runtime_error("[TextureManager] No se pudo cargar: " +
+                                 full.string() + " — " + IMG_GetError());
     }
     cache[key] = tex;
 }
@@ -50,8 +48,8 @@ bool TextureManager::try_load(const std::string& key,
     std::filesystem::path full = assets_root / relative_path;
     SDL_Texture* tex = load_png(full);
     if (!tex) {
-        std::cerr << "[TextureManager] Advertencia: no se pudo cargar: "
-                  << full << " — " << IMG_GetError() << "\n";
+        std::cerr << "[TextureManager] Advertencia: no se pudo cargar: " << full
+                  << " — " << IMG_GetError() << "\n";
         return false;
     }
     cache[key] = tex;
@@ -61,8 +59,7 @@ bool TextureManager::try_load(const std::string& key,
 SDL_Texture* TextureManager::get(const std::string& key) const {
     auto it = cache.find(key);
     if (it == cache.end()) {
-        throw std::runtime_error(
-                "[TextureManager] Clave no cargada: " + key);
+        throw std::runtime_error("[TextureManager] Clave no cargada: " + key);
     }
     return it->second;
 }

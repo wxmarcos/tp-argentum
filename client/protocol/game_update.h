@@ -3,7 +3,7 @@
 
 #include <optional>
 
-#include "common/snapshot.h"
+#include "common/snapshot/snapshot.h"
 
 struct GameUpdate {
     std::optional<Snapshot> snapshot;

@@ -1,11 +1,11 @@
 #pragma once
-#include "item.h"
+#include "game/items/item.h"
 
 enum class TipoPocion { VIDA, MANA };
 
 class Jugador;
 
-class Pocion : public Item {
+class Pocion: public Item {
 private:
     TipoPocion tipoPocion;
     int cantidad;

@@ -1,9 +1,9 @@
 #include "clases/clerigo.h"
 
-Clerigo::Clerigo(const Config& config)
-    : fClaseVida(config.getClaseFVida("clerigo")),
-      fClaseMana(config.getClaseFMana("clerigo")),
-      fClaseMeditacion(config.getClaseFMeditacion("clerigo")) {}
+Clerigo::Clerigo(const Config& config):
+    fClaseVida(config.getClaseFVida("clerigo")),
+    fClaseMana(config.getClaseFMana("clerigo")),
+    fClaseMeditacion(config.getClaseFMeditacion("clerigo")) {}
 
 std::string Clerigo::getNombre() const { return "Clerigo"; }
 float Clerigo::getFClaseVida() const { return fClaseVida; }

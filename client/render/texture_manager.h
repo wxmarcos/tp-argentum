@@ -1,23 +1,22 @@
 #ifndef CLIENT_RENDER_TEXTURE_MANAGER_H
 #define CLIENT_RENDER_TEXTURE_MANAGER_H
 
+#include <SDL2/SDL.h>
+
 #include <filesystem>
 #include <string>
 #include <unordered_map>
 
-#include <SDL2/SDL.h>
-
 class TextureManager {
-    private:
+private:
     SDL_Renderer* renderer;
     std::filesystem::path assets_root;
     std::unordered_map<std::string, SDL_Texture*> cache;
 
     SDL_Texture* load_png(const std::filesystem::path& full_path);
 
-    public:
-    TextureManager(SDL_Renderer* renderer,
-                   std::filesystem::path assets_root);
+public:
+    TextureManager(SDL_Renderer* renderer, std::filesystem::path assets_root);
     ~TextureManager();
 
     TextureManager(const TextureManager&) = delete;
