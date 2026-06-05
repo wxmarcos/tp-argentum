@@ -35,7 +35,7 @@ void read_field(const toml::table& tbl, const std::string& section,
         out = *value;
     }
 }
-}  // namespace
+}
 
 ClientConfig ClientConfig::load() {
     ClientConfig cfg;
@@ -72,6 +72,9 @@ ClientConfig ClientConfig::load() {
 
     read_field(tbl, "audio", "music_volume", cfg.music_volume);
     read_field(tbl, "audio", "effects_volume", cfg.effects_volume);
+
+    read_field(tbl, "ui", "font_path", cfg.font_path);
+    read_field(tbl, "ui", "font_size", cfg.font_size);
 
     read_field(tbl, "character", "nick", cfg.character_nick);
     read_field(tbl, "character", "raza", cfg.character_raza);

@@ -15,6 +15,8 @@ struct ClientConfig {
     int tile_size = 32;
 
     std::string assets_path = "assets/graficos";
+    std::string font_path = "assets/fonts/Cardo-Bold.ttf";
+    int font_size = 18;
 
     int map_width = 50;
     int map_height = 50;

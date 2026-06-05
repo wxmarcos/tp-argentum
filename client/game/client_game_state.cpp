@@ -1,23 +1,34 @@
 #include "game/client_game_state.h"
 
 #include <cctype>
+#include <unordered_set>
 
 #include "common/snapshot/snapshot.h"
 
 namespace {
 bool classify_creature(const std::string& nick, std::string& type) {
-    if (nick.size() < 2 || nick[0] != '#') {
+    static const std::unordered_set<std::string> KNOWN_TYPES = {
+        "goblin", "esqueleto", "zombie", "arana", "orco", "golem",
+        "banquero", "comerciante", "sacerdote"};
+
+    const auto sep = nick.rfind('_');
+    if (sep == std::string::npos || sep == 0 || sep + 1 >= nick.size()) {
         return false;
     }
-    const auto sep = nick.find('#', 1);
-    if (sep == std::string::npos || sep == 1) {
-        return false;
+    for (size_t i = sep + 1; i < nick.size(); ++i) {
+        if (!std::isdigit(static_cast<unsigned char>(nick[i]))) {
+            return false;
+        }
     }
-    type = nick.substr(1, sep - 1);
-    for (char& c : type) {
+    std::string prefix = nick.substr(0, sep);
+    for (char& c : prefix) {
         c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     }
-    return !type.empty();
+    if (KNOWN_TYPES.find(prefix) == KNOWN_TYPES.end()) {
+        return false;
+    }
+    type = prefix;
+    return true;
 }
 
 std::string to_lower(std::string s) {

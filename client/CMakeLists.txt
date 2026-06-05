@@ -15,6 +15,7 @@ target_sources(taller_client
     render/tile_catalog.cpp
     render/map_data.cpp
     render/tmx_loader.cpp
+    render/text_renderer.cpp
     audio/audio_manager.cpp
     config/client_config.cpp
 
@@ -35,6 +36,7 @@ target_sources(taller_client
     render/tile_catalog.h
     render/map_data.h
     render/tmx_loader.h
+    render/text_renderer.h
     audio/audio_manager.h
     config/client_config.h
     )

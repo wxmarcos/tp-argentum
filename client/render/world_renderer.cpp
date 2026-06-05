@@ -36,6 +36,10 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
         config(config),
         registry(renderer.Get(),
                  std::filesystem::current_path() / config.assets_path),
+        text(renderer.Get(),
+             (std::filesystem::current_path() / config.font_path)
+                 .lexically_normal(),
+             config.font_size),
         local_anim(ANIM_FRAMES, ANIM_MS_FRAME) {
 
     std::filesystem::path tmx_path =
@@ -254,7 +258,23 @@ void WorldRenderer::draw_creature(int world_x, int world_y,
     };
     SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
 }
- 
+
+void WorldRenderer::draw_name(const std::string& nick, int world_x,
+                              int world_y, int cam_offset_x,
+                              int cam_offset_y) {
+    if (!text.ok() || nick.empty()) {
+        return;
+    }
+    const int ts = config.tile_size;
+    const int center_x = cam_offset_x + world_x * ts + ts / 2;
+    const int top_y = cam_offset_y + world_y * ts - ts - text.line_height();
+
+    const SDL_Color shadow{0, 0, 0, 255};
+    const SDL_Color white{255, 255, 255, 255};
+    text.draw_centered(nick, center_x + 1, top_y + 1, shadow);
+    text.draw_centered(nick, center_x, top_y, white);
+}
+
 void WorldRenderer::render(const ClientGameState& state,
                            uint32_t delta_ms) {
     renderer.SetDrawColor(34, 51, 34, 255);
@@ -301,6 +321,9 @@ void WorldRenderer::render(const ClientGameState& state,
                        local_raza,
                        local_anim.current_frame(),
                        cam_offset_x, cam_offset_y);
+        draw_name(state.get_local_nick(),
+                  state.get_local_x(), state.get_local_y(),
+                  cam_offset_x, cam_offset_y);
     }
  
     // otros jugadores
@@ -315,6 +338,7 @@ void WorldRenderer::render(const ClientGameState& state,
                        pv.raza.empty()  ? "humano" : pv.raza,
                        it->second.current_frame(),
                        cam_offset_x, cam_offset_y);
+        draw_name(pv.nick, pv.x, pv.y, cam_offset_x, cam_offset_y);
     }
  
     for (auto it = other_anims.begin(); it != other_anims.end();) {

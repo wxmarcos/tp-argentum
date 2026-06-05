@@ -12,6 +12,7 @@
 #include "render/character_animator.h"
 #include "render/map_data.h"
 #include "render/sprite_registry.h"
+#include "render/text_renderer.h"
 #include "render/tile_catalog.h"
 #include "render/tmx_loader.h"
 
@@ -21,6 +22,7 @@ class WorldRenderer {
     const ClientConfig& config;
 
     SpriteRegistry registry;
+    TextRenderer text;
 
     std::unique_ptr<TileCatalog> catalog;
     std::unique_ptr<MapData>     map;
@@ -47,6 +49,9 @@ class WorldRenderer {
                        const std::string& type,
                        int frame,
                        int cam_offset_x, int cam_offset_y);
+
+    void draw_name(const std::string& nick, int world_x, int world_y,
+                   int cam_offset_x, int cam_offset_y);
 
     static int dir_to_idx(protocol::Direction dir);
 
