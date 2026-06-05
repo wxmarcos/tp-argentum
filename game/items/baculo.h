@@ -3,17 +3,19 @@
 
 enum class TipoHechizo { DANIO, CURACION };
 
-class Baculo : public Item {
+class Baculo: public Item {
     std::string nombre;
     std::string nombreHechizo;
     TipoHechizo tipoHechizo;
     int efectoMin;
     int efectoMax;
     int costoMana;
+
 public:
     Baculo(const std::string& nombre, const std::string& nombreHechizo,
-            TipoHechizo tipoHechizo, int efectoMin, int efectoMax, int costoMana);
-    
+           TipoHechizo tipoHechizo, int efectoMin, int efectoMax,
+           int costoMana);
+
     std::string getNombre() const override;
     TipoItem getTipo() const override;
     bool esApilable() const override;

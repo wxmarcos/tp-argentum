@@ -1,11 +1,11 @@
+#include <atomic>
 #include <iostream>
 #include <stdexcept>
-#include <atomic>
 
-#include "server.h"
 #include "game/config.h"
+#include "server/server.h"
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const* argv[]) {
     if (argc != 2) {
         std::cerr << "Uso: " << argv[0] << " <puerto>\n";
         return 1;

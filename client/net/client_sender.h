@@ -7,11 +7,11 @@
 #include "common/thread.h"
 
 class ClientSender: public Thread {
-    private:
+private:
     Socket& socket;
     Queue<Command>& commands_queue;
 
-    public:
+public:
     ClientSender(Socket& socket, Queue<Command>& commands_queue);
 
     void run() override;

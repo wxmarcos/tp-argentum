@@ -1,7 +1,7 @@
 #pragma once
 #include "item.h"
 
-class Arma : public Item {
+class Arma: public Item {
 private:
     std::string nombre;
     int danioMin;
@@ -10,7 +10,7 @@ private:
 
 public:
     Arma(const std::string& nombre, int danioMin, int danioMax,
-        bool deRango = false);
+         bool deRango = false);
 
     std::string getNombre() const override;
     TipoItem getTipo() const override;

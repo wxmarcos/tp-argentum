@@ -1,6 +1,7 @@
 #include "common/network/socket_helpers.h"
 
 #include <arpa/inet.h>
+
 #include <stdexcept>
 
 void send_u8(Socket& socket, uint8_t value) {
@@ -20,8 +21,7 @@ void send_u32(Socket& socket, uint32_t value) {
 uint8_t recv_u8(Socket& socket) {
     uint8_t value;
     int received = socket.recvall(&value, sizeof(value));
-    if (received == 0)
-        throw std::runtime_error("socket cerrado leyendo uint8");
+    if (received == 0) throw std::runtime_error("socket cerrado leyendo uint8");
     return value;
 }
 

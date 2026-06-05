@@ -1,22 +1,19 @@
-#include "inventario.h"
-
-#include "arma.h"
-#include "armadura.h"
-#include "casco.h"
-#include "escudo.h"
-#include "pocion.h"
-#include "characters/jugador.h"
+#include "game/items/inventario.h"
 
 #include <algorithm>
 #include <optional>
 
-Inventario::Inventario(int capacidadMax)
-    : capacidadMax(capacidadMax),
-      slots(capacidadMax),
-      armaOBaculoEquipado(nullptr),
-      armaduraEquipada(nullptr),
-      cascoEquipado(nullptr),
-      escudoEquipado(nullptr) {}
+#include "game/characters/jugador.h"
+#include "game/items/arma.h"
+#include "game/items/armadura.h"
+#include "game/items/casco.h"
+#include "game/items/escudo.h"
+#include "game/items/pocion.h"
+
+Inventario::Inventario(int capacidadMax):
+    capacidadMax(capacidadMax), slots(capacidadMax),
+    armaOBaculoEquipado(nullptr), armaduraEquipada(nullptr),
+    cascoEquipado(nullptr), escudoEquipado(nullptr) {}
 
 bool Inventario::estaLleno() const {
     for (const auto& slot : slots) {
@@ -40,9 +37,7 @@ int Inventario::cantidadSlots() const {
     return cantidad;
 }
 
-int Inventario::getCapacidadMax() const {
-    return capacidadMax;
-}
+int Inventario::getCapacidadMax() const { return capacidadMax; }
 
 const std::vector<std::optional<SlotInventario>>& Inventario::getSlots() const {
     return slots;
@@ -66,10 +61,8 @@ int Inventario::buscarSlotApilable(const Item& nuevoItem) const {
     return -1;
 }
 
-std::optional<int> Inventario::agregar(
-    std::unique_ptr<Item> item,
-    int cantidad
-) {
+std::optional<int> Inventario::agregar(std::unique_ptr<Item> item,
+                                       int cantidad) {
     int slotExistente = buscarSlotApilable(*item);
 
     if (slotExistente != -1) {
@@ -87,10 +80,7 @@ std::optional<int> Inventario::agregar(
     return std::nullopt;
 }
 
-std::optional<SlotInventario> Inventario::soltar(
-    int indice,
-    int cantidad
-) {
+std::optional<SlotInventario> Inventario::soltar(int indice, int cantidad) {
     if (indice < 0 || indice >= static_cast<int>(slots.size())) {
         return std::nullopt;
     }
@@ -102,9 +92,7 @@ std::optional<SlotInventario> Inventario::soltar(
     SlotInventario& slot = *slots[indice];
 
     int cantidadASoltar =
-        (cantidad == -1)
-            ? slot.cantidad
-            : std::min(cantidad, slot.cantidad);
+        (cantidad == -1) ? slot.cantidad : std::min(cantidad, slot.cantidad);
 
     if (cantidadASoltar == slot.cantidad) {
         Item* item = slot.item.get();
@@ -125,10 +113,7 @@ std::optional<SlotInventario> Inventario::soltar(
             desequiparEscudo();
         }
 
-        SlotInventario soltado(
-            std::move(slot.item),
-            cantidadASoltar
-        );
+        SlotInventario soltado(std::move(slot.item), cantidadASoltar);
 
         slots[indice].reset();
 
@@ -154,10 +139,7 @@ std::vector<SlotInventario> Inventario::soltarTodo() {
             continue;
         }
 
-        todos.emplace_back(
-            std::move(slot->item),
-            slot->cantidad
-        );
+        todos.emplace_back(std::move(slot->item), slot->cantidad);
 
         slot.reset();
     }
@@ -188,8 +170,7 @@ bool Inventario::equiparArmadura(int indice) {
     if (!slots[indice].has_value()) return false;
     if (slots[indice]->item->getTipo() != TipoItem::ARMADURA) return false;
 
-    armaduraEquipada =
-        static_cast<Armadura*>(slots[indice]->item.get());
+    armaduraEquipada = static_cast<Armadura*>(slots[indice]->item.get());
 
     return true;
 }
@@ -199,8 +180,7 @@ bool Inventario::equiparCasco(int indice) {
     if (!slots[indice].has_value()) return false;
     if (slots[indice]->item->getTipo() != TipoItem::CASCO) return false;
 
-    cascoEquipado =
-        static_cast<Casco*>(slots[indice]->item.get());
+    cascoEquipado = static_cast<Casco*>(slots[indice]->item.get());
 
     return true;
 }
@@ -210,27 +190,18 @@ bool Inventario::equiparEscudo(int indice) {
     if (!slots[indice].has_value()) return false;
     if (slots[indice]->item->getTipo() != TipoItem::ESCUDO) return false;
 
-    escudoEquipado =
-        static_cast<Escudo*>(slots[indice]->item.get());
+    escudoEquipado = static_cast<Escudo*>(slots[indice]->item.get());
 
     return true;
 }
 
-void Inventario::desequiparArmaOBaculo() {
-    armaOBaculoEquipado = nullptr;
-}
+void Inventario::desequiparArmaOBaculo() { armaOBaculoEquipado = nullptr; }
 
-void Inventario::desequiparArmadura() {
-    armaduraEquipada = nullptr;
-}
+void Inventario::desequiparArmadura() { armaduraEquipada = nullptr; }
 
-void Inventario::desequiparCasco() {
-    cascoEquipado = nullptr;
-}
+void Inventario::desequiparCasco() { cascoEquipado = nullptr; }
 
-void Inventario::desequiparEscudo() {
-    escudoEquipado = nullptr;
-}
+void Inventario::desequiparEscudo() { escudoEquipado = nullptr; }
 
 const Arma* Inventario::getArmaEquipada() const {
     if (!armaOBaculoEquipado) {
@@ -260,13 +231,9 @@ const Armadura* Inventario::getArmaduraEquipada() const {
     return armaduraEquipada;
 }
 
-const Casco* Inventario::getCascoEquipado() const {
-    return cascoEquipado;
-}
+const Casco* Inventario::getCascoEquipado() const { return cascoEquipado; }
 
-const Escudo* Inventario::getEscudoEquipado() const {
-    return escudoEquipado;
-}
+const Escudo* Inventario::getEscudoEquipado() const { return escudoEquipado; }
 
 std::pair<int, int> Inventario::calcularRangoDefensa() const {
     int min = 0;
@@ -296,23 +263,15 @@ std::pair<int, int> Inventario::calcularRangoAtaque() const {
     }
 
     if (armaOBaculoEquipado->getTipo() == TipoItem::ARMA) {
-        const Arma* arma =
-            static_cast<const Arma*>(armaOBaculoEquipado);
+        const Arma* arma = static_cast<const Arma*>(armaOBaculoEquipado);
 
-        return {
-            arma->getDanioMin(),
-            arma->getDanioMax()
-        };
+        return {arma->getDanioMin(), arma->getDanioMax()};
     }
 
     if (armaOBaculoEquipado->getTipo() == TipoItem::BACULO) {
-        const Baculo* baculo =
-            static_cast<const Baculo*>(armaOBaculoEquipado);
+        const Baculo* baculo = static_cast<const Baculo*>(armaOBaculoEquipado);
 
-        return {
-            baculo->getEfectoMin(),
-            baculo->getEfectoMax()
-        };
+        return {baculo->getEfectoMin(), baculo->getEfectoMax()};
     }
 
     return {0, 0};
@@ -323,8 +282,7 @@ bool Inventario::usarPocion(int indice, Jugador& jugador) {
     if (!slots[indice].has_value()) return false;
     if (slots[indice]->item->getTipo() != TipoItem::POCION) return false;
 
-    Pocion* pocion =
-        static_cast<Pocion*>(slots[indice]->item.get());
+    Pocion* pocion = static_cast<Pocion*>(slots[indice]->item.get());
 
     pocion->usar(jugador);
 
@@ -338,8 +296,6 @@ bool Inventario::usarPocion(int indice, Jugador& jugador) {
 }
 
 bool Inventario::estaEquipado(const Item* item) const {
-    return item == armaOBaculoEquipado ||
-           item == armaduraEquipada ||
-           item == cascoEquipado ||
-           item == escudoEquipado;
+    return item == armaOBaculoEquipado || item == armaduraEquipada ||
+           item == cascoEquipado || item == escudoEquipado;
 }

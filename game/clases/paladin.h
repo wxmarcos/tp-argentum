@@ -1,11 +1,12 @@
 #pragma once
-#include "clases/charClase.h"
-#include "config.h"
+#include "game/clases/charClase.h"
+#include "game/config.h"
 
-class Paladin : public CharClase {
+class Paladin: public CharClase {
     float fClaseVida;
     float fClaseMana;
     float fClaseMeditacion;
+
 public:
     explicit Paladin(const Config& config);
     std::string getNombre() const override;

@@ -1,7 +1,7 @@
-#include "armadura.h"
+#include "game/items/armadura.h"
 
-Armadura::Armadura(const std::string& nombre, int defensaMin, int defensaMax)
-    : nombre(nombre), defensaMin(defensaMin), defensaMax(defensaMax) {}
+Armadura::Armadura(const std::string& nombre, int defensaMin, int defensaMax):
+    nombre(nombre), defensaMin(defensaMin), defensaMax(defensaMax) {}
 
 std::string Armadura::getNombre() const { return nombre; }
 TipoItem Armadura::getTipo() const { return TipoItem::ARMADURA; }

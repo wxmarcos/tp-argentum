@@ -1,11 +1,8 @@
-#include "snapshot_factory.h"
+#include "game/snapshot_factory.h"
 
-Snapshot SnapshotFactory::player_stats_from_player(
-    const Jugador& jugador
-) {
+Snapshot SnapshotFactory::player_stats_from_player(const Jugador& jugador) {
     return Snapshot::player_stats(
-        jugador.getNombre(),
-        jugador.getRaza()->getNombre(),
+        jugador.getNombre(), jugador.getRaza()->getNombre(),
         jugador.getClase()->getNombre(),
         static_cast<uint16_t>(jugador.getMapaId()),
         static_cast<uint16_t>(jugador.getPosX()),
@@ -21,13 +18,10 @@ Snapshot SnapshotFactory::player_stats_from_player(
         static_cast<uint16_t>(jugador.getConstitucion()),
         static_cast<uint16_t>(jugador.getInteligencia()),
         static_cast<uint16_t>(jugador.getFuerza()),
-        static_cast<uint16_t>(jugador.getAgilidad())
-    );
+        static_cast<uint16_t>(jugador.getAgilidad()));
 }
 
-Snapshot SnapshotFactory::player_inventory_from_player(
-    const Jugador& jugador
-) {
+Snapshot SnapshotFactory::player_inventory_from_player(const Jugador& jugador) {
     std::vector<InventorySnapshotItem> items;
 
     const Inventario& inventario = jugador.getInventario();
@@ -53,26 +47,18 @@ Snapshot SnapshotFactory::player_inventory_from_player(
         items.push_back(item);
     }
 
-    return Snapshot::inventory_update(
-        jugador.getNombre(),
-        items
-    );
+    return Snapshot::inventory_update(jugador.getNombre(), items);
 }
 
 Snapshot SnapshotFactory::player_inventory_slot_from_player(
-    const Jugador& jugador,
-    int slot_id
-) {
+    const Jugador& jugador, int slot_id) {
     std::vector<InventorySnapshotItem> items;
 
     const Inventario& inventario = jugador.getInventario();
     const auto& slots = inventario.getSlots();
 
     if (slot_id < 0 || slot_id >= static_cast<int>(slots.size())) {
-        return Snapshot::inventory_update(
-            jugador.getNombre(),
-            items
-        );
+        return Snapshot::inventory_update(jugador.getNombre(), items);
     }
 
     InventorySnapshotItem item;
@@ -91,8 +77,5 @@ Snapshot SnapshotFactory::player_inventory_slot_from_player(
 
     items.push_back(item);
 
-    return Snapshot::inventory_update(
-        jugador.getNombre(),
-        items
-    );
+    return Snapshot::inventory_update(jugador.getNombre(), items);
 }

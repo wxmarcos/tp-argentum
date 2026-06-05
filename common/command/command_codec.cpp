@@ -1,17 +1,18 @@
 #include "command_codec.h"
-#include "packet_helpers.h"
+
 #include <stdexcept>
 
-Command parse_login(const std::vector<uint8_t>& payload, size_t& offset, uint16_t player_id) {
+#include "packet_helpers.h"
+
+Command parse_login(const std::vector<uint8_t>& payload, size_t& offset,
+                    uint16_t player_id) {
     Command cmd(player_id, protocol::ClientOpcode::LOGIN);
     cmd.nick = read_string(payload, offset);
     return cmd;
 }
 
-Command parse_create_character(
-    const std::vector<uint8_t>& payload,
-    size_t& offset,
-    uint16_t player_id) {
+Command parse_create_character(const std::vector<uint8_t>& payload,
+                               size_t& offset, uint16_t player_id) {
     Command cmd(player_id, protocol::ClientOpcode::CREATE_CHARACTER);
     cmd.nick = read_string(payload, offset);
     cmd.raza = read_string(payload, offset);
@@ -19,81 +20,76 @@ Command parse_create_character(
     return cmd;
 }
 
-Command parse_move(const std::vector<uint8_t>& payload, size_t& offset, uint16_t player_id) {
+Command parse_move(const std::vector<uint8_t>& payload, size_t& offset,
+                   uint16_t player_id) {
     Command cmd(player_id, protocol::ClientOpcode::MOVE);
     cmd.direction = read_u8(payload, offset);
     return cmd;
 }
 
-Command parse_attack(const std::vector<uint8_t>& payload, size_t& offset, uint16_t player_id) {
+Command parse_attack(const std::vector<uint8_t>& payload, size_t& offset,
+                     uint16_t player_id) {
     Command cmd(player_id, protocol::ClientOpcode::ATTACK);
     cmd.nick = read_string(payload, offset);
     return cmd;
 }
 
-Command parse_item_id(const std::vector<uint8_t>& payload, size_t& offset, protocol::ClientOpcode opcode, uint16_t player_id) {
+Command parse_item_id(const std::vector<uint8_t>& payload, size_t& offset,
+                      protocol::ClientOpcode opcode, uint16_t player_id) {
     Command cmd(player_id, opcode);
     cmd.item_id = read_u16(payload, offset);
     return cmd;
 }
 
-Command parse_item_and_amount(
-    const std::vector<uint8_t>& payload,
-    size_t& offset,
-    protocol::ClientOpcode opcode,
-    uint16_t player_id) {
+Command parse_item_and_amount(const std::vector<uint8_t>& payload,
+                              size_t& offset, protocol::ClientOpcode opcode,
+                              uint16_t player_id) {
     Command cmd(player_id, opcode);
     cmd.item_id = read_u16(payload, offset);
     cmd.amount = read_u32(payload, offset);
     return cmd;
 }
 
-Command parse_slot(
-    const std::vector<uint8_t>& payload,
-    size_t& offset,
-    protocol::ClientOpcode opcode,
-    uint16_t player_id
-) {
+Command parse_slot(const std::vector<uint8_t>& payload, size_t& offset,
+                   protocol::ClientOpcode opcode, uint16_t player_id) {
     Command cmd(player_id, opcode);
     cmd.slot = read_u16(payload, offset);
     return cmd;
 }
 
-Command parse_slot_and_amount(
-    const std::vector<uint8_t>& payload,
-    size_t& offset,
-    protocol::ClientOpcode opcode,
-    uint16_t player_id
-) {
+Command parse_slot_and_amount(const std::vector<uint8_t>& payload,
+                              size_t& offset, protocol::ClientOpcode opcode,
+                              uint16_t player_id) {
     Command cmd(player_id, opcode);
     cmd.slot = read_u16(payload, offset);
     cmd.amount = read_u32(payload, offset);
     return cmd;
 }
 
-Command parse_private_message(const std::vector<uint8_t>& payload, size_t& offset, uint16_t player_id) {
+Command parse_private_message(const std::vector<uint8_t>& payload,
+                              size_t& offset, uint16_t player_id) {
     Command cmd(player_id, protocol::ClientOpcode::PRIVATE_MESSAGE);
     cmd.nick = read_string(payload, offset);
     cmd.text = read_string(payload, offset);
     return cmd;
 }
 
-Command parse_clan_name(const std::vector<uint8_t>& payload, size_t& offset, protocol::ClientOpcode opcode, uint16_t player_id) {
+Command parse_clan_name(const std::vector<uint8_t>& payload, size_t& offset,
+                        protocol::ClientOpcode opcode, uint16_t player_id) {
     Command cmd(player_id, opcode);
     cmd.clan_name = read_string(payload, offset);
     return cmd;
 }
 
-Command parse_nick_only(const std::vector<uint8_t>& payload, size_t& offset, protocol::ClientOpcode opcode, uint16_t player_id) {
+Command parse_nick_only(const std::vector<uint8_t>& payload, size_t& offset,
+                        protocol::ClientOpcode opcode, uint16_t player_id) {
     Command cmd(player_id, opcode);
     cmd.nick = read_string(payload, offset);
     return cmd;
 }
 
-Command parse_command_payload(
-    const std::vector<uint8_t>& payload,
-    protocol::ClientOpcode type,
-    uint16_t player_id) {
+Command parse_command_payload(const std::vector<uint8_t>& payload,
+                              protocol::ClientOpcode type, uint16_t player_id) {
     size_t offset = 0;
     Command cmd(player_id, type);
 
@@ -168,53 +164,57 @@ Command parse_command_payload(
     return cmd;
 }
 
-static void serialize_login(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_login(const Command& command,
+                            std::vector<uint8_t>& payload) {
     push_string(payload, command.get_nick());
 }
 
-static void serialize_create_character(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_create_character(const Command& command,
+                                       std::vector<uint8_t>& payload) {
     push_string(payload, command.get_nick());
     push_string(payload, command.get_raza());
     push_string(payload, command.get_clase());
 }
 
-static void serialize_move(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_move(const Command& command,
+                           std::vector<uint8_t>& payload) {
     push_u8(payload, command.get_direction());
 }
 
-static void serialize_attack(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_attack(const Command& command,
+                             std::vector<uint8_t>& payload) {
     push_string(payload, command.get_nick());
 }
 
-static void serialize_item_and_amount(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_item_and_amount(const Command& command,
+                                      std::vector<uint8_t>& payload) {
     push_u16(payload, command.get_item_id());
     push_u32(payload, command.get_amount());
 }
-static void serialize_slot(
-    const Command& command,
-    std::vector<uint8_t>& payload
-) {
+static void serialize_slot(const Command& command,
+                           std::vector<uint8_t>& payload) {
     push_u16(payload, command.get_slot());
 }
 
-static void serialize_slot_and_amount(
-    const Command& command,
-    std::vector<uint8_t>& payload
-) {
+static void serialize_slot_and_amount(const Command& command,
+                                      std::vector<uint8_t>& payload) {
     push_u16(payload, command.get_slot());
     push_u32(payload, command.get_amount());
 }
 
-static void serialize_private_message(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_private_message(const Command& command,
+                                      std::vector<uint8_t>& payload) {
     push_string(payload, command.get_nick());
     push_string(payload, command.get_text());
 }
 
-static void serialize_clan_name(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_clan_name(const Command& command,
+                                std::vector<uint8_t>& payload) {
     push_string(payload, command.get_clan_name());
 }
 
-static void serialize_nick_only(const Command& command, std::vector<uint8_t>& payload) {
+static void serialize_nick_only(const Command& command,
+                                std::vector<uint8_t>& payload) {
     push_string(payload, command.get_nick());
 }
 

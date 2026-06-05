@@ -58,3 +58,5 @@ echo "Compilando proyecto..."
 cmake --build build
 
 echo "Compilación finalizada correctamente."
+
+echo "Iniciando servidor..."

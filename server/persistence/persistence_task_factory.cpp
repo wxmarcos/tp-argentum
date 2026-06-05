@@ -1,12 +1,10 @@
-#include "persistence_task_factory.h"
+#include "server/persistence/persistence_task_factory.h"
 
-#include "items/inventario.h"
 #include "common/protocol_defs.h"
+#include "game/items/inventario.h"
 
-static void add_unique_name(
-    std::vector<std::string>& names,
-    const std::string& name
-) {
+static void add_unique_name(std::vector<std::string>& names,
+                            const std::string& name) {
     if (name.empty()) {
         return;
     }
@@ -20,9 +18,7 @@ static void add_unique_name(
     names.push_back(name);
 }
 
-PersistenceTask PersistenceTaskFactory::from_player(
-    const Jugador& jugador
-) {
+PersistenceTask PersistenceTaskFactory::from_player(const Jugador& jugador) {
     PersistenceTask task;
 
     task.nick = jugador.getNombre();
@@ -54,9 +50,9 @@ PersistenceTask PersistenceTaskFactory::from_player(
     const auto& slots = inventario.getSlots();
 
     for (size_t i = 0; i < slots.size(); ++i) {
-    if (!slots[i].has_value()) {
-        continue;
-    }
+        if (!slots[i].has_value()) {
+            continue;
+        }
 
         const SlotInventario& slot = *slots[i];
 
@@ -74,9 +70,7 @@ PersistenceTask PersistenceTaskFactory::from_player(
 }
 
 std::vector<std::string> PersistenceTaskFactory::get_affected_players(
-    const Command& cmd,
-    const std::string& actor
-) {
+    const Command& cmd, const std::string& actor) {
     std::vector<std::string> names;
 
     switch (cmd.get_type()) {

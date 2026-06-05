@@ -8,12 +8,7 @@ inline constexpr uint8_t OPCODE_SIZE = 1;
 inline constexpr uint8_t PAYLOAD_SIZE_SIZE = 2;
 inline constexpr uint16_t MAX_PAYLOAD_SIZE = 4096;
 
-enum class Direction : uint8_t {
-    NORTH = 0,
-    EAST  = 1,
-    SOUTH = 2,
-    WEST  = 3
-};
+enum class Direction : uint8_t { NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3 };
 
 enum class ClientOpcode : uint8_t {
     LOGIN = 0,
@@ -68,4 +63,4 @@ enum class ServerOpcode : uint8_t {
     ERROR_MESSAGE = 250
 };
 
-}
+}  // namespace protocol

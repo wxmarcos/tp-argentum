@@ -1,11 +1,11 @@
 #include "ui/client_app.h"
 
+#include <SDL2/SDL.h>
+
+#include <SDL2pp/SDL2pp.hh>
 #include <exception>
 #include <iostream>
 #include <utility>
-
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
 
 #include "audio/audio_manager.h"
 #include "common/command/command.h"
@@ -15,7 +15,9 @@
 #include "protocol/game_update.h"
 #include "render/world_renderer.h"
 
-using namespace SDL2pp;
+using SDL2pp::Renderer;
+using SDL2pp::SDL;
+using SDL2pp::Window;
 
 ClientApp::ClientApp(ClientConfig config): config(std::move(config)) {}
 
@@ -39,17 +41,17 @@ int ClientApp::run() {
         WorldRenderer world_renderer(renderer, config);
         InputHandler input;
         ClientGameState state(config.character_nick, config.map_width,
-                      config.map_height);
+                              config.map_height);
 
         ServerConnection connection(config.server_host, config.server_port);
         std::cout << "[Client] Conectado a " << config.server_host << ":"
                   << config.server_port << "\n";
-        
+
         connection.send(Command::create_character(config.character_nick,
-                                                   config.character_raza,
-                                                   config.character_clase));
+                                                  config.character_raza,
+                                                  config.character_clase));
         main_loop(connection, input, world_renderer, state);
-        
+
         connection.send(Command::disconnect());
         connection.stop();
         std::cout << "[Client] Cerrado limpiamente.\n";

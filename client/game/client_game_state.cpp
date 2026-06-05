@@ -1,9 +1,9 @@
 #include "game/client_game_state.h"
- 
+
 #include <cctype>
- 
+
 #include "common/snapshot/snapshot.h"
- 
+
 namespace {
 bool classify_creature(const std::string& nick, std::string& type) {
     if (nick.size() < 2 || nick[0] != '#') {
@@ -19,19 +19,15 @@ bool classify_creature(const std::string& nick, std::string& type) {
     }
     return !type.empty();
 }
-}
- 
-ClientGameState::ClientGameState(const std::string& local_nick,
-                                 int map_width, int map_height):
-        local_nick(local_nick),
-        has_local_pos(false),
-        local_x(0),
-        local_y(0),
-        local_dir(protocol::Direction::SOUTH),
-        local_moved(false),
-        map_width(map_width),
-        map_height(map_height) {}
- 
+}  // namespace
+
+ClientGameState::ClientGameState(const std::string& local_nick, int map_width,
+                                 int map_height):
+    local_nick(local_nick),
+    has_local_pos(false), local_x(0), local_y(0),
+    local_dir(protocol::Direction::SOUTH), local_moved(false),
+    map_width(map_width), map_height(map_height) {}
+
 void ClientGameState::begin_frame() {
     local_moved = false;
     for (auto& [nick, pv] : others) {
@@ -41,7 +37,7 @@ void ClientGameState::begin_frame() {
         cv.moved = false;
     }
 }
- 
+
 void ClientGameState::apply_update(const GameUpdate& update) {
     if (update.disconnect) {
         return;
@@ -50,7 +46,7 @@ void ClientGameState::apply_update(const GameUpdate& update) {
         apply_snapshot(*update.snapshot);
     }
 }
- 
+
 void ClientGameState::apply_snapshot(const Snapshot& snapshot) {
     if (snapshot.is_entity_move()) {
         apply_entity_move(snapshot);
@@ -58,10 +54,10 @@ void ClientGameState::apply_snapshot(const Snapshot& snapshot) {
         apply_entity_remove(snapshot);
     }
 }
- 
+
 void ClientGameState::apply_entity_move(const Snapshot& snapshot) {
     const std::string& nick = snapshot.get_nick();
- 
+
     if (nick == local_nick) {
         const uint16_t new_x = snapshot.get_x();
         const uint16_t new_y = snapshot.get_y();
@@ -72,7 +68,7 @@ void ClientGameState::apply_entity_move(const Snapshot& snapshot) {
         has_local_pos = true;
         return;
     }
- 
+
     std::string type;
     if (classify_creature(nick, type)) {
         CreatureView& cv = creatures[nick];
@@ -83,10 +79,11 @@ void ClientGameState::apply_entity_move(const Snapshot& snapshot) {
         cv.type = type;
         cv.x = new_x;
         cv.y = new_y;
-        cv.direction = static_cast<protocol::Direction>(snapshot.get_direction());
+        cv.direction =
+            static_cast<protocol::Direction>(snapshot.get_direction());
         return;
     }
- 
+
     PlayerView& pv = others[nick];
     const uint16_t new_x = snapshot.get_x();
     const uint16_t new_y = snapshot.get_y();
@@ -96,7 +93,7 @@ void ClientGameState::apply_entity_move(const Snapshot& snapshot) {
     pv.y = new_y;
     pv.direction = static_cast<protocol::Direction>(snapshot.get_direction());
 }
- 
+
 void ClientGameState::apply_entity_remove(const Snapshot& snapshot) {
     const std::string& nick = snapshot.get_nick();
     if (nick == local_nick) {

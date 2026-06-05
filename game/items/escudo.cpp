@@ -1,7 +1,7 @@
-#include "escudo.h"
+#include "game/items/escudo.h"
 
-Escudo::Escudo(const std::string& nombre, int defensaMin, int defensaMax)
-    : nombre(nombre), defensaMin(defensaMin), defensaMax(defensaMax) {}
+Escudo::Escudo(const std::string& nombre, int defensaMin, int defensaMax):
+    nombre(nombre), defensaMin(defensaMin), defensaMax(defensaMax) {}
 
 std::string Escudo::getNombre() const { return nombre; }
 TipoItem Escudo::getTipo() const { return TipoItem::ESCUDO; }

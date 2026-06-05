@@ -1,6 +1,7 @@
-#include "packet_helpers.h"
+#include "common/command/packet_helpers.h"
 
 #include <arpa/inet.h>
+
 #include <cstring>
 #include <stdexcept>
 
@@ -43,15 +44,14 @@ std::string read_string(const std::vector<uint8_t>& data, size_t& offset) {
         throw std::runtime_error("payload incompleto leyendo string");
     }
 
-    std::string value(
-        reinterpret_cast<const char*>(data.data() + offset),
-        len);
+    std::string value(reinterpret_cast<const char*>(data.data() + offset), len);
 
     offset += len;
     return value;
 }
 
-void validate_no_extra_bytes(const std::vector<uint8_t>& payload, size_t offset) {
+void validate_no_extra_bytes(const std::vector<uint8_t>& payload,
+                             size_t offset) {
     if (offset != payload.size()) {
         throw std::runtime_error("payload con bytes extra");
     }

@@ -9,19 +9,19 @@ class WorldRenderer;
 class ClientGameState;
 
 class ClientApp {
-    private:
+private:
     ClientConfig config;
 
     void main_loop(ServerConnection& connection, InputHandler& input,
                    WorldRenderer& renderer, ClientGameState& state);
-                   
+
     bool process_input(ServerConnection& connection, const InputHandler& input);
 
     bool process_updates(ServerConnection& connection, ClientGameState& state);
 
-    public:
+public:
     explicit ClientApp(ClientConfig config);
-    
+
     int run();
 };
 

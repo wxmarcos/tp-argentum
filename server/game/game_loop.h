@@ -4,19 +4,15 @@
 #include <memory>
 #include <vector>
 
-#include "game/game.h"
-
-#include "common/thread.h"
-#include "common/queue.h"
-#include "common/command/command.h"
-#include "common/snapshot/snapshot.h"
-
 #include "client/monitor_clients.h"
-
+#include "common/command/command.h"
+#include "common/queue.h"
+#include "common/snapshot/snapshot.h"
+#include "common/thread.h"
+#include "game/game.h"
 #include "persistence/persistence_task.h"
 
-class GameLoop : public Thread {
-
+class GameLoop: public Thread {
 private:
     Queue<Command>& commands_queue;
     Queue<PersistenceTask>& persistence_queue;
@@ -31,11 +27,9 @@ private:
     void debug_snapshot(const Snapshot& snapshot) const;
 
 public:
-    GameLoop(
-        Queue<Command>& commands_queue,
-        Queue<PersistenceTask>& persistence_queue,
-        MonitorClients& clients,
-        Config& config);
+    GameLoop(Queue<Command>& commands_queue,
+             Queue<PersistenceTask>& persistence_queue, MonitorClients& clients,
+             Config& config);
 
     void run() override;
 

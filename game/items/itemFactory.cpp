@@ -15,19 +15,23 @@ std::unique_ptr<Arma> ItemFactory::crearMartillo() {
 
 // Baculos
 std::unique_ptr<Baculo> ItemFactory::crearVaraDeFresno() {
-    return std::make_unique<Baculo>(item_defs::VARA_DE_FRESNO, "Flecha magica", TipoHechizo::DANIO, 2, 4, 5);
+    return std::make_unique<Baculo>(item_defs::VARA_DE_FRESNO, "Flecha magica",
+                                    TipoHechizo::DANIO, 2, 4, 5);
 }
 
 std::unique_ptr<Baculo> ItemFactory::crearFlautaElfica() {
-    return std::make_unique<Baculo>(item_defs::FLAUTA_ELFICA, "Curar", TipoHechizo::CURACION, 50, 100, 100);
+    return std::make_unique<Baculo>(item_defs::FLAUTA_ELFICA, "Curar",
+                                    TipoHechizo::CURACION, 50, 100, 100);
 }
 
 std::unique_ptr<Baculo> ItemFactory::crearBaculoNudoso() {
-    return std::make_unique<Baculo>(item_defs::BACULO_NUDOSO, "Misil", TipoHechizo::DANIO, 4, 8, 15);
+    return std::make_unique<Baculo>(item_defs::BACULO_NUDOSO, "Misil",
+                                    TipoHechizo::DANIO, 4, 8, 15);
 }
 
 std::unique_ptr<Baculo> ItemFactory::crearBaculoEngarzado() {
-    return std::make_unique<Baculo>(item_defs::BACULO_ENGARZADO, "Explosion", TipoHechizo::DANIO, 8, 20, 30);
+    return std::make_unique<Baculo>(item_defs::BACULO_ENGARZADO, "Explosion",
+                                    TipoHechizo::DANIO, 8, 20, 30);
 }
 
 // Armas a distancia

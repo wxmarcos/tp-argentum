@@ -1,9 +1,10 @@
 #pragma once
-#include <vector>
 #include <memory>
 #include <optional>
-#include "item.h"
-#include "baculo.h"
+#include <vector>
+
+#include "game/items/baculo.h"
+#include "game/items/item.h"
 
 class Arma;
 class Armadura;
@@ -15,8 +16,8 @@ struct SlotInventario {
     std::unique_ptr<Item> item;
     int cantidad;
 
-    SlotInventario(std::unique_ptr<Item> item, int cantidad = 1)
-        : item(std::move(item)), cantidad(cantidad) {}
+    explicit SlotInventario(std::unique_ptr<Item> item, int cantidad = 1):
+        item(std::move(item)), cantidad(cantidad) {}
 };
 
 class Inventario {

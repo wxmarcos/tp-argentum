@@ -1,17 +1,17 @@
-#include "command.h"
-#include "command_codec.h"
+#include "common/command/command.h"
 
 #include <arpa/inet.h>
+
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
 
-#include "network/socket.h"
+#include "common/command/command_codec.h"
+#include "common/network/socket.h"
 
-Command::Command(uint16_t player_id, protocol::ClientOpcode type)
-    : player_id(player_id),
-      type(type) {}
+Command::Command(uint16_t player_id, protocol::ClientOpcode type):
+    player_id(player_id), type(type) {}
 
 Command Command::recv(Socket& socket, uint16_t player_id) {
     uint8_t opcode_raw;
@@ -31,12 +31,8 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
 
     uint16_t payload_size = ntohs(net_payload_size);
 
-    std::cout
-        << "[Command] opcode="
-        << static_cast<int>(opcode_raw)
-        << " payload_size="
-        << payload_size
-        << "\n";
+    std::cout << "[Command] opcode=" << static_cast<int>(opcode_raw)
+              << " payload_size=" << payload_size << "\n";
 
     std::vector<uint8_t> payload(payload_size);
 
@@ -77,11 +73,9 @@ Command Command::login(const std::string& nick) {
     return cmd;
 }
 
-Command Command::create_character(
-    const std::string& nick,
-    const std::string& raza,
-    const std::string& clase) {
-
+Command Command::create_character(const std::string& nick,
+                                  const std::string& raza,
+                                  const std::string& clase) {
     Command cmd(0, protocol::ClientOpcode::CREATE_CHARACTER);
     cmd.nick = nick;
     cmd.raza = raza;
@@ -109,46 +103,24 @@ bool Command::is_disconnect() const {
     return type == protocol::ClientOpcode::DISCONNECT;
 }
 
-protocol::ClientOpcode Command::get_type() const {
-    return type;
-}
+protocol::ClientOpcode Command::get_type() const { return type; }
 
-uint16_t Command::get_player_id() const {
-    return player_id;
-}
+uint16_t Command::get_player_id() const { return player_id; }
 
-uint8_t Command::get_direction() const {
-    return direction;
-}
+uint8_t Command::get_direction() const { return direction; }
 
-uint16_t Command::get_item_id() const {
-    return item_id;
-}
+uint16_t Command::get_item_id() const { return item_id; }
 
-uint16_t Command::get_slot() const {
-    return slot;
-}
+uint16_t Command::get_slot() const { return slot; }
 
-uint32_t Command::get_amount() const {
-    return amount;
-}
+uint32_t Command::get_amount() const { return amount; }
 
-const std::string& Command::get_nick() const {
-    return nick;
-}
+const std::string& Command::get_nick() const { return nick; }
 
-const std::string& Command::get_text() const {
-    return text;
-}
+const std::string& Command::get_text() const { return text; }
 
-const std::string& Command::get_clan_name() const {
-    return clan_name;
-}
+const std::string& Command::get_clan_name() const { return clan_name; }
 
-const std::string& Command::get_raza() const {
-    return raza;
-}
+const std::string& Command::get_raza() const { return raza; }
 
-const std::string& Command::get_clase() const {
-    return clase;
-}
+const std::string& Command::get_clase() const { return clase; }

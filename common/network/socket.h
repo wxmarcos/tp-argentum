@@ -9,7 +9,7 @@
 #define COMMON_NETWORK_SOCKET_SOCKET_H
 
 class Socket {
-    private:
+private:
     int skt;
     bool closed;
     int stream_status;
@@ -18,7 +18,7 @@ class Socket {
 
     void chk_skt_or_fail() const;
 
-    public:
+public:
     Socket(const char* hostname, const char* servname);
 
     explicit Socket(const char* servname);

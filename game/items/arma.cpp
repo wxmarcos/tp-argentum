@@ -1,8 +1,9 @@
-#include "arma.h"
-#include "formulas.h"
+#include "game/items/arma.h"
 
-Arma::Arma(const std::string& nombre, int danioMin, int danioMax, bool deRango)
-    : nombre(nombre), danioMin(danioMin), danioMax(danioMax), deRango(deRango) {}
+#include "game/formulas.h"
+
+Arma::Arma(const std::string& nombre, int danioMin, int danioMax, bool deRango):
+    nombre(nombre), danioMin(danioMin), danioMax(danioMax), deRango(deRango) {}
 
 std::string Arma::getNombre() const { return nombre; }
 TipoItem Arma::getTipo() const { return TipoItem::ARMA; }

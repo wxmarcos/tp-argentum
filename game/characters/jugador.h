@@ -1,10 +1,10 @@
 #pragma once
 #include "characters/character.h"
-#include "razas/raza.h"
 #include "clases/charClase.h"
 #include "items/inventario.h"
+#include "razas/raza.h"
 
-class Jugador : public Character {
+class Jugador: public Character {
 private:
     const Raza* raza;
     const CharClase* clase;
@@ -38,17 +38,14 @@ private:
     void verificarSubidaNivel();
 
 public:
-    Jugador(const std::string& nombre, int posX, int posY,
-            const Raza* raza, const CharClase* clase,
-            int capacidadInventario = 30);
-            
-    void restaurarEstado(
-        int nivel, int vida, int vidaMax,
-        int mana, int manaMax,
-        int experiencia, int oro,
-        int constitucion, int inteligencia,
-        int fuerza, int agilidad);
-    
+    Jugador(const std::string& nombre, int posX, int posY, const Raza* raza,
+            const CharClase* clase, int capacidadInventario = 30);
+
+    void restaurarEstado(int nivel, int vida, int vidaMax, int mana,
+                         int manaMax, int experiencia, int oro,
+                         int constitucion, int inteligencia, int fuerza,
+                         int agilidad);
+
     // Getters de raza/clase/stats
     const Raza* getRaza() const;
     const CharClase* getClase() const;
@@ -80,7 +77,8 @@ public:
     bool estaMeditando() const;
 
     // Inventario
-    std::optional<int> agarrarItem(std::unique_ptr<Item> item, int cantidad = 1);
+    std::optional<int> agarrarItem(std::unique_ptr<Item> item,
+                                   int cantidad = 1);
     std::optional<SlotInventario> soltarItem(int indice, int cantidad = -1);
     std::vector<SlotInventario> soltarTodosLosItems();
 
@@ -89,7 +87,7 @@ public:
     bool equiparArmadura(int indice);
     bool equiparCasco(int indice);
     bool equiparEscudo(int indice);
-    
+
     void desequiparArma();
     void desequiparArmadura();
     void desequiparCasco();

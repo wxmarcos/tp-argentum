@@ -13,13 +13,13 @@
 #include <sys/types.h>
 
 class Resolver {
-    private:
+private:
     struct addrinfo* result;
     struct addrinfo* _next;
 
     void chk_addr_or_fail() const;
 
-    public:
+public:
     Resolver(const char* hostname, const char* servname, bool is_passive);
 
     Resolver(const Resolver&) = delete;

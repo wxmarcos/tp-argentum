@@ -28,4 +28,4 @@ constexpr const char* ESCUDO_DE_HIERRO = "Escudo de hierro";
 constexpr const char* POCION_DE_VIDA = "Poción de vida";
 constexpr const char* POCION_DE_MANA = "Poción de mana";
 
-}
+}  // namespace item_defs

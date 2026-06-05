@@ -1,12 +1,13 @@
 #pragma once
 #include <memory>
-#include "arma.h"
-#include "baculo.h"
-#include "armadura.h"
-#include "casco.h"
-#include "escudo.h"
-#include "pocion.h"
-#include "item_defs.h"
+
+#include "game/items/arma.h"
+#include "game/items/armadura.h"
+#include "game/items/baculo.h"
+#include "game/items/casco.h"
+#include "game/items/escudo.h"
+#include "game/items/item_defs.h"
+#include "game/items/pocion.h"
 
 class ItemFactory {
 public:

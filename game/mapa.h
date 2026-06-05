@@ -1,27 +1,22 @@
 #pragma once
 
-#include <vector>
 #include <map>
-#include <utility>
 #include <optional>
+#include <utility>
+#include <vector>
 
 #include "characters/character.h"
 #include "items/inventario.h"
 
-enum class TipoTile {
-    PISO,
-    AGUA,
-    PARED,
-    PORTAL
-};
+enum class TipoTile { PISO, AGUA, PARED, PORTAL };
 
 struct Tile {
     TipoTile tipo;
     bool esTransitable;
 
-    Tile() : tipo(TipoTile::PISO), esTransitable(true) {}
-    Tile(TipoTile tipo, bool esTransitable)
-        : tipo(tipo), esTransitable(esTransitable) {}
+    Tile(): tipo(TipoTile::PISO), esTransitable(true) {}
+    Tile(TipoTile tipo, bool esTransitable):
+        tipo(tipo), esTransitable(esTransitable) {}
 };
 
 struct DestinoPortal {
@@ -39,7 +34,8 @@ private:
     std::map<std::pair<int, int>, std::vector<SlotInventario>> itemsEnPiso;
     std::map<std::pair<int, int>, DestinoPortal> portales;
 
-    std::pair<int, int> calcularNuevaPosicion(int x, int y, Direccion dir) const;
+    std::pair<int, int> calcularNuevaPosicion(int x, int y,
+                                              Direccion dir) const;
 
 public:
     Mapa(int ancho, int alto, bool zonaSegura = false);
@@ -66,6 +62,7 @@ public:
     std::optional<SlotInventario> tomarItemEnPosicion(int x, int y, int indice);
     const std::vector<SlotInventario>* getItemsEnPosicion(int x, int y) const;
 
-    void registrarPortal(int x, int y, int mapaDestinoId, int destinoX, int destinoY);
+    void registrarPortal(int x, int y, int mapaDestinoId, int destinoX,
+                         int destinoY);
     std::optional<DestinoPortal> getPortalDestino(int x, int y) const;
 };

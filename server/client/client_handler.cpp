@@ -1,28 +1,18 @@
-#include "client_handler.h"
+#include "server/client/client_handler.h"
 
 #include <iostream>
 
-ClientHandler::ClientHandler(
-    uint16_t player_id,
-    Socket client,
-    Queue<Command>& commands_queue):
+ClientHandler::ClientHandler(uint16_t player_id, Socket client,
+                             Queue<Command>& commands_queue):
     player_id(player_id),
-    client(std::move(client)),
-    commands_queue(commands_queue),
-    receiver(std::make_unique<Receiver>(
-        this->client,
-        this->commands_queue,
-        this->player_id)),
-    sender(std::make_unique<Sender<Snapshot>>(
-        this->client,
-        sender_queue)) {}
+    client(std::move(client)), commands_queue(commands_queue),
+    receiver(std::make_unique<Receiver>(this->client, this->commands_queue,
+                                        this->player_id)),
+    sender(std::make_unique<Sender<Snapshot>>(this->client, sender_queue)) {}
 
-ClientHandler::~ClientHandler() {
-    stop();
-}
+ClientHandler::~ClientHandler() { stop(); }
 
 void ClientHandler::stop() {
-
     try {
         client.close();
     } catch (...) {
@@ -45,13 +35,8 @@ void ClientHandler::stop() {
 }
 
 void ClientHandler::run() {
-
     try {
-
-        std::cout
-            << "[ClientHandler "
-            << player_id
-            << "] Iniciado\n";
+        std::cout << "[ClientHandler " << player_id << "] Iniciado\n";
 
         receiver->start();
         sender->start();
@@ -65,24 +50,15 @@ void ClientHandler::run() {
 
         sender->join();
 
-        std::cout
-            << "[ClientHandler "
-            << player_id
-            << "] Finalizado\n";
+        std::cout << "[ClientHandler " << player_id << "] Finalizado\n";
 
     } catch (const std::exception& ex) {
-
-        std::cerr
-            << "[ClientHandler "
-            << player_id
-            << "] Cerrando: "
-            << ex.what()
-            << "\n";
+        std::cerr << "[ClientHandler " << player_id
+                  << "] Cerrando: " << ex.what() << "\n";
     }
 }
 
 void ClientHandler::push(Snapshot element) {
-
     try {
         sender_queue.push(std::move(element));
     } catch (const ClosedQueue&) {

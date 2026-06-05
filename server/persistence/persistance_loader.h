@@ -7,7 +7,5 @@
 
 class PersistenceLoader {
 public:
-    static std::vector<PersistenceTask> load_players(
-        const std::string& path
-    );
+    static std::vector<PersistenceTask> load_players(const std::string& path);
 };

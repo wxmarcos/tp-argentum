@@ -1,13 +1,13 @@
 #include "razas/humano.h"
 
-Humano::Humano(const Config& config)
-    : constitucionBase(config.getRazaConstitucionBase("humano")),
-      inteligenciaBase(config.getRazaInteligenciaBase("humano")),
-      fuerzaBase(config.getRazaFuerzaBase("humano")),
-      agilidadBase(config.getRazaAgilidadBase("humano")),
-      fRazaVida(config.getRazaFVida("humano")),
-      fRazaMana(config.getRazaFMana("humano")),
-      fRazaRecuperacion(config.getRazaFRecuperacion("humano")) {}
+Humano::Humano(const Config& config):
+    constitucionBase(config.getRazaConstitucionBase("humano")),
+    inteligenciaBase(config.getRazaInteligenciaBase("humano")),
+    fuerzaBase(config.getRazaFuerzaBase("humano")),
+    agilidadBase(config.getRazaAgilidadBase("humano")),
+    fRazaVida(config.getRazaFVida("humano")),
+    fRazaMana(config.getRazaFMana("humano")),
+    fRazaRecuperacion(config.getRazaFRecuperacion("humano")) {}
 
 std::string Humano::getNombre() const { return "Humano"; }
 int Humano::getConstitucionBase() const { return constitucionBase; }

@@ -1,0 +1,16 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+
+IndentWidth: 4
+AccessModifierOffset: -4
+ColumnLimit: 80
+
+BreakConstructorInitializers: AfterColon
+SpaceBeforeCtorInitializerColon: false
+SpaceBeforeInheritanceColon: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+
+PointerAlignment: Left
+SortIncludes: true
+UseTab: Never

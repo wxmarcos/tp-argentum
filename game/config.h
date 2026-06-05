@@ -1,13 +1,17 @@
 #pragma once
 
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <stdexcept>
 
 class Config {
 public:
     explicit Config(const std::string& rutaArchivo);
+    Config(const Config&) = delete;
+    Config& operator=(const Config&) = delete;
 
+    Config(Config&&) = delete;
+    Config& operator=(Config&&) = delete;
     // Inventario
     int getInventarioCapacidadMax() const;
 
@@ -83,6 +87,7 @@ public:
     std::string getRutaJugadores() const;
     std::string getRutaNPCsCriaturas() const;
     ~Config();
+
 private:
     struct Impl;
     Impl* impl;

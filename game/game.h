@@ -2,17 +2,17 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
-#include "config.h"
-#include "mundo.h"
-#include "characters/jugador.h"
-#include "criaturas/criatura.h"
-#include "razas/raza.h"
-#include "clases/charClase.h"
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
+#include "game/characters/jugador.h"
+#include "game/clases/charClase.h"
+#include "game/config.h"
+#include "game/criaturas/criatura.h"
+#include "game/mundo.h"
+#include "game/razas/raza.h"
 #include "server/persistence/persistence_task.h"
 #include "server/persistence/persistence_task_factory.h"
 
@@ -29,7 +29,7 @@ private:
     Config& config;
     Mundo mundo;
 
-    std::map<std::string, std::unique_ptr<Raza>>      razas;
+    std::map<std::string, std::unique_ptr<Raza>> razas;
     std::map<std::string, std::unique_ptr<CharClase>> clases;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;
     std::map<std::string, std::unique_ptr<Criatura>> criaturas;
@@ -41,7 +41,7 @@ private:
         std::vector<std::string> criaturasPosibles;
     };
     std::map<int, InfoSpawnMapa> infoSpawn;
-    
+
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
 
     void cargarMundo();
@@ -52,7 +52,9 @@ private:
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     // Helpers
     std::string getNombreJugadorPorComando(const Command& cmd) const;
-    bool handle_meditation_interruption(Jugador* jugador, std::vector<Snapshot>& snapshots, const std::string& nombre);
+    bool handle_meditation_interruption(Jugador* jugador,
+                                        std::vector<Snapshot>& snapshots,
+                                        const std::string& nombre);
     std::unique_ptr<Item> crear_item_por_nombre(const std::string& nombre);
     // Combate contra criaturas (logica separada de PvP)
     ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
@@ -70,8 +72,8 @@ private:
     std::vector<InfoSacerdote> sacerdotes;
     void cargarSacerdotes();
     bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
-                                    InfoSacerdote& destino,
-                                    float& distancia) const;
+                                      InfoSacerdote& destino,
+                                      float& distancia) const;
     void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
 
     // TODO: npcs
@@ -84,8 +86,8 @@ public:
     std::vector<Snapshot> process(const Command& cmd);
 
     // Jugadores
-    bool agregarJugador(const std::string& nombre, int mapaId, int posX, int posY,
-                        const std::string& razaNombre,
+    bool agregarJugador(const std::string& nombre, int mapaId, int posX,
+                        int posY, const std::string& razaNombre,
                         const std::string& claseNombre);
     void removerJugador(const std::string& nombre);
     Jugador* getJugador(const std::string& nombre);
@@ -93,7 +95,8 @@ public:
     bool moverJugador(const std::string& nombre, Direccion dir);
 
     // Criaturas
-    std::string agregarCriatura(const std::string& tipo, int mapaId, int posX, int posY);
+    std::string agregarCriatura(const std::string& tipo, int mapaId, int posX,
+                                int posY);
     void removerCriatura(const std::string& id);
     Criatura* getCriatura(const std::string& id);
 
@@ -104,6 +107,6 @@ public:
     std::vector<Snapshot> tick(float dt);
     const Mundo& getMundo() const;
 
-    bool tirarItem(const std::string& nombre,int indice,int cantidad = -1);
+    bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
     std::optional<int> tomarItem(const std::string& nombre, int indice);
 };
