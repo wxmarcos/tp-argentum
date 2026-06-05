@@ -805,6 +805,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 static_cast<uint16_t>(resultado.danioAplicado),
                 resultado.fueCritico));
 
+            if (Jugador* victima = getJugador(objetivo)) {
+                snapshots.push_back(
+                    SnapshotFactory::player_stats_from_player(*victima));
+            }
+
             if (resultado.objetivoMurio) {
                 snapshots.push_back(Snapshot::death_event(objetivo));
                 // Si era criatura, removerla del mundo
@@ -1303,6 +1308,9 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
             snapshots.push_back(
                 Snapshot::damage_event(id, objetivo->getNombre(),
                                        static_cast<uint16_t>(danio), false));
+
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*objetivo));
 
             if (!objetivo->estaVivo()) {
                 snapshots.push_back(

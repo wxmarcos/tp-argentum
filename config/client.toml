@@ -21,6 +21,10 @@ map_name = "mazmorra"
 music_volume = 64
 effects_volume = 96
 
+[ui]
+font_path = "assets/fonts/Cardo-Bold.ttf"
+font_size = 18
+
 [character]
 nick = "Messi"
 raza = "humano"

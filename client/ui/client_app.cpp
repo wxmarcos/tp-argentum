@@ -15,6 +15,7 @@
 #include "net/server_connection.h"
 #include "protocol/game_update.h"
 #include "render/world_renderer.h"
+#include "render/hud_renderer.h"
 
 using SDL2pp::Renderer;
 using SDL2pp::SDL;
@@ -41,6 +42,7 @@ int ClientApp::run() {
 
         AudioManager audio(config);
         WorldRenderer world_renderer(renderer, config);
+        HudRenderer hud(renderer, config);
         InputHandler input;
         ClientGameState state(config.character_nick, config.map_width,
                               config.map_height);
@@ -52,7 +54,7 @@ int ClientApp::run() {
         connection.send(Command::create_character(config.character_nick,
                                                   config.character_raza,
                                                   config.character_clase));
-        main_loop(connection, input, world_renderer, state);
+        main_loop(connection, input, renderer, world_renderer, hud, state);
 
         connection.send(Command::disconnect());
         connection.stop();
@@ -66,7 +68,8 @@ int ClientApp::run() {
 }
 
 void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
-                          WorldRenderer& renderer, ClientGameState& state) {
+                          SDL2pp::Renderer& renderer, WorldRenderer& world,
+                          HudRenderer& hud, ClientGameState& state) {
     const Uint32 frame_delay_ms = 1000 / 60;
     bool running = true;
     Uint32 last_ticks = SDL_GetTicks();
@@ -81,7 +84,11 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
             running = process_updates(connection, state);
         }
 
-        renderer.render(state, delta_ms);
+        renderer.SetDrawColor(34, 51, 34, 255);
+        renderer.Clear();
+        world.render(state, delta_ms);
+        hud.render(state);
+        renderer.Present();
 
         const Uint32 elapsed = SDL_GetTicks() - now;
         if (elapsed < frame_delay_ms) {

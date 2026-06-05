@@ -12,8 +12,17 @@
 #include "render/character_animator.h"
 #include "render/map_data.h"
 #include "render/sprite_registry.h"
+#include "render/text_renderer.h"
 #include "render/tile_catalog.h"
 #include "render/tmx_loader.h"
+
+struct FloatingText {
+    int wx;
+    int wy;
+    std::string text;
+    SDL_Color color;
+    uint32_t age_ms;
+};
 
 class WorldRenderer {
     private:
@@ -21,6 +30,9 @@ class WorldRenderer {
     const ClientConfig& config;
 
     SpriteRegistry registry;
+    TextRenderer text;
+
+    std::vector<FloatingText> floating_texts;
 
     std::unique_ptr<TileCatalog> catalog;
     std::unique_ptr<MapData>     map;
@@ -47,6 +59,12 @@ class WorldRenderer {
                        const std::string& type,
                        int frame,
                        int cam_offset_x, int cam_offset_y);
+
+    void draw_name(const std::string& nick, int world_x, int world_y,
+                   int cam_offset_x, int cam_offset_y);
+
+    void draw_floating_texts(const ClientGameState& state, uint32_t delta_ms,
+                             int cam_offset_x, int cam_offset_y);
 
     static int dir_to_idx(protocol::Direction dir);
 
