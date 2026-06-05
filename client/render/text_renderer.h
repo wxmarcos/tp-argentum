@@ -21,9 +21,10 @@ public:
 
     void draw(const std::string& text, int x, int y, SDL_Color color);
     void draw_centered(const std::string& text, int center_x, int y,
-                       SDL_Color color);
+                       SDL_Color color, Uint8 alpha = 255);
 
     int line_height() const;
+    void size_text(const std::string& text, int& w, int& h) const;
 
 private:
     struct CachedText {

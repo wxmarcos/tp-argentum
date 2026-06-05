@@ -275,10 +275,51 @@ void WorldRenderer::draw_name(const std::string& nick, int world_x,
     text.draw_centered(nick, center_x, top_y, white);
 }
 
+void WorldRenderer::draw_floating_texts(const ClientGameState& state,
+                                        uint32_t delta_ms, int cam_offset_x,
+                                        int cam_offset_y) {
+
+    for (const auto& ev : state.get_floating_events()) {
+        SDL_Color color;
+        switch (ev.kind) {
+            case FloatingKind::Crit:
+                color = {255, 220, 40, 255};
+                break;
+            case FloatingKind::DamageReceived:
+            case FloatingKind::Death:
+                color = {230, 60, 60, 255};
+                break;
+            case FloatingKind::Dodge:
+                color = {180, 220, 255, 255};
+                break;
+            default:
+                color = {255, 255, 255, 255};
+                break;
+        }
+        floating_texts.push_back({ev.x, ev.y, ev.text, color, 0});
+    }
+
+    const uint32_t LIFETIME = 1000;
+    const int ts = config.tile_size;
+    auto it = floating_texts.begin();
+    while (it != floating_texts.end()) {
+        it->age_ms += delta_ms;
+        if (it->age_ms >= LIFETIME) {
+            it = floating_texts.erase(it);
+            continue;
+        }
+        const float t = static_cast<float>(it->age_ms) / LIFETIME;
+        const int rise = static_cast<int>(t * 24.0f);
+        const Uint8 alpha = static_cast<Uint8>(255 * (1.0f - t));
+        const int cx = cam_offset_x + it->wx * ts + ts / 2;
+        const int cy = cam_offset_y + it->wy * ts - ts - rise;
+        text.draw_centered(it->text, cx, cy, it->color, alpha);
+        ++it;
+    }
+}
+
 void WorldRenderer::render(const ClientGameState& state,
                            uint32_t delta_ms) {
-    renderer.SetDrawColor(34, 51, 34, 255);
-    renderer.Clear();
  
     const int ts = config.tile_size;
     const int screen_cx = config.window_width  / 2;
@@ -369,7 +410,7 @@ void WorldRenderer::render(const ClientGameState& state,
             ++cit;
         }
     }
- 
-    renderer.Present();
+
+    draw_floating_texts(state, delta_ms, cam_offset_x, cam_offset_y);
 }
  

@@ -44,10 +44,11 @@ ClientGameState::ClientGameState(const std::string& local_nick, int map_width,
     local_nick(local_nick),
     has_local_pos(false), local_x(0), local_y(0),
     local_dir(protocol::Direction::SOUTH), local_moved(false),
-    current_map_id(0), has_stats(false), has_error(false),
+    current_map_id(0), has_stats(false), has_error(false), error_seq(0),
     map_width(map_width), map_height(map_height) {}
 
 void ClientGameState::begin_frame() {
+    floating_events.clear();
     local_moved = false;
     for (auto& [nick, pv] : others) {
         pv.moved = false;
@@ -227,20 +228,72 @@ void ClientGameState::apply_player_stats(const Snapshot& snapshot) {
     }
 }
 
+bool ClientGameState::resolve_entity_pos(const std::string& nick, uint16_t& x,
+                                         uint16_t& y) const {
+    if (nick == local_nick) {
+        if (!has_local_pos) {
+            return false;
+        }
+        x = local_x;
+        y = local_y;
+        return true;
+    }
+    auto ito = others.find(nick);
+    if (ito != others.end()) {
+        x = ito->second.x;
+        y = ito->second.y;
+        return true;
+    }
+    auto itc = creatures.find(nick);
+    if (itc != creatures.end()) {
+        x = itc->second.x;
+        y = itc->second.y;
+        return true;
+    }
+    return false;
+}
+
 void ClientGameState::apply_inventory_update(const Snapshot&) {
     // TODO
 }
 
-void ClientGameState::apply_damage_event(const Snapshot&) {
-    // TODO
+void ClientGameState::apply_damage_event(const Snapshot& snapshot) {
+    const std::string& target = snapshot.get_target();
+    uint16_t x = 0;
+    uint16_t y = 0;
+    if (!resolve_entity_pos(target, x, y)) {
+        return;
+    }
+    FloatingKind kind;
+    if (snapshot.is_critical()) {
+        kind = FloatingKind::Crit;
+    } else if (target == local_nick) {
+        kind = FloatingKind::DamageReceived;
+    } else {
+        kind = FloatingKind::DamageDealt;
+    }
+    floating_events.push_back(
+        {x, y, std::to_string(snapshot.get_damage()), kind});
 }
 
-void ClientGameState::apply_dodge_event(const Snapshot&) {
-    // TODO
+void ClientGameState::apply_dodge_event(const Snapshot& snapshot) {
+    const std::string& target = snapshot.get_target();
+    uint16_t x = 0;
+    uint16_t y = 0;
+    if (!resolve_entity_pos(target, x, y)) {
+        return;
+    }
+    floating_events.push_back({x, y, "Esquivó", FloatingKind::Dodge});
 }
 
-void ClientGameState::apply_death_event(const Snapshot&) {
-    // TODO
+void ClientGameState::apply_death_event(const Snapshot& snapshot) {
+    const std::string& target = snapshot.get_target();
+    uint16_t x = 0;
+    uint16_t y = 0;
+    if (!resolve_entity_pos(target, x, y)) {
+        return;
+    }
+    floating_events.push_back({x, y, "¡Murió!", FloatingKind::Death});
 }
 
 void ClientGameState::apply_meditation_status(const Snapshot&) {
@@ -252,6 +305,11 @@ void ClientGameState::apply_chat_message(const Snapshot&) {
 }
 
 void ClientGameState::apply_error_message(const Snapshot& snapshot) {
+    const std::string& nick = snapshot.get_nick();
+    if (!nick.empty() && nick != local_nick) {
+        return;
+    }
     last_error = snapshot.get_text();
     has_error = true;
+    ++error_seq;
 }

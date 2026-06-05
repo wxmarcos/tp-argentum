@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "common/protocol_defs.h"
 #include "protocol/game_update.h"
@@ -43,6 +44,15 @@ struct CreatureView {
     bool moved = false;
 };
 
+enum class FloatingKind { DamageDealt, DamageReceived, Crit, Dodge, Death };
+
+struct FloatingEvent {
+    uint16_t x = 0;
+    uint16_t y = 0;
+    std::string text;
+    FloatingKind kind = FloatingKind::DamageDealt;
+};
+
 class ClientGameState {
 private:
     std::string local_nick;
@@ -59,12 +69,18 @@ private:
 
     std::string last_error;
     bool has_error;
+    uint32_t error_seq;
 
     std::unordered_map<std::string, PlayerView> others;
     std::unordered_map<std::string, CreatureView> creatures;
 
     int map_width;
     int map_height;
+
+    std::vector<FloatingEvent> floating_events;
+
+    bool resolve_entity_pos(const std::string& nick, uint16_t& x,
+                            uint16_t& y) const;
 
     void apply_snapshot(const Snapshot& snapshot);
     void apply_entity_position(const Snapshot& snapshot);
@@ -99,9 +115,14 @@ public:
 
     bool has_pending_error() const { return has_error; }
     const std::string& get_last_error() const { return last_error; }
+    uint32_t get_error_seq() const { return error_seq; }
 
     const std::unordered_map<std::string, PlayerView>& get_others() const {
         return others;
+    }
+
+    const std::vector<FloatingEvent>& get_floating_events() const {
+        return floating_events;
     }
 
     const std::unordered_map<std::string, CreatureView>& get_creatures() const {

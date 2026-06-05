@@ -16,6 +16,7 @@ target_sources(taller_client
     render/map_data.cpp
     render/tmx_loader.cpp
     render/text_renderer.cpp
+    render/hud_renderer.cpp
     audio/audio_manager.cpp
     config/client_config.cpp
 
@@ -37,6 +38,7 @@ target_sources(taller_client
     render/map_data.h
     render/tmx_loader.h
     render/text_renderer.h
+    render/hud_renderer.h
     audio/audio_manager.h
     config/client_config.h
     )

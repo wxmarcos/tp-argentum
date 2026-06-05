@@ -3,9 +3,12 @@
 
 #include "config/client_config.h"
 
+namespace SDL2pp { class Renderer; }
+
 class ServerConnection;
 class InputHandler;
 class WorldRenderer;
+class HudRenderer;
 class ClientGameState;
 class Snapshot;
 
@@ -16,7 +19,8 @@ private:
     bool tried_login;
 
     void main_loop(ServerConnection& connection, InputHandler& input,
-                   WorldRenderer& renderer, ClientGameState& state);
+                   SDL2pp::Renderer& renderer, WorldRenderer& world,
+                   HudRenderer& hud, ClientGameState& state);
 
     bool process_input(ServerConnection& connection, const InputHandler& input);
 

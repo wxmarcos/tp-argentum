@@ -99,15 +99,24 @@ void TextRenderer::draw(const std::string& text, int x, int y,
 }
 
 void TextRenderer::draw_centered(const std::string& text, int center_x, int y,
-                                 SDL_Color color) {
+                                 SDL_Color color, Uint8 alpha) {
     const CachedText* entry = get_or_build(text, color);
     if (!entry) {
         return;
     }
+    SDL_SetTextureAlphaMod(entry->tex, alpha);
     SDL_Rect dst{center_x - entry->w / 2, y, entry->w, entry->h};
     SDL_RenderCopy(renderer, entry->tex, nullptr, &dst);
 }
 
 int TextRenderer::line_height() const {
     return font ? TTF_FontHeight(font) : 0;
+}
+
+void TextRenderer::size_text(const std::string& text, int& w, int& h) const {
+    w = 0;
+    h = 0;
+    if (font) {
+        TTF_SizeUTF8(font, text.c_str(), &w, &h);
+    }
 }
