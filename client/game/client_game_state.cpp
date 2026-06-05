@@ -48,32 +48,90 @@ void ClientGameState::apply_update(const GameUpdate& update) {
 }
 
 void ClientGameState::apply_snapshot(const Snapshot& snapshot) {
-    if (snapshot.is_entity_move()) {
-        apply_entity_move(snapshot);
-    } else if (snapshot.is_entity_remove()) {
+    if (snapshot.is_entity_created() || snapshot.is_entity_login() ||
+        snapshot.is_entity_move() || snapshot.is_map_change()) {
+        apply_entity_position(snapshot);
+        return;
+    }
+
+    if (snapshot.is_entity_remove()) {
         apply_entity_remove(snapshot);
+        return;
+    }
+
+    if (snapshot.is_player_stats()) {
+        apply_player_stats(snapshot);
+        return;
+    }
+
+    if (snapshot.is_inventory_update()) {
+        apply_inventory_update(snapshot);
+        return;
+    }
+
+    if (snapshot.is_damage_event()) {
+        apply_damage_event(snapshot);
+        return;
+    }
+
+    if (snapshot.is_dodge_event()) {
+        apply_dodge_event(snapshot);
+        return;
+    }
+
+    if (snapshot.is_death_event()) {
+        apply_death_event(snapshot);
+        return;
+    }
+
+    if (snapshot.is_meditation_status()) {
+        apply_meditation_status(snapshot);
+        return;
+    }
+
+    if (snapshot.is_chat_message()) {
+        apply_chat_message(snapshot);
+        return;
+    }
+
+    if (snapshot.is_error_message()) {
+        apply_error_message(snapshot);
+        return;
     }
 }
 
-void ClientGameState::apply_entity_move(const Snapshot& snapshot) {
+void ClientGameState::apply_entity_position(const Snapshot& snapshot) {
     const std::string& nick = snapshot.get_nick();
 
     if (nick == local_nick) {
         const uint16_t new_x = snapshot.get_x();
         const uint16_t new_y = snapshot.get_y();
+
         local_moved = has_local_pos && (new_x != local_x || new_y != local_y);
+
         local_x = new_x;
         local_y = new_y;
         local_dir = static_cast<protocol::Direction>(snapshot.get_direction());
         has_local_pos = true;
+
+        if (snapshot.is_map_change()) {
+            current_map_id = snapshot.get_mapa_id();
+
+            others.clear();
+            creatures.clear();
+        }
+
         return;
     }
 
     std::string type;
+
     if (classify_creature(nick, type)) {
         CreatureView& cv = creatures[nick];
+
         const uint16_t new_x = snapshot.get_x();
         const uint16_t new_y = snapshot.get_y();
+
         cv.moved = (new_x != cv.x || new_y != cv.y);
         cv.key = nick;
         cv.type = type;
@@ -81,12 +139,15 @@ void ClientGameState::apply_entity_move(const Snapshot& snapshot) {
         cv.y = new_y;
         cv.direction =
             static_cast<protocol::Direction>(snapshot.get_direction());
+
         return;
     }
 
     PlayerView& pv = others[nick];
+
     const uint16_t new_x = snapshot.get_x();
     const uint16_t new_y = snapshot.get_y();
+
     pv.moved = (new_x != pv.x || new_y != pv.y);
     pv.nick = nick;
     pv.x = new_x;
@@ -105,4 +166,36 @@ void ClientGameState::apply_entity_remove(const Snapshot& snapshot) {
         return;
     }
     others.erase(nick);
+}
+
+void ClientGameState::apply_player_stats(const Snapshot&) {
+    // TODO
+}
+
+void ClientGameState::apply_inventory_update(const Snapshot&) {
+    // TODO
+}
+
+void ClientGameState::apply_damage_event(const Snapshot&) {
+    // TODO
+}
+
+void ClientGameState::apply_dodge_event(const Snapshot&) {
+    // TODO
+}
+
+void ClientGameState::apply_death_event(const Snapshot&) {
+    // TODO
+}
+
+void ClientGameState::apply_meditation_status(const Snapshot&) {
+    // TODO
+}
+
+void ClientGameState::apply_chat_message(const Snapshot&) {
+    // TODO
+}
+
+void ClientGameState::apply_error_message(const Snapshot&) {
+    // TODO
 }

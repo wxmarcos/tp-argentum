@@ -91,20 +91,28 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 bool ClientApp::process_input(ServerConnection& connection,
                               const InputHandler& input) {
     SDL_Event event;
+
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
+            connection.send(Command::disconnect());
             return false;
         }
+
         if (event.type == SDL_KEYDOWN) {
-            if (event.key.keysym.sym == SDLK_ESCAPE) {
+            if (event.key.keysym.sym == SDLK_ESCAPE ||
+                event.key.keysym.sym == SDLK_q) {
+                connection.send(Command::disconnect());
                 return false;
             }
-            Command cmd(0, protocol::ClientOpcode::DISCONNECT);
+
+            Command cmd = Command::disconnect();
+
             if (input.process_key(event.key, cmd)) {
                 connection.send(cmd);
             }
         }
     }
+
     return true;
 }
 

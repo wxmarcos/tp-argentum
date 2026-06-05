@@ -1,7 +1,8 @@
-target_sources(taller_server PRIVATE
-    client_handler.cpp
-    monitor_clients.cpp
+target_sources(taller_server
+    PRIVATE
+        monitor_clients.cpp
+        client_handler.cpp
     PUBLIC
-    client_handler.h
-    monitor_clients.h
+        monitor_clients.h
+        client_handler.h
 )

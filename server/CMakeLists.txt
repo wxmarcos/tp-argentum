@@ -1,6 +1,6 @@
 target_sources(taller_server
     PRIVATE
-        main.cpp
+    main.cpp
     PUBLIC
         server.h
 )

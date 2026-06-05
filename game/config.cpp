@@ -30,13 +30,13 @@ struct Config::Impl {
 
 Config::Config(const std::string& rutaArchivo): impl(new Impl(rutaArchivo)) {}
 
-// ----------------- Inventario -----------------
+// Inventario
 
 int Config::getInventarioCapacidadMax() const {
     return impl->get<int64_t>("inventario.capacidad_max", 30);
 }
 
-// ----------------- Razas -----------------
+// Razas
 
 int Config::getRazaConstitucionBase(const std::string& raza) const {
     std::string clave = "razas." + raza + ".constitucion_base";
@@ -113,7 +113,7 @@ float Config::getRazaFRecuperacion(const std::string& raza) const {
     return static_cast<float>(impl->get<double>(clave, 1.0));
 }
 
-// ----------------- Clases -----------------
+// Clases
 
 float Config::getClaseFVida(const std::string& clase) const {
     std::string clave = "clases." + clase + ".f_clase_vida";
@@ -154,7 +154,7 @@ float Config::getClaseFMeditacion(const std::string& clase) const {
     return static_cast<float>(impl->get<double>(clave, 0.0));
 }
 
-// ----------------- Fórmulas -----------------
+// Fórmulas
 
 int Config::getFormulaCriticoPorcentaje() const {
     return impl->get<int64_t>("formulas.critico_porcentaje", 20);

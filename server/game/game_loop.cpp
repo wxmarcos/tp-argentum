@@ -25,7 +25,7 @@ void GameLoop::run() {
         auto tick_start = std::chrono::steady_clock::now();
 
         try {
-            Command cmd;
+            Command cmd(0, protocol::ClientOpcode::DISCONNECT);
 
             while (commands_queue.try_pop(cmd)) {
                 std::cout << "[GameLoop] Comando recibido: player_id="

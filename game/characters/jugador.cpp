@@ -8,7 +8,7 @@
 #include "game/items/item.h"
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
-                 const Raza* raza, const CharClase* clase,
+                 const Raza* raza, const charClase* clase,
                  int capacidadInventario):
     Character(nombre, posX, posY, 1),
     raza(raza), clase(clase), constitucion(raza->getConstitucionBase()),
@@ -55,7 +55,7 @@ void Jugador::restaurarEstado(int nuevoNivel, int nuevaVida, int nuevaVidaMax,
 
 // ----------------------- Getters básicos -----------------------
 const Raza* Jugador::getRaza() const { return raza; }
-const CharClase* Jugador::getClase() const { return clase; }
+const charClase* Jugador::getClase() const { return clase; }
 int Jugador::getConstitucion() const { return constitucion; }
 int Jugador::getInteligencia() const { return inteligencia; }
 int Jugador::getFuerza() const { return fuerza; }

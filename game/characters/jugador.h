@@ -7,7 +7,7 @@
 class Jugador: public Character {
 private:
     const Raza* raza;
-    const CharClase* clase;
+    const charClase* clase;
     int constitucion;
     int inteligencia;
     int fuerza;
@@ -39,7 +39,7 @@ private:
 
 public:
     Jugador(const std::string& nombre, int posX, int posY, const Raza* raza,
-            const CharClase* clase, int capacidadInventario = 30);
+            const charClase* clase, int capacidadInventario = 30);
 
     void restaurarEstado(int nivel, int vida, int vidaMax, int mana,
                          int manaMax, int experiencia, int oro,
@@ -48,7 +48,7 @@ public:
 
     // Getters de raza/clase/stats
     const Raza* getRaza() const;
-    const CharClase* getClase() const;
+    const charClase* getClase() const;
     int getConstitucion() const;
     int getInteligencia() const;
     int getFuerza() const;

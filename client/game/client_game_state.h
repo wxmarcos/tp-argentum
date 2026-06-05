@@ -34,16 +34,25 @@ private:
     uint16_t local_y;
     protocol::Direction local_dir;
     bool local_moved;
-
+    uint16_t current_map_id;
     std::unordered_map<std::string, PlayerView> others;
     std::unordered_map<std::string, CreatureView> creatures;
 
     int map_width;
     int map_height;
 
+private:
     void apply_snapshot(const Snapshot& snapshot);
-    void apply_entity_move(const Snapshot& snapshot);
+    void apply_entity_position(const Snapshot& snapshot);
     void apply_entity_remove(const Snapshot& snapshot);
+    void apply_player_stats(const Snapshot& snapshot);
+    void apply_inventory_update(const Snapshot& snapshot);
+    void apply_damage_event(const Snapshot& snapshot);
+    void apply_dodge_event(const Snapshot& snapshot);
+    void apply_death_event(const Snapshot& snapshot);
+    void apply_meditation_status(const Snapshot& snapshot);
+    void apply_chat_message(const Snapshot& snapshot);
+    void apply_error_message(const Snapshot& snapshot);
 
 public:
     ClientGameState(const std::string& local_nick, int map_width,

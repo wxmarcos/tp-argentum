@@ -30,7 +30,7 @@ private:
     Mundo mundo;
 
     std::map<std::string, std::unique_ptr<Raza>> razas;
-    std::map<std::string, std::unique_ptr<CharClase>> clases;
+    std::map<std::string, std::unique_ptr<charClase>> clases;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;
     std::map<std::string, std::unique_ptr<Criatura>> criaturas;
     int nextCriaturaId;
