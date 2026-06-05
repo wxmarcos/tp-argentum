@@ -9,7 +9,9 @@
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
                  const Raza* raza, const charClase* clase,
-                 int capacidadInventario):
+                 int capacidadInventario,
+                 double formulaExpCoef, double formulaExpExp,
+                 double formulaOroCoef, double formulaOroExp):
     Character(nombre, posX, posY, 1),
     raza(raza), clase(clase), constitucion(raza->getConstitucionBase()),
     inteligencia(raza->getInteligenciaBase()), fuerza(raza->getFuerzaBase()),
@@ -17,6 +19,8 @@ Jugador::Jugador(const std::string& nombre, int posX, int posY,
     experiencia(0), oro(0), vidaAcumulada(0.0f), manaAcumulado(0.0f),
     meditando(false), inventario(capacidadInventario), resucitando(false),
     tiempoResucitando(0.0f), destinoMapaId(0), destinoPosX(0), destinoPosY(0),
+    formulaExpCoef(formulaExpCoef), formulaExpExp(formulaExpExp),
+    formulaOroCoef(formulaOroCoef), formulaOroExp(formulaOroExp),
     cheatVidaInfinita(false), cheatManaInfinito(false) {
     recalcularStats();
 }
@@ -83,7 +87,7 @@ int Jugador::getNivel() const { return nivel; }
 int Jugador::getExperiencia() const { return experiencia; }
 
 int Jugador::expParaSiguienteNivel() const {
-    return Formulas::calcularLimiteExp(nivel);
+    return Formulas::calcularLimiteExp(nivel, formulaExpCoef, formulaExpExp);
 }
 
 void Jugador::verificarSubidaNivel() {
@@ -102,7 +106,7 @@ void Jugador::ganarExperiencia(int exp) {
 
 // ----------------------- Oro -----------------------
 int Jugador::getOro() const { return oro; }
-int Jugador::getOroMax() const { return Formulas::calcularOroMax(nivel); }
+int Jugador::getOroMax() const { return Formulas::calcularOroMax(nivel, formulaOroCoef, formulaOroExp); }
 
 void Jugador::agregarOro(int cantidad) {
     if (cantidad <= 0) return;
@@ -256,4 +260,10 @@ void Jugador::morir() {
     if (cheatVidaInfinita) return;
     Character::morir();
     interrumpirMeditacion();
+}
+
+void Jugador::revivir(int vidaInicial) {
+    Character::revivir(vidaInicial);
+    resucitando = false;
+    tiempoResucitando = 0.0f;
 }

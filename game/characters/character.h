@@ -33,5 +33,5 @@ public:
     void recibirDanio(int danio);
     void curar(int cantidad);
     virtual void morir();
-    void revivir(int vidaInicial);
+    virtual void revivir(int vidaInicial);
 };

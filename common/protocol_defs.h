@@ -28,6 +28,8 @@ enum class ClientOpcode : uint8_t {
     SELL_ITEM = 14,
     DEPOSIT_ITEM = 15,
     WITHDRAW_ITEM = 16,
+    DEPOSIT_GOLD = 17,
+    WITHDRAW_GOLD = 18,
 
     PRIVATE_MESSAGE = 30,
 
@@ -39,6 +41,11 @@ enum class ClientOpcode : uint8_t {
     CLAN_BAN = 45,
     CLAN_KICK = 46,
     CLAN_LEAVE = 47,
+
+    CHEAT_GOD = 100,
+    CHEAT_MANA = 101,
+    CHEAT_DIE = 102,
+    CHEAT_RESURRECT = 103,
 
     DISCONNECT = 255
 };

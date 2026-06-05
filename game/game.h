@@ -7,6 +7,7 @@
 
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
+#include "game/banco/cuentaBanco.h"
 #include "game/characters/jugador.h"
 #include "game/clases/charClase.h"
 #include "game/config.h"
@@ -35,6 +36,7 @@ private:
     std::map<std::string, std::unique_ptr<Criatura>> criaturas;
     int nextCriaturaId;
 
+    // Spawn
     float tiempoDesdeUltimoSpawn;
     struct InfoSpawnMapa {
         int poblacionMax;
@@ -65,18 +67,23 @@ private:
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
     void spawnCriaturas();
 
-    // Sacerdotes y resurreccion
-    struct InfoSacerdote {
+    // NPC y comportamiento
+    struct InfoNPC {
         int mapaId, x, y;
     };
-    std::vector<InfoSacerdote> sacerdotes;
-    void cargarSacerdotes();
-    bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
-                                      InfoSacerdote& destino,
-                                      float& distancia) const;
-    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
+    
+    std::vector<InfoNPC> sacerdotes;
+    std::vector<InfoNPC> comerciantes;
+    std::vector<InfoNPC> banqueros;
 
-    // TODO: npcs
+    std::map<std::string, CuentaBanco> cuentasBancarias;
+
+    void cargarNPCs();
+    bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
+                                    InfoNPC& destino,
+                                    float& distancia) const;
+    bool hayNPCCercano(const Jugador* jugador, const std::vector<InfoNPC>& npcs) const;
+    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
 
 public:
     explicit Game(Config& config);

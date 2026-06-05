@@ -53,34 +53,26 @@ std::vector<PersistenceTask> PersistenceLoader::load_players(
             p->get("clase") ? p->get("clase")->value_or(std::string("mago"))
                             : std::string("mago"));
 
-        task.mapa_id =
-            static_cast<uint16_t>(p->get("mapa_id")->value_or<int64_t>(1));
-        task.x = static_cast<uint16_t>(p->get("x")->value_or<int64_t>(10));
-        task.y = static_cast<uint16_t>(p->get("y")->value_or<int64_t>(10));
-        task.direction =
-            static_cast<uint8_t>(p->get("direction")->value_or<int64_t>(2));
+        auto get_i64 = [&](const char* key, int64_t def) -> int64_t {
+            auto* node = p->get(key);
+            return node ? node->value_or(int64_t{def}) : def;
+        };
 
-        task.nivel =
-            static_cast<uint16_t>(p->get("nivel")->value_or<int64_t>(1));
-        task.vida = static_cast<uint16_t>(p->get("vida")->value_or<int64_t>(1));
-        task.vida_max =
-            static_cast<uint16_t>(p->get("vida_max")->value_or<int64_t>(1));
-        task.mana = static_cast<uint16_t>(p->get("mana")->value_or<int64_t>(0));
-        task.mana_max =
-            static_cast<uint16_t>(p->get("mana_max")->value_or<int64_t>(0));
-
-        task.experiencia =
-            static_cast<uint32_t>(p->get("experiencia")->value_or<int64_t>(0));
-        task.oro = static_cast<uint32_t>(p->get("oro")->value_or<int64_t>(0));
-
-        task.constitucion =
-            static_cast<uint16_t>(p->get("constitucion")->value_or<int64_t>(0));
-        task.inteligencia =
-            static_cast<uint16_t>(p->get("inteligencia")->value_or<int64_t>(0));
-        task.fuerza =
-            static_cast<uint16_t>(p->get("fuerza")->value_or<int64_t>(0));
-        task.agilidad =
-            static_cast<uint16_t>(p->get("agilidad")->value_or<int64_t>(0));
+        task.mapa_id    = static_cast<uint16_t>(get_i64("mapa_id",    1));
+        task.x          = static_cast<uint16_t>(get_i64("x",          10));
+        task.y          = static_cast<uint16_t>(get_i64("y",          10));
+        task.direction  = static_cast<uint8_t> (get_i64("direction",  2));
+        task.nivel      = static_cast<uint16_t>(get_i64("nivel",      1));
+        task.vida       = static_cast<uint16_t>(get_i64("vida",       1));
+        task.vida_max   = static_cast<uint16_t>(get_i64("vida_max",   1));
+        task.mana       = static_cast<uint16_t>(get_i64("mana",       0));
+        task.mana_max   = static_cast<uint16_t>(get_i64("mana_max",   0));
+        task.experiencia= static_cast<uint32_t>(get_i64("experiencia",0));
+        task.oro        = static_cast<uint32_t>(get_i64("oro",        0));
+        task.constitucion  = static_cast<uint16_t>(get_i64("constitucion",  0));
+        task.inteligencia  = static_cast<uint16_t>(get_i64("inteligencia",  0));
+        task.fuerza        = static_cast<uint16_t>(get_i64("fuerza",        0));
+        task.agilidad      = static_cast<uint16_t>(get_i64("agilidad",      0));
         auto* inventario_table =
             p->get("inventario") ? p->get("inventario")->as_table() : nullptr;
 

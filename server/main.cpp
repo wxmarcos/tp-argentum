@@ -1,4 +1,6 @@
 #include <atomic>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <stdexcept>
 
@@ -6,6 +8,7 @@
 #include "server/server.h"
 
 int main(int argc, char const* argv[]) {
+    srand(static_cast<unsigned int>(time(nullptr)));
     if (argc != 2) {
         std::cerr << "Uso: " << argv[0] << " <puerto>\n";
         return 1;

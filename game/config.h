@@ -78,10 +78,15 @@ public:
         int poblacionMax;
         std::vector<std::string> criaturasPosibles;
         std::vector<PosicionNPC> sacerdotes;
+        std::vector<PosicionNPC> comerciantes;
+        std::vector<PosicionNPC> banqueros;
         std::vector<ConfigPortal> portales;
     };
 
     std::vector<ConfigMapa> getMapas() const;
+
+    // Precio de items
+    int getPrecioItem(const std::string& nombre) const;
 
     // Rutas de Persistencia
     std::string getRutaJugadores() const;

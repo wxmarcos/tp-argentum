@@ -95,6 +95,24 @@ Command Command::attack(const std::string& nick) {
     return cmd;
 }
 
+Command Command::buy_item(const std::string& itemName) {
+    Command cmd(0, protocol::ClientOpcode::BUY_ITEM);
+    cmd.text = itemName;
+    return cmd;
+}
+
+Command Command::deposit_gold(uint32_t amount) {
+    Command cmd(0, protocol::ClientOpcode::DEPOSIT_GOLD);
+    cmd.amount = amount;
+    return cmd;
+}
+
+Command Command::withdraw_gold(uint32_t amount) {
+    Command cmd(0, protocol::ClientOpcode::WITHDRAW_GOLD);
+    cmd.amount = amount;
+    return cmd;
+}
+
 Command Command::disconnect() {
     return Command(0, protocol::ClientOpcode::DISCONNECT);
 }

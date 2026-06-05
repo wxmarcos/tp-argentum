@@ -29,6 +29,12 @@ private:
     int destinoPosX;
     int destinoPosY;
 
+    // Parametros de formulas (desde Config)
+    double formulaExpCoef;
+    double formulaExpExp;
+    double formulaOroCoef;
+    double formulaOroExp;
+
     // Cheats
     bool cheatVidaInfinita;
     bool cheatManaInfinito;
@@ -39,7 +45,9 @@ private:
 
 public:
     Jugador(const std::string& nombre, int posX, int posY, const Raza* raza,
-            const charClase* clase, int capacidadInventario = 30);
+            const charClase* clase, int capacidadInventario = 30,
+            double formulaExpCoef = 1000.0, double formulaExpExp = 1.8,
+            double formulaOroCoef = 100.0,  double formulaOroExp = 1.1);
 
     void restaurarEstado(int nivel, int vida, int vidaMax, int mana,
                          int manaMax, int experiencia, int oro,
@@ -115,4 +123,5 @@ public:
     void activarCheatManaInfinito();
 
     void morir() override;
+    void revivir(int vidaInicial) override;
 };

@@ -72,6 +72,16 @@ public:
                                    protocol::ClientOpcode opcode,
                                    uint16_t player_id);
 
+    friend Command parse_text(const std::vector<uint8_t>& payload,
+                              size_t& offset,
+                              protocol::ClientOpcode opcode,
+                              uint16_t player_id);
+
+    friend Command parse_amount(const std::vector<uint8_t>& payload,
+                                size_t& offset,
+                                protocol::ClientOpcode opcode,
+                                uint16_t player_id);
+
     friend std::vector<uint8_t> build_command_payload(const Command& command);
 
     static Command recv(Socket& socket, uint16_t player_id);
@@ -84,6 +94,9 @@ public:
 
     static Command move(uint8_t direction);
     static Command attack(const std::string& nick);
+    static Command buy_item(const std::string& itemName);
+    static Command deposit_gold(uint32_t amount);
+    static Command withdraw_gold(uint32_t amount);
     static Command disconnect();
 
     bool is_disconnect() const;

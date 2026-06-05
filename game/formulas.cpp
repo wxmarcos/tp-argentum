@@ -41,9 +41,8 @@ bool Formulas::calcularEsquive(int agilidad) {
     return std::pow(r, agilidad) < 0.001;
 }
 
-bool Formulas::calcularCritico() {
-    // TODO: leer porcentaje de Config cuando este disponible
-    return (rand() % 100) < 20;
+bool Formulas::calcularCritico(int porcentaje) {
+    return (rand() % 100) < porcentaje;
 }
 
 // Combate - Defensa
@@ -60,8 +59,8 @@ int Formulas::calcularDefensa(int armaduraMin, int armaduraMax, int escudoMin,
 }
 
 // Experiencia
-int Formulas::calcularLimiteExp(int nivel) {
-    return static_cast<int>(1000.0 * std::pow(nivel, 1.8));
+int Formulas::calcularLimiteExp(int nivel, double coeficiente, double exponente) {
+    return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
 int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio) {
     if (nivelPropio <= 0) return 0;
@@ -77,8 +76,8 @@ int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro,
 }
 
 // Oro
-int Formulas::calcularOroMax(int nivel) {
-    return static_cast<int>(100.0 * std::pow(nivel, 1.1));
+int Formulas::calcularOroMax(int nivel, double coeficiente, double exponente) {
+    return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
 int Formulas::calcularOroDropNPC(int vidaMaxNPC) {
     double r = 0.01 + (static_cast<double>(rand()) / RAND_MAX) *
