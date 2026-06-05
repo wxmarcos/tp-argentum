@@ -125,7 +125,29 @@ void WorldRenderer::draw_map_layer(int layer,
                 src.w,
                 src.h
             };
-            SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
+
+            uint8_t flip = map->get_flip(gx, gy, layer);
+            if (flip == 0) {
+                SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
+            } else {
+                double angle = 0.0;
+                SDL_RendererFlip sdl_flip = SDL_FLIP_NONE;
+                bool d = flip & 0x1;
+                bool h = flip & 0x4;
+                bool v = flip & 0x2;
+
+                if (d) {
+                    if (h && v)       { angle = 270.0; sdl_flip = SDL_FLIP_HORIZONTAL; }
+                    else if (h)       { angle = 90.0; }
+                    else if (v)       { angle = 270.0; }
+                    else              { angle = 90.0; sdl_flip = SDL_FLIP_HORIZONTAL; }
+                } else {
+                    if (h) sdl_flip = static_cast<SDL_RendererFlip>(sdl_flip | SDL_FLIP_HORIZONTAL);
+                    if (v) sdl_flip = static_cast<SDL_RendererFlip>(sdl_flip | SDL_FLIP_VERTICAL);
+                }
+                SDL_RenderCopyEx(renderer.Get(), tex, &src, &dst,
+                                 angle, nullptr, sdl_flip);
+            }
         }
     }
 }

@@ -61,8 +61,7 @@ void TileCatalog::load_tsx(const std::filesystem::path& tsx_path,
     std::filesystem::path png_abs =
         tsx_path.parent_path() / png_rel;
     png_abs = png_abs.lexically_normal();
-
-    std::string key = png_abs.stem().string();
+    std::string key = png_abs.string();
 
     textures.try_load(key, png_abs.string());
 
@@ -94,7 +93,7 @@ void TileCatalog::add_inline_tileset(const std::string& name,
                                      int tilewidth,
                                      int tileheight,
                                      int tilecount) {
-    std::string key = png_path.stem().string();
+    std::string key = std::filesystem::path(png_path).lexically_normal().string();
     textures.try_load(key, png_path.string());
 
     for (int i = 0; i < tilecount; ++i) {

@@ -7,6 +7,9 @@ MapData::MapData(int width, int height, int layer_count):
         cells(layer_count,
               std::vector<TileId>(
                   static_cast<size_t>(width * height), 0)),
+        flips(layer_count,
+              std::vector<uint8_t>(
+                  static_cast<size_t>(width * height), 0)),
         collision(static_cast<size_t>(width * height), false) {}
 
 void MapData::set(int x, int y, int layer, TileId id) {
@@ -19,6 +22,18 @@ TileId MapData::get(int x, int y, int layer) const {
     if (x < 0 || x >= width || y < 0 || y >= height) return 0;
     if (layer < 0 || layer >= layer_count) return 0;
     return cells[layer][static_cast<size_t>(y * width + x)];
+}
+
+void MapData::set_flip(int x, int y, int layer, uint8_t flip) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    if (layer < 0 || layer >= layer_count) return;
+    flips[layer][static_cast<size_t>(y * width + x)] = flip;
+}
+
+uint8_t MapData::get_flip(int x, int y, int layer) const {
+    if (x < 0 || x >= width || y < 0 || y >= height) return 0;
+    if (layer < 0 || layer >= layer_count) return 0;
+    return flips[layer][static_cast<size_t>(y * width + x)];
 }
 
 void MapData::set_collision(int x, int y, bool blocked) {
