@@ -12,6 +12,9 @@ target_sources(taller_client
     render/animation.cpp
     render/character_animator.cpp
     render/sprite_registry.cpp
+    render/tile_catalog.cpp
+    render/map_data.cpp
+    render/tmx_loader.cpp
     audio/audio_manager.cpp
     config/client_config.cpp
 
@@ -29,6 +32,9 @@ target_sources(taller_client
     render/character_animator.h
     render/sprite_data.h
     render/sprite_registry.h
+    render/tile_catalog.h
+    render/map_data.h
+    render/tmx_loader.h
     audio/audio_manager.h
     config/client_config.h
     )

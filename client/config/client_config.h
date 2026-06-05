@@ -18,6 +18,7 @@ struct ClientConfig {
 
     int map_width = 50;
     int map_height = 50;
+    std::string map_name = "bosqueOscuro";
 
     int music_volume = 64;
     int effects_volume = 96;
