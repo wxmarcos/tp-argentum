@@ -36,7 +36,25 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
         config(config),
         registry(renderer.Get(),
                  std::filesystem::current_path() / config.assets_path),
-        local_anim(ANIM_FRAMES, ANIM_MS_FRAME) {}
+        local_anim(ANIM_FRAMES, ANIM_MS_FRAME) {
+
+    std::filesystem::path tmx_path =
+        std::filesystem::current_path() /
+        config.assets_path / ".." / "mapa" /
+        (config.map_name + ".tmx");
+    tmx_path = tmx_path.lexically_normal();
+
+    try {
+        auto loaded = load_tmx(tmx_path, renderer.Get());
+        catalog = std::move(loaded.catalog);
+        map     = std::move(loaded.map);
+        std::cout << "[WorldRenderer] Mapa cargado: "
+                  << config.map_name << "\n";
+    } catch (const std::exception& e) {
+        std::cerr << "[WorldRenderer] Error cargando mapa: "
+                  << e.what() << "\n";
+    }
+}
  
 int WorldRenderer::dir_to_idx(protocol::Direction dir) {
     switch (dir) {
@@ -65,32 +83,49 @@ void WorldRenderer::visible_tile_range(int cam_offset_x, int cam_offset_y,
                         floor_div(config.window_height - cam_offset_y, ts));
 }
  
-void WorldRenderer::draw_tiles(int cam_offset_x, int cam_offset_y) {
+void WorldRenderer::draw_map_layer(int layer,
+                                   int cam_offset_x,
+                                   int cam_offset_y) {
+    if (!map || !catalog) {
+        const int ts = config.tile_size;
+        int first_gx, last_gx, first_gy, last_gy;
+        visible_tile_range(cam_offset_x, cam_offset_y,
+                           first_gx, last_gx, first_gy, last_gy);
+        for (int gy = first_gy; gy <= last_gy; ++gy) {
+            for (int gx = first_gx; gx <= last_gx; ++gx) {
+                if ((gx + gy) % 2 == 0)
+                    renderer.SetDrawColor(40, 58, 40, 255);
+                else
+                    renderer.SetDrawColor(30, 46, 30, 255);
+                renderer.FillRect(SDL2pp::Rect(
+                    cam_offset_x + gx * ts,
+                    cam_offset_y + gy * ts, ts, ts));
+            }
+        }
+        return;
+    }
+
     const int ts = config.tile_size;
- 
     int first_gx, last_gx, first_gy, last_gy;
     visible_tile_range(cam_offset_x, cam_offset_y,
                        first_gx, last_gx, first_gy, last_gy);
- 
-    SDL_Texture* tile_tex = registry.get_texture("tile_grass");
- 
+
     for (int gy = first_gy; gy <= last_gy; ++gy) {
         for (int gx = first_gx; gx <= last_gx; ++gx) {
-            const int px = cam_offset_x + gx * ts;
-            const int py = cam_offset_y + gy * ts;
-            SDL_Rect dst{px, py, ts, ts};
- 
-            if (tile_tex) {
-                SDL_Rect src = TILE_GRASS_SRC;
-                SDL_RenderCopy(renderer.Get(), tile_tex, &src, &dst);
-            } else {
-                if ((gx + gy) % 2 == 0) {
-                    renderer.SetDrawColor(40, 58, 40, 255);
-                } else {
-                    renderer.SetDrawColor(30, 46, 30, 255);
-                }
-                renderer.FillRect(SDL2pp::Rect(px, py, ts, ts));
-            }
+            TileId tid = map->get(gx, gy, layer);
+            if (tid == 0) continue;
+
+            SDL_Texture* tex = catalog->texture_for(tid);
+            if (!tex) continue;
+
+            SDL_Rect src = catalog->src_for(tid);
+            SDL_Rect dst{
+                cam_offset_x + gx * ts,
+                cam_offset_y + gy * ts,
+                src.w,
+                src.h
+            };
+            SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
         }
     }
 }
@@ -219,7 +254,10 @@ void WorldRenderer::render(const ClientGameState& state,
     const int cam_offset_x = screen_cx - cam_x * ts - ts / 2;
     const int cam_offset_y = screen_cy - cam_y * ts - ts / 2;
  
-    draw_tiles(cam_offset_x, cam_offset_y);
+    const int layers = map ? map->get_layers() : 1;
+    for (int layer = 0; layer < layers; ++layer) {
+        draw_map_layer(layer, cam_offset_x, cam_offset_y);
+    }
  
     // jugador local
     if (state.has_local_position()) {
