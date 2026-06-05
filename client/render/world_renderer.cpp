@@ -286,11 +286,19 @@ void WorldRenderer::render(const ClientGameState& state,
         local_anim.update(delta_ms,
                           state.get_local_dir(),
                           state.get_local_moved());
- 
+
+        std::string local_clase = config.character_clase;
+        std::string local_raza  = config.character_raza;
+        if (state.has_local_stats()) {
+            const PlayerStats& s = state.get_local_stats();
+            if (!s.clase.empty()) local_clase = s.clase;
+            if (!s.raza.empty())  local_raza  = s.raza;
+        }
+
         draw_character(state.get_local_x(), state.get_local_y(),
                        state.get_local_dir(),
-                       config.character_clase,
-                       config.character_raza,
+                       local_clase,
+                       local_raza,
                        local_anim.current_frame(),
                        cam_offset_x, cam_offset_y);
     }
@@ -303,8 +311,8 @@ void WorldRenderer::render(const ClientGameState& state,
         it->second.update(delta_ms, pv.direction, pv.moved);
  
         draw_character(pv.x, pv.y, pv.direction,
-                       "humano",
-                       "humano",
+                       pv.clase.empty() ? "humano" : pv.clase,
+                       pv.raza.empty()  ? "humano" : pv.raza,
                        it->second.current_frame(),
                        cam_offset_x, cam_offset_y);
     }

@@ -9,6 +9,7 @@
 
 #include "audio/audio_manager.h"
 #include "common/command/command.h"
+#include "common/snapshot/snapshot.h"
 #include "game/client_game_state.h"
 #include "input/input_handler.h"
 #include "net/server_connection.h"
@@ -19,7 +20,8 @@ using SDL2pp::Renderer;
 using SDL2pp::SDL;
 using SDL2pp::Window;
 
-ClientApp::ClientApp(ClientConfig config): config(std::move(config)) {}
+ClientApp::ClientApp(ClientConfig config):
+    config(std::move(config)), awaiting_login(true), tried_login(false) {}
 
 int ClientApp::run() {
     try {
@@ -116,6 +118,26 @@ bool ClientApp::process_input(ServerConnection& connection,
     return true;
 }
 
+void ClientApp::process_login_response(ServerConnection& connection,
+                                       const Snapshot& snapshot) {
+    if (!awaiting_login) {
+        return;
+    }
+
+    if (snapshot.is_player_stats() &&
+        snapshot.get_nick() == config.character_nick) {
+        awaiting_login = false;
+        return;
+    }
+
+    if (snapshot.is_error_message() && !tried_login) {
+        tried_login = true;
+        std::cout << "[Client] CREATE_CHARACTER rechazado, reintentando "
+                     "con LOGIN.\n";
+        connection.send(Command::login(config.character_nick));
+    }
+}
+
 bool ClientApp::process_updates(ServerConnection& connection,
                                 ClientGameState& state) {
     state.begin_frame();
@@ -124,6 +146,9 @@ bool ClientApp::process_updates(ServerConnection& connection,
         if (update.disconnect) {
             std::cout << "[Client] El servidor cerro la conexion.\n";
             return false;
+        }
+        if (update.snapshot.has_value()) {
+            process_login_response(connection, *update.snapshot);
         }
         state.apply_update(update);
     }
