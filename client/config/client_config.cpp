@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
-
 #include <toml++/toml.hpp>
 
 namespace {
@@ -12,11 +11,10 @@ namespace fs = std::filesystem;
 
 constexpr const char* PROJECT_NAME = "argentum";
 
-
 fs::path find_config_file() {
     if (const char* home = std::getenv("HOME")) {
-        fs::path user_config = fs::path(home) / ".config" / PROJECT_NAME /
-                                "client.toml";
+        fs::path user_config =
+            fs::path(home) / ".config" / PROJECT_NAME / "client.toml";
         if (fs::exists(user_config)) {
             return user_config;
         }
@@ -37,7 +35,7 @@ void read_field(const toml::table& tbl, const std::string& section,
         out = *value;
     }
 }
-}
+}  // namespace
 
 ClientConfig ClientConfig::load() {
     ClientConfig cfg;

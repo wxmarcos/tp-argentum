@@ -10,11 +10,11 @@
 
 #include "common/network/liberror.h"
 
+#include <errno.h>
+
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-
-#include <errno.h>
 
 LibError::LibError(int error_code, const char* fmt, ...) noexcept {
     va_list args;

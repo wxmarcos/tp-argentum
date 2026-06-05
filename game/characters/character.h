@@ -6,6 +6,7 @@ enum class Direccion { NORTE, ESTE, SUR, OESTE };
 class Character {
 protected:
     std::string nombre;
+    int mapaId;
     int posX;
     int posY;
     Direccion direccion;
@@ -18,6 +19,7 @@ public:
     virtual ~Character() = default;
 
     const std::string& getNombre() const;
+    int getMapaId() const;
     int getPosX() const;
     int getPosY() const;
     Direccion getDireccion() const;
@@ -25,6 +27,7 @@ public:
     int getVidaMax() const;
     bool estaVivo() const;
 
+    void setMapaId(int id);
     void setPosicion(int x, int y);
     void setDireccion(Direccion dir);
     void recibirDanio(int danio);

@@ -1,27 +1,27 @@
 #ifndef ACCEPTOR_H
 #define ACCEPTOR_H
 
-#include <cstdint>
-#include <memory>
-#include <vector>
 #include <sys/socket.h>
 
-#include "common/thread.h"
+#include <cstdint>
+#include <memory>
+
+#include "client/monitor_clients.h"
+#include "common/command/command.h"
 #include "common/network/socket.h"
 #include "common/queue.h"
-#include "common/command.h"
-
-#include "client_handler.h"
+#include "common/snapshot/snapshot.h"
+#include "common/thread.h"
 
 class Acceptor: public Thread {
-
 private:
-
     Socket listener;
 
-    std::vector<std::unique_ptr<ClientHandler>>& clients;
+    MonitorClients& clients;
 
     Queue<Command>& commands_queue;
+
+    size_t max_clients;
 
     uint16_t next_player_id = 1;
 
@@ -30,15 +30,11 @@ private:
     void stop_clients();
 
 public:
-
-    Acceptor(
-        const char* port,
-        std::vector<std::unique_ptr<ClientHandler>>& clients,
-        Queue<Command>& commands_queue)
-        :
+    Acceptor(const char* port, MonitorClients& clients,
+             Queue<Command>& commands_queue, size_t max_clients):
         listener(port),
-        clients(clients),
-        commands_queue(commands_queue) {}
+        clients(clients), commands_queue(commands_queue),
+        max_clients(max_clients) {}
 
     void run() override;
 

@@ -1,13 +1,13 @@
 #include "razas/elfo.h"
 
-Elfo::Elfo(const Config& config)
-    : constitucionBase(config.getRazaConstitucionBase("elfo")),
-      inteligenciaBase(config.getRazaInteligenciaBase("elfo")),
-      fuerzaBase(config.getRazaFuerzaBase("elfo")),
-      agilidadBase(config.getRazaAgilidadBase("elfo")),
-      fRazaVida(config.getRazaFVida("elfo")),
-      fRazaMana(config.getRazaFMana("elfo")),
-      fRazaRecuperacion(config.getRazaFRecuperacion("elfo")) {}
+Elfo::Elfo(const Config& config):
+    constitucionBase(config.getRazaConstitucionBase("elfo")),
+    inteligenciaBase(config.getRazaInteligenciaBase("elfo")),
+    fuerzaBase(config.getRazaFuerzaBase("elfo")),
+    agilidadBase(config.getRazaAgilidadBase("elfo")),
+    fRazaVida(config.getRazaFVida("elfo")),
+    fRazaMana(config.getRazaFMana("elfo")),
+    fRazaRecuperacion(config.getRazaFRecuperacion("elfo")) {}
 
 std::string Elfo::getNombre() const { return "Elfo"; }
 int Elfo::getConstitucionBase() const { return constitucionBase; }

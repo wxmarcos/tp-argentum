@@ -72,3 +72,122 @@ exp_exponente           = 1.8
 oro_max_coeficiente     = 100.0   # OroMax = coef * nivel^exp
 oro_max_exponente       = 1.1
 oro_drop_npc_divisor    = 10      # OroDropNPC = vidaMaxNPC / divisor
+
+# -----------------------------------------------------------------------------
+# IA de criaturas
+# -----------------------------------------------------------------------------
+[ia]
+rango_deteccion_criaturas = 15
+cooldown_movimiento_criaturas = 2.0  # ms entre movimientos de criaturas
+cooldown_ataque_criaturas = 2.0      # ms entre ataques de criaturas
+intervalo_spawn = 30.0  # segundos entre spawns de criaturas
+velocidad_resurreccion = 0.5
+
+# -----------------------------------------------------------------------------
+# Criaturas
+# -----------------------------------------------------------------------------
+[criaturas.goblin]
+vida_max  = 50
+nivel     = 1
+danio_min = 2
+danio_max = 5
+fuerza    = 1
+ 
+[criaturas.esqueleto]
+vida_max  = 60
+nivel     = 2
+danio_min = 3
+danio_max = 7
+fuerza    = 1
+ 
+[criaturas.zombie]
+vida_max  = 80
+nivel     = 1
+danio_min = 2
+danio_max = 6
+fuerza    = 1
+ 
+[criaturas.arana]
+vida_max  = 40
+nivel     = 1
+danio_min = 1
+danio_max = 4
+fuerza    = 1
+ 
+[criaturas.orco]
+vida_max  = 150
+nivel     = 3
+danio_min = 5
+danio_max = 12
+fuerza    = 2
+ 
+[criaturas.golem]
+vida_max  = 250
+nivel     = 5
+danio_min = 8
+danio_max = 20
+fuerza    = 3
+
+# -----------------------------------------------------------------------------
+# Servidor
+# -----------------------------------------------------------------------------
+[server]
+map_width = 100
+map_height = 100
+ticks_per_second = 30
+max_clients = 100
+
+# -----------------------------------------------------------------------------
+# Mapas
+# -----------------------------------------------------------------------------
+[mapas.1]
+ancho              = 100
+alto               = 100
+vecino_norte       = 3
+vecino_sur         = -1
+vecino_este        = 2
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 10
+criaturas_posibles = ["goblin", "arana", "zombie"]
+sacerdotes         = []
+portales           = [{x = 50, y = 50, mapa_destino = 4, destino_x = 5, destino_y = 5}]
+ 
+[mapas.2]
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = 1
+es_zona_segura     = false
+poblacion_max      = 8
+criaturas_posibles = ["orco", "golem", "esqueleto"]
+sacerdotes         = []
+portales           = []
+
+[mapas.3]
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = 1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = true
+poblacion_max      = 0
+criaturas_posibles = []
+sacerdotes         = [{x = 50, y = 50}]
+portales           = []
+
+[mapas.4]
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 5
+criaturas_posibles = ["orco", "golem"]
+sacerdotes         = []
+portales           = [{x = 1, y = 1, mapa_destino = 1, destino_x = 51, destino_y = 50}]

@@ -1,15 +1,18 @@
 #pragma once
-#include "item.h"
+#include "game/items/item.h"
 
-class Escudo : public Item {
+class Escudo: public Item {
 private:
     std::string nombre;
-    int defensa;
+    int defensaMin;
+    int defensaMax;
 
 public:
-    Escudo(const std::string& nombre, int defensa);
+    Escudo(const std::string& nombre, int defensaMin, int defensaMax);
 
     std::string getNombre() const override;
     TipoItem getTipo() const override;
-    int getDefensa() const;
+    int getDefensaMin() const;
+    int getDefensaMax() const;
+    bool esApilable() const override;
 };

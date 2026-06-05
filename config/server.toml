@@ -1,5 +1,0 @@
-[server]
-map_width = 100
-map_height = 100
-ticks_per_second = 30
-max_clients = 100

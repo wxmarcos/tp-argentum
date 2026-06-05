@@ -3,7 +3,7 @@
 #include <iostream>
 
 ClientSender::ClientSender(Socket& socket, Queue<Command>& commands_queue):
-        socket(socket), commands_queue(commands_queue) {}
+    socket(socket), commands_queue(commands_queue) {}
 
 void ClientSender::run() {
     try {

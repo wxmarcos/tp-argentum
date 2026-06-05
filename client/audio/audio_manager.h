@@ -12,14 +12,14 @@ struct _Mix_Music;
 typedef struct _Mix_Music Mix_Music;
 
 class AudioManager {
-    private:
+private:
     bool initialized;
     const ClientConfig& config;
 
     Mix_Music* music;
     std::map<std::string, Mix_Chunk*> effects;
 
-    public:
+public:
     explicit AudioManager(const ClientConfig& config);
     ~AudioManager();
 

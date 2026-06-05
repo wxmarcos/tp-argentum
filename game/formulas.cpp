@@ -4,29 +4,32 @@
 #include <cstdlib>
 
 // ------------- Vida y Mana -------------
-int Formulas::calcularVidaMax(int constitucion, float fClaseVida, float fRazaVida, int nivel) {
+int Formulas::calcularVidaMax(int constitucion, float fClaseVida,
+                              float fRazaVida, int nivel) {
     return static_cast<int>(constitucion * fClaseVida * fRazaVida * nivel);
 }
 
-int Formulas::calcularManaMax(int inteligencia, float fClaseMana, float fRazaMana, int nivel) {
+int Formulas::calcularManaMax(int inteligencia, float fClaseMana,
+                              float fRazaMana, int nivel) {
     return static_cast<int>(inteligencia * fClaseMana * fRazaMana * nivel);
 }
 
 // ------------- Recuperacion pasiva -------------
-int Formulas::calcularRecuperacionVida(int fRazaRecuperacion, float dt) {
-    return static_cast<int>(fRazaRecuperacion * dt);
+float Formulas::calcularRecuperacionVida(float fRazaRecuperacion, float dt) {
+    return fRazaRecuperacion * dt;
 }
 
-int Formulas::calcularRecuperacionMana(int fRazaRecuperacion, float dt) {
-    return static_cast<int>(fRazaRecuperacion * dt);
+float Formulas::calcularRecuperacionMana(float fRazaRecuperacion, float dt) {
+    return fRazaRecuperacion * dt;
 }
 
-int Formulas::calcularRecuperacionManaMeditando(int fClaseMeditacion, int inteligencia, float dt) {
-    return static_cast<int>(fClaseMeditacion * inteligencia * dt);
+float Formulas::calcularRecuperacionManaMeditando(float fClaseMeditacion,
+                                                  int inteligencia, float dt) {
+    return fClaseMeditacion * inteligencia * dt;
 }
 
 //------------- Combate - Ataque -------------
-int Formulas::calcularDanio(int fuerza, float danioMin, float danioMax) {
+int Formulas::calcularDanio(int fuerza, int danioMin, int danioMax) {
     if (danioMin > danioMax) return 0;
     int rango = danioMax - danioMin + 1;
     int tirada = danioMin + (rand() % rango);
@@ -50,8 +53,10 @@ static int tiradaRango(int minVal, int maxVal) {
     return minVal + (rand() % rango);
 }
 
-int Formulas::calcularDefensa(int armaduraMin, int armaduraMax, int escudoMin, int escudoMax, int cascoMin, int cascoMax) {
-    return tiradaRango(armaduraMin, armaduraMax) + tiradaRango(escudoMin, escudoMax) + tiradaRango(cascoMin, cascoMax);
+int Formulas::calcularDefensa(int armaduraMin, int armaduraMax, int escudoMin,
+                              int escudoMax, int cascoMin, int cascoMax) {
+    return tiradaRango(armaduraMin, armaduraMax) +
+           tiradaRango(escudoMin, escudoMax) + tiradaRango(cascoMin, cascoMax);
 }
 
 // Experiencia
@@ -60,11 +65,15 @@ int Formulas::calcularLimiteExp(int nivel) {
 }
 int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio) {
     if (nivelPropio <= 0) return 0;
-    return static_cast<int>((danio * static_cast<double>(nivelOtro)) / nivelPropio);
+    int factor = std::max(nivelOtro - nivelPropio + 10, 0);
+    return danio * factor;
 }
-int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro, int nivelPropio) {
+int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro,
+                               int nivelPropio) {
     if (nivelPropio <= 0) return 0;
-    return static_cast<int>((vidaMaxOtro * static_cast<double>(nivelOtro)) / nivelPropio);
+    int factor = std::max(nivelOtro - nivelPropio + 10, 0);
+    double r = (static_cast<double>(rand()) / RAND_MAX) * 0.1;
+    return static_cast<int>(r * vidaMaxOtro * factor);
 }
 
 // Oro
@@ -72,7 +81,9 @@ int Formulas::calcularOroMax(int nivel) {
     return static_cast<int>(100.0 * std::pow(nivel, 1.1));
 }
 int Formulas::calcularOroDropNPC(int vidaMaxNPC) {
-    return vidaMaxNPC / 10;
+    double r = 0.01 + (static_cast<double>(rand()) / RAND_MAX) *
+                          (0.2 - 0.01);  // Entre 0.01 y 0.1
+    return static_cast<int>(r * vidaMaxNPC);
 }
 int Formulas::calcularOroExceso(int oro, int oroMax) {
     if (oro <= oroMax) return 0;

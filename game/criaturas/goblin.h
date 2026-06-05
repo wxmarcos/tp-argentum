@@ -1,8 +1,9 @@
 #pragma once
-#include "criaturas/criatura.h"
+#include "game/config.h"
+#include "game/criaturas/criatura.h"
 
-class Goblin : public Criatura {
+class Goblin: public Criatura {
 public:
-    Goblin(int posX, int posY);
+    Goblin(const Config& config, int posX, int posY);
     std::string getTipo() const override;
 };

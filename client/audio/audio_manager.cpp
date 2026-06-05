@@ -1,13 +1,13 @@
 #include "audio/audio_manager.h"
 
-#include <algorithm>
-#include <iostream>
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
+#include <algorithm>
+#include <iostream>
+
 AudioManager::AudioManager(const ClientConfig& config):
-        initialized(false), config(config), music(nullptr) {
+    initialized(false), config(config), music(nullptr) {
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0) {
         std::cerr << "[Audio] No se pudo iniciar el subsistema de audio: "
                   << SDL_GetError() << "\n";
@@ -33,7 +33,7 @@ AudioManager::~AudioManager() {
         Mix_FreeMusic(music);
         music = nullptr;
     }
-    for (auto& kv: effects) {
+    for (auto& kv : effects) {
         if (kv.second) {
             Mix_FreeChunk(kv.second);
         }
@@ -81,8 +81,8 @@ void AudioManager::play_effect_at(const std::string& key,
     const int max_audible_tiles = 15;
     int vol = config.effects_volume;
     if (distance_in_tiles > 0) {
-        double factor = 1.0 - static_cast<double>(distance_in_tiles) /
-                                  max_audible_tiles;
+        double factor =
+            1.0 - static_cast<double>(distance_in_tiles) / max_audible_tiles;
         factor = std::max(0.0, factor);
         vol = static_cast<int>(config.effects_volume * factor);
     }

@@ -1,6 +1,11 @@
 #include "criaturas/orco.h"
 
-Orco::Orco(int posX, int posY)
-    : Criatura("Orco", posX, posY, 100, 1, 5, 10) {}  // TODO: stats desde Config
+Orco::Orco(const Config& config, int posX, int posY):
+    Criatura(
+        "Orco", posX, posY, config.getCriaturaVidaMax("orco"),
+        config.getCriaturaNivel("orco"), config.getCriaturaDanioMin("orco"),
+        config.getCriaturaDanioMax("orco"), config.getCriaturaFuerza("orco"),
+        config.getCriaturaCooldownAtaque(),
+        config.getCriaturaCooldownMovimiento()) {}
 
-std::string Orco::getTipo() const { return "Orco"; }
+std::string Orco::getTipo() const { return "orco"; }

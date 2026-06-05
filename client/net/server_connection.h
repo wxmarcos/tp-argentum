@@ -3,16 +3,15 @@
 
 #include <string>
 
-#include "common/command.h"
+#include "common/command/command.h"
 #include "common/network/socket.h"
 #include "common/queue.h"
-
 #include "net/client_receiver.h"
 #include "net/client_sender.h"
 #include "protocol/game_update.h"
 
 class ServerConnection {
-    private:
+private:
     Socket socket;
 
     Queue<Command> commands_queue;
@@ -23,7 +22,7 @@ class ServerConnection {
 
     bool running;
 
-    public:
+public:
     ServerConnection(const std::string& hostname, const std::string& servname);
 
     ~ServerConnection();

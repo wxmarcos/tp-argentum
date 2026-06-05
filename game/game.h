@@ -1,67 +1,112 @@
 #pragma once
-
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_map>
-#include "config.h"
-#include "map.h"
-#include "characters/jugador.h"
-#include "razas/raza.h"
-#include "clases/charClase.h"
+#include <vector>
 
-#include "common/command.h"
-#include "common/snapshot.h"
+#include "common/command/command.h"
+#include "common/snapshot/snapshot.h"
+#include "game/characters/jugador.h"
+#include "game/clases/charClase.h"
+#include "game/config.h"
+#include "game/criaturas/criatura.h"
+#include "game/mundo.h"
+#include "game/razas/raza.h"
+#include "server/persistence/persistence_task.h"
+#include "server/persistence/persistence_task_factory.h"
+
+struct ResultadoAtaque {
+    bool exito;
+    int danioAplicado;
+    bool fueEsquivado;
+    bool fueCritico;
+    bool objetivoMurio;
+};
 
 class Game {
 private:
     Config& config;
-    
+    Mundo mundo;
+
     std::map<std::string, std::unique_ptr<Raza>> razas;
     std::map<std::string, std::unique_ptr<charClase>> clases;
-
-    Mapa mapa;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;
+    std::map<std::string, std::unique_ptr<Criatura>> criaturas;
+    int nextCriaturaId;
+
+    float tiempoDesdeUltimoSpawn;
+    struct InfoSpawnMapa {
+        int poblacionMax;
+        std::vector<std::string> criaturasPosibles;
+    };
+    std::map<int, InfoSpawnMapa> infoSpawn;
+
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
+
+    void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
+    void cargarJugadoresPersistidos();
 
-    std::string getNombreJugadorPorComando(
-        const Command& cmd) const;
+    bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
+    // Helpers
+    std::string getNombreJugadorPorComando(const Command& cmd) const;
+    bool handle_meditation_interruption(Jugador* jugador,
+                                        std::vector<Snapshot>& snapshots,
+                                        const std::string& nombre);
+    std::unique_ptr<Item> crear_item_por_nombre(const std::string& nombre);
+    // Combate contra criaturas (logica separada de PvP)
+    ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
+    void procesarDropCriatura(Jugador* atacante, Criatura* criatura);
 
-    Snapshot build_entity_move_snapshot(
-        const std::string& nombre) const;
+    // IA de criaturas
+    void tickCriaturas(float dt, std::vector<Snapshot>& snapshots);
+    int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
+    void spawnCriaturas();
 
-    // TODO: criaturas
+    // Sacerdotes y resurreccion
+    struct InfoSacerdote {
+        int mapaId, x, y;
+    };
+    std::vector<InfoSacerdote> sacerdotes;
+    void cargarSacerdotes();
+    bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
+                                      InfoSacerdote& destino,
+                                      float& distancia) const;
+    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
+
     // TODO: npcs
 
 public:
-    Game(Config& config, int anchoMapa, int altoMapa);
+    explicit Game(Config& config);
 
-    std::vector<Snapshot> process(
-        const Command& cmd);
+    std::vector<PersistenceTask> build_persistence_tasks_for_command(
+        const Command& cmd) const;
+    std::vector<Snapshot> process(const Command& cmd);
 
-    bool agregarJugador(const std::string& nombre, int posX, int posY,
-                        const std::string& razaNombre, const std::string& claseNombre);
-
+    // Jugadores
+    bool agregarJugador(const std::string& nombre, int mapaId, int posX,
+                        int posY, const std::string& razaNombre,
+                        const std::string& claseNombre);
     void removerJugador(const std::string& nombre);
+    Jugador* getJugador(const std::string& nombre);
+    const Jugador* getJugador(const std::string& nombre) const;
+    bool moverJugador(const std::string& nombre, Direccion dir);
 
-    Jugador* getJugador(
-        const std::string& nombre);
+    // Criaturas
+    std::string agregarCriatura(const std::string& tipo, int mapaId, int posX,
+                                int posY);
+    void removerCriatura(const std::string& id);
+    Criatura* getCriatura(const std::string& id);
 
-    const Jugador* getJugador(
-        const std::string& nombre) const;
+    // Combate
+    ResultadoAtaque atacar(const std::string& nombreAtacante,
+                           const std::string& nombreObjetivo);
 
-    bool moverJugador(
-        const std::string& nombre,
-        Direccion dir);
-
-    void tick(float dt);
-
-    const Mapa& getMapa() const;
+    std::vector<Snapshot> tick(float dt);
+    const Mundo& getMundo() const;
 
     bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
-
-    bool tomarItem(const std::string& nombre, int indice);
+    std::optional<int> tomarItem(const std::string& nombre, int indice);
 };

@@ -13,7 +13,7 @@
 #include <thread>
 
 class Runnable {
-    public:
+public:
     virtual void start() = 0;
     virtual void join() = 0;
     virtual void stop() = 0;
@@ -23,16 +23,16 @@ class Runnable {
 };
 
 class Thread: public Runnable {
-    private:
+private:
     std::thread thread;
 
     std::atomic<bool> _keep_running;
     std::atomic<bool> _is_alive;
 
-    protected:
+protected:
     bool should_keep_running() const { return _keep_running; }
 
-    public:
+public:
     Thread(): _keep_running(true), _is_alive(false) {}
 
     void start() override {

@@ -3,20 +3,19 @@
 
 #include "common/network/socket.h"
 #include "common/queue.h"
-#include "common/snapshot.h"
+#include "common/snapshot/snapshot.h"
 #include "common/thread.h"
-
 #include "protocol/game_update.h"
 
 class ClientReceiver: public Thread {
-    private:
+private:
     Socket& socket;
     Queue<GameUpdate>& updates_queue;
 
     void push_update(GameUpdate update);
     void push_disconnect();
 
-    public:
+public:
     ClientReceiver(Socket& socket, Queue<GameUpdate>& updates_queue);
 
     void run() override;

@@ -3,15 +3,13 @@
 
 #include <cstdint>
 
-#include "common/thread.h"
+#include "common/command/command.h"
 #include "common/network/socket.h"
 #include "common/queue.h"
-#include "common/command.h"
+#include "common/thread.h"
 
 class Receiver: public Thread {
-
 private:
-
     Socket& socket;
 
     Queue<Command>& queue;
@@ -19,10 +17,7 @@ private:
     uint16_t player_id;
 
 public:
-
-    Receiver(Socket& socket,
-             Queue<Command>& queue,
-             uint16_t player_id);
+    Receiver(Socket& socket, Queue<Command>& queue, uint16_t player_id);
 
     ~Receiver() override;
 

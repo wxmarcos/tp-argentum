@@ -11,21 +11,18 @@ void quiet(Action&& action) {
     } catch (const std::exception&) {
     }
 }
-}
+}  // namespace
 
 ServerConnection::ServerConnection(const std::string& hostname,
                                    const std::string& servname):
-        socket(hostname.c_str(), servname.c_str()),
-        sender(socket, commands_queue),
-        receiver(socket, updates_queue),
-        running(true) {
+    socket(hostname.c_str(), servname.c_str()),
+    sender(socket, commands_queue), receiver(socket, updates_queue),
+    running(true) {
     sender.start();
     receiver.start();
 }
 
-ServerConnection::~ServerConnection() {
-    stop();
-}
+ServerConnection::~ServerConnection() { stop(); }
 
 void ServerConnection::send(const Command& cmd) {
     if (!running) {

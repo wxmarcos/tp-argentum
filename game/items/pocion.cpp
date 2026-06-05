@@ -1,11 +1,13 @@
-#include "pocion.h"
-#include "characters/jugador.h"
+#include "game/items/pocion.h"
 
-Pocion::Pocion(TipoPocion tipo, int cantidad)
-    : tipoPocion(tipo), cantidad(cantidad) {}
+#include "game/characters/jugador.h"
+#include "game/items/item_defs.h"
+Pocion::Pocion(TipoPocion tipo, int cantidad):
+    tipoPocion(tipo), cantidad(cantidad) {}
 
 std::string Pocion::getNombre() const {
-    return (tipoPocion == TipoPocion::VIDA) ? "Poción de Vida" : "Poción de Maná";
+    return (tipoPocion == TipoPocion::VIDA) ? item_defs::POCION_DE_VIDA
+                                            : item_defs::POCION_DE_MANA;
 }
 
 TipoItem Pocion::getTipo() const { return TipoItem::POCION; }

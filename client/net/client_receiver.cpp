@@ -5,7 +5,8 @@
 
 ClientReceiver::ClientReceiver(Socket& socket,
                                Queue<GameUpdate>& updates_queue):
-        socket(socket), updates_queue(updates_queue) {}
+    socket(socket),
+    updates_queue(updates_queue) {}
 
 void ClientReceiver::run() {
     try {
@@ -19,9 +20,9 @@ void ClientReceiver::run() {
     } catch (const std::exception& ex) {
         if (should_keep_running()) {
             std::cerr << "[ClientReceiver] " << ex.what() << "\n";
+        }
+        push_disconnect();
     }
-    push_disconnect();
-}
 }
 
 void ClientReceiver::push_update(GameUpdate update) {
