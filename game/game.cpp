@@ -23,6 +23,8 @@
 #include "game/items/escudo.h"
 #include "game/items/itemFactory.h"
 #include "game/items/item_defs.h"
+#include "game/items/inventario.h"
+#include "game/items/oro.h"
 #include "game/razas/elfo.h"
 #include "game/razas/enano.h"
 #include "game/razas/gnomo.h"
@@ -394,14 +396,19 @@ static std::unique_ptr<Item> crearItemAleatorio() {
     return items[idx]();
 }
 
-void Game::procesarDropCriatura(Jugador* atacante, Criatura* criatura) {
+void Game::procesarDropCriatura(Jugador* /*atacante*/, Criatura* criatura) {
     double r = static_cast<double>(rand()) / RAND_MAX;
 
     if (r < 0.90) return;  // 90% de no dropear nada
 
+    int mx = criatura->getMapaId();
+    int px = criatura->getPosX();
+    int py = criatura->getPosY();
+
     if (r < 0.98) {  // 8% de dropear oro
-        atacante->agregarOro(
-            Formulas::calcularOroDropNPC(criatura->getVidaMax()));
+        int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax());
+        mundo.tirarItem(mx, px, py,
+                        SlotInventario(ItemFactory::crearOro(cantidad)));
         return;
     }
 
@@ -409,12 +416,12 @@ void Game::procesarDropCriatura(Jugador* atacante, Criatura* criatura) {
         bool esVida = rand() % 2 == 0;
         auto pocion = esVida ? ItemFactory::crearPocionDeVida()
                              : ItemFactory::crearPocionDeMana();
-        atacante->agarrarItem(std::move(pocion));
+        mundo.tirarItem(mx, px, py, SlotInventario(std::move(pocion)));
         return;
     }
 
     // 1% de dropear item aleatorio
-    atacante->agarrarItem(crearItemAleatorio());
+    mundo.tirarItem(mx, px, py, SlotInventario(crearItemAleatorio()));
 }
 
 ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
@@ -749,17 +756,17 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         case protocol::ClientOpcode::PICK_ITEM: {
             std::optional<int> slot = tomarItem(nombre, static_cast<int>(cmd.get_item_id()));
 
-            if (slot.has_value()) {
+            if (!slot.has_value()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No hay item para recoger"));
+            } else if (*slot == -1) {
+                // Era oro: no hay slot de inventario, solo actualizar stats
                 snapshots.push_back(
-                    Snapshot::error_message(nombre, "Item recogido"));
-
+                    SnapshotFactory::player_stats_from_player(*jugador));
+            } else {
                 snapshots.push_back(
                     SnapshotFactory::player_inventory_slot_from_player(*jugador,
                                                                        *slot));
-
-            } else {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "No hay item para recoger"));
             }
 
             break;
@@ -1434,14 +1441,22 @@ std::optional<int> Game::tomarItem(const std::string& nombre, int indice) {
         return std::nullopt;
     }
 
-    if (jugador->getInventario().estaLleno()) {
-        return std::nullopt;
-    }
-
     auto slot_piso = mundo.tomarItemEnPosicion(
         jugador->getMapaId(), jugador->getPosX(), jugador->getPosY(), indice);
 
     if (!slot_piso) {
+        return std::nullopt;
+    }
+
+    // Oro: no va al inventario, se suma directamente al jugador
+    if (slot_piso->item->getTipo() == TipoItem::ORO) {
+        jugador->agregarOro(slot_piso->cantidad);
+        return -1;  // Valor especial: operación exitosa sin slot de inventario
+    }
+
+    if (jugador->getInventario().estaLleno()) {
+        mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
+                        jugador->getPosY(), std::move(*slot_piso));
         return std::nullopt;
     }
 
