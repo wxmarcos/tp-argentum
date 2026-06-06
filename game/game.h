@@ -49,7 +49,8 @@ private:
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
-    void cargarJugadoresPersistidos();
+    // void cargarJugadoresPersistidos();
+    bool restaurarJugadorPersistido(const PersistenceTask& player);
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     // Helpers
@@ -73,7 +74,7 @@ private:
     struct InfoNPC {
         int mapaId, x, y;
     };
-    
+
     std::vector<InfoNPC> sacerdotes;
     std::vector<InfoNPC> comerciantes;
     std::vector<InfoNPC> banqueros;
@@ -81,10 +82,10 @@ private:
     std::map<std::string, CuentaBanco> cuentasBancarias;
 
     void cargarNPCs();
-    bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
-                                    InfoNPC& destino,
-                                    float& distancia) const;
-    bool hayNPCCercano(const Jugador* jugador, const std::vector<InfoNPC>& npcs) const;
+    bool encontrarSacerdoteMasCercano(const Jugador* fantasma, InfoNPC& destino,
+                                      float& distancia) const;
+    bool hayNPCCercano(const Jugador* jugador,
+                       const std::vector<InfoNPC>& npcs) const;
     void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
 
 public:

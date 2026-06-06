@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 struct PersistenceInventoryItem {
     int slot_id;
