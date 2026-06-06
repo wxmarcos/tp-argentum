@@ -1,6 +1,6 @@
 #pragma once
 #include "game/config.h"
-#include "razas/raza.h"
+#include "game/razas/raza.h"
 
 class Enano: public Raza {
     int constitucionBase;

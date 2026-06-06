@@ -1,6 +1,6 @@
 #pragma once
-#include "config.h"
-#include "razas/raza.h"
+#include "game/config.h"
+#include "game/razas/raza.h"
 
 class Elfo: public Raza {
     int constitucionBase;

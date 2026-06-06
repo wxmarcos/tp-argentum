@@ -14,6 +14,8 @@ capacidad_max = 30
 [razas.humano]
 constitucion_base  = 300
 inteligencia_base  = 300
+fuerza_base        = 300
+agilidad_base      = 300
 f_raza_vida        = 1.0
 f_raza_mana        = 1.0
 f_recuperacion     = 1.0
@@ -21,6 +23,8 @@ f_recuperacion     = 1.0
 [razas.elfo]
 constitucion_base  = 200
 inteligencia_base  = 450
+fuerza_base        = 250
+agilidad_base      = 450
 f_raza_vida        = 0.8
 f_raza_mana        = 1.3
 f_recuperacion     = 1.2
@@ -28,6 +32,8 @@ f_recuperacion     = 1.2
 [razas.enano]
 constitucion_base  = 450
 inteligencia_base  = 150
+fuerza_base        = 400
+agilidad_base      = 200
 f_raza_vida        = 1.3
 f_raza_mana        = 0.7
 f_recuperacion     = 0.8
@@ -35,6 +41,8 @@ f_recuperacion     = 0.8
 [razas.gnomo]
 constitucion_base  = 250
 inteligencia_base  = 400
+fuerza_base        = 200
+agilidad_base      = 350
 f_raza_vida        = 0.9
 f_raza_mana        = 1.2
 f_recuperacion     = 0.9
@@ -78,8 +86,8 @@ oro_drop_npc_divisor    = 10      # OroDropNPC = vidaMaxNPC / divisor
 # -----------------------------------------------------------------------------
 [ia]
 rango_deteccion_criaturas = 15
-cooldown_movimiento_criaturas = 2.0  # ms entre movimientos de criaturas
-cooldown_ataque_criaturas = 2.0      # ms entre ataques de criaturas
+cooldown_movimiento_criatura = 2.0  # segundos entre movimientos de criaturas
+cooldown_ataque_criatura = 2.0      # segundos entre ataques de criaturas
 intervalo_spawn = 30.0  # segundos entre spawns de criaturas
 velocidad_resurreccion = 0.5
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "config.h"
-#include "criaturas/criatura.h"
+#include "game/config.h"
+#include "game/criaturas/criatura.h"
 
 class Zombie: public Criatura {
 public:

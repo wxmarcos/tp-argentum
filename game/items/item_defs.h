@@ -16,16 +16,16 @@ constexpr const char* ARCO_COMPUESTO = "Arco compuesto";
 
 constexpr const char* ARMADURA_DE_CUERO = "Armadura de cuero";
 constexpr const char* ARMADURA_DE_PLACAS = "Armadura de placas";
-constexpr const char* TUNICA_AZUL = "Túnica azul";
+constexpr const char* TUNICA_AZUL = "Tunica azul";
 
 constexpr const char* CAPUCHA = "Capucha";
 constexpr const char* CASCO_DE_HIERRO = "Casco de hierro";
-constexpr const char* SOMBRERO_MAGICO = "Sombrero mágico";
+constexpr const char* SOMBRERO_MAGICO = "Sombrero magico";
 
 constexpr const char* ESCUDO_DE_TORTUGA = "Escudo de tortuga";
 constexpr const char* ESCUDO_DE_HIERRO = "Escudo de hierro";
 
-constexpr const char* POCION_DE_VIDA = "Poción de vida";
-constexpr const char* POCION_DE_MANA = "Poción de mana";
+constexpr const char* POCION_DE_VIDA = "Pocion de vida";
+constexpr const char* POCION_DE_MANA = "Pocion de mana";
 
 }  // namespace item_defs

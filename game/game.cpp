@@ -608,47 +608,41 @@ std::vector<Snapshot> Game::tick(float dt) {
 std::vector<Snapshot> Game::process(const Command& cmd) {
     std::vector<Snapshot> snapshots;
 
-    // -- Login --------------------------
-    if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
+    // -- Login / Create Character --------------------------
+    // Si el jugador ya existe -> login directo.
+    // Si no existe -> se crea el personaje y luego se hace login.
+    if (cmd.get_type() == protocol::ClientOpcode::LOGIN ||
+        cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
+
+        bool esNuevo = false;
         Jugador* jugador = getJugador(cmd.get_nick());
 
         if (!jugador) {
-            snapshots.push_back(Snapshot::error_message(
-                cmd.get_nick(), "Login fallido: personaje inexistente"));
-            return snapshots;
+            // Personaje inexistente: crearlo con los datos del comando
+            bool creado = agregarJugador(cmd.get_nick(), 1, 10, 10,
+                                         cmd.get_raza(), cmd.get_clase());
+            if (!creado) {
+                snapshots.push_back(Snapshot::error_message(
+                    cmd.get_nick(), "No se pudo crear el personaje"));
+                return snapshots;
+            }
+            jugador = getJugador(cmd.get_nick());
+            esNuevo = true;
         }
+
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
-        snapshots.push_back(Snapshot::entity_login(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
-        snapshots.push_back(
-            SnapshotFactory::player_stats_from_player(*jugador));
-        snapshots.push_back(
-            SnapshotFactory::player_inventory_from_player(*jugador));
-
-        agregarReplayDeJugadores(snapshots, cmd.get_nick());
-
-        return snapshots;
-    }
-
-    // -- Create Character --------------------------
-    if (cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
-        bool creado = agregarJugador(cmd.get_nick(), 1, 10, 10, cmd.get_raza(),
-                                     cmd.get_clase());
-        if (!creado) {
-            snapshots.push_back(Snapshot::error_message(
-                cmd.get_nick(), "No se pudo crear el personaje"));
-            return snapshots;
+        if (esNuevo) {
+            snapshots.push_back(Snapshot::entity_created(
+                cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+        } else {
+            snapshots.push_back(Snapshot::entity_login(
+                cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
         }
-        player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
-
-        Jugador* jugador = getJugador(cmd.get_nick());
-        snapshots.push_back(Snapshot::entity_created(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
 
         snapshots.push_back(
             SnapshotFactory::player_stats_from_player(*jugador));
@@ -805,6 +799,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 static_cast<uint16_t>(resultado.danioAplicado),
                 resultado.fueCritico));
 
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
+
             if (Jugador* victima = getJugador(objetivo)) {
                 snapshots.push_back(
                     SnapshotFactory::player_stats_from_player(*victima));
@@ -947,7 +944,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             break;
         }
-        
+
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
             if (jugador) jugador->revivir(jugador->getVidaMax());
             snapshots.push_back(Snapshot::error_message(nombre, "Cheat: resucitado"));
@@ -978,8 +975,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                                          destino.y);
             snapshots.push_back(
                 Snapshot::error_message(nombre,
-                                        "Resucitando*jugador quedas "
-                                        "inmovilizado hasta haber resucitado"));
+                                        "Resucitando... quedaras inmovilizado "
+                                        "hasta llegar al sacerdote"));
             break;
         }
 
@@ -990,7 +987,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                     nombre, "No puedes curarte si eres un fantasma"));
                 break;
             }
-            
+
             if (!hayNPCCercano(jugador, sacerdotes)) {
                 snapshots.push_back(Snapshot::error_message(nombre,
                     "Debes estar cerca de un sacerdote para curarte"));

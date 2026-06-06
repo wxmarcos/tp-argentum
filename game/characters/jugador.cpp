@@ -91,10 +91,12 @@ int Jugador::expParaSiguienteNivel() const {
 }
 
 void Jugador::verificarSubidaNivel() {
-    while (experiencia >= expParaSiguienteNivel()) {
-        experiencia -= expParaSiguienteNivel();
+    int limite = expParaSiguienteNivel();
+    while (experiencia >= limite) {
+        experiencia -= limite;
         nivel++;
         recalcularStats();
+        limite = expParaSiguienteNivel();
     }
 }
 
