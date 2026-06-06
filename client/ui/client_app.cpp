@@ -1,8 +1,9 @@
 #include "ui/client_app.h"
 
 #include <SDL2/SDL.h>
-
 #include <SDL2pp/SDL2pp.hh>
+#include <SDL2/SDL_image.h>
+#include <filesystem>
 #include <exception>
 #include <iostream>
 #include <utility>
@@ -16,6 +17,7 @@
 #include "protocol/game_update.h"
 #include "render/world_renderer.h"
 #include "render/hud_renderer.h"
+#include "ui/menu_screen.h"
 
 using SDL2pp::Renderer;
 using SDL2pp::SDL;
@@ -28,43 +30,100 @@ int ClientApp::run() {
     try {
         SDL sdl(SDL_INIT_VIDEO);
 
-        Uint32 window_flags = SDL_WINDOW_RESIZABLE;
-        if (config.fullscreen) {
-            window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-        }
-
+        Uint32 flags = 0;
+        if (config.fullscreen) flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         Window window(config.window_title, SDL_WINDOWPOS_UNDEFINED,
                       SDL_WINDOWPOS_UNDEFINED, config.window_width,
-                      config.window_height, window_flags);
+                      config.window_height, flags);
 
+        const auto icon_path =
+            (std::filesystem::current_path() / config.assets_path / "ui/icon.png")
+                .lexically_normal();
+        if (SDL_Surface* icon = IMG_Load(icon_path.string().c_str())) {
+            SDL_SetWindowIcon(window.Get(), icon);
+            SDL_FreeSurface(icon);
+        }
+        
         Renderer renderer(window, -1,
                           SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-        AudioManager audio(config);
-        WorldRenderer world_renderer(renderer, config);
-        HudRenderer hud(renderer, config);
-        InputHandler input;
-        ClientGameState state(config.character_nick, config.map_width,
-                              config.map_height);
+        MenuScreen menu(renderer, config);
 
-        ServerConnection connection(config.server_host, config.server_port);
-        std::cout << "[Client] Conectado a " << config.server_host << ":"
-                  << config.server_port << "\n";
+        while (true) {
+            if (!menu.run_inicio()) return 0;
 
-        connection.send(Command::create_character(config.character_nick,
-                                                  config.character_raza,
-                                                  config.character_clase));
-        main_loop(connection, input, renderer, world_renderer, hud, state);
+            std::string nick;
+            bool volver_a_inicio = false;
+            while (!volver_a_inicio) {
+                if (!menu.run_login(nick)) {
+                    volver_a_inicio = true;
+                    break;
+                }
 
-        connection.send(Command::disconnect());
-        connection.stop();
-        std::cout << "[Client] Cerrado limpiamente.\n";
-        return 0;
+                ServerConnection connection(config.server_host,
+                                            config.server_port);
+                ClientGameState state(nick, config.map_width,
+                                      config.map_height);
 
+                connection.send(Command::login(nick));
+                int r = await_response(connection, state);
+
+                if (r == 0) {
+                    std::string raza = "humano";
+                    std::string clase = "mago";
+                    if (!menu.run_create(raza, clase)) {
+                        connection.send(Command::disconnect());
+                        connection.stop();
+                        continue;
+                    }
+                    connection.send(
+                        Command::create_character(nick, raza, clase));
+                    r = await_response(connection, state);
+                }
+
+                if (r != 1) {
+                    std::cerr << "[Client] No se pudo iniciar sesion.\n";
+                    connection.send(Command::disconnect());
+                    connection.stop();
+                    continue;
+                }
+
+                AudioManager audio(config);
+                WorldRenderer world_renderer(renderer, config);
+                HudRenderer hud(renderer, config);
+                InputHandler input;
+
+                main_loop(connection, input, renderer, world_renderer, hud,
+                          state);
+
+                connection.send(Command::disconnect());
+                connection.stop();
+                return 0;
+            }
+        }
     } catch (const std::exception& e) {
         std::cerr << "[Client] Error fatal: " << e.what() << std::endl;
         return 1;
     }
+}
+
+int ClientApp::await_response(ServerConnection& connection,
+                              ClientGameState& state) {
+    const uint32_t err_seq0 = state.get_error_seq();
+    const Uint32 start = SDL_GetTicks();
+    while (SDL_GetTicks() - start < 5000) {
+        GameUpdate update;
+        bool got = false;
+        while (connection.poll_update(update)) {
+            got = true;
+            if (update.disconnect) return -1;
+            state.apply_update(update);
+        }
+        if (state.has_local_stats()) return 1;
+        if (state.get_error_seq() != err_seq0) return 0;
+        if (!got) SDL_Delay(10);
+    }
+    return -1;
 }
 
 void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,

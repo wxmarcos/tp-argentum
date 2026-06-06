@@ -33,6 +33,8 @@ private:
     void process_login_response(ServerConnection& connection,
                                 const Snapshot& snapshot);
 
+    int await_response(ServerConnection& connection, ClientGameState& state);
+
 public:
     explicit ClientApp(ClientConfig config);
 
