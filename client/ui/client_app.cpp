@@ -79,7 +79,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input);
+        running = process_input(connection, input, state);
         if (running) {
             running = process_updates(connection, state);
         }
@@ -98,7 +98,8 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 }
 
 bool ClientApp::process_input(ServerConnection& connection,
-                              const InputHandler& input) {
+                              const InputHandler& input,
+                              ClientGameState& state) {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
@@ -112,6 +113,12 @@ bool ClientApp::process_input(ServerConnection& connection,
                 event.key.keysym.sym == SDLK_q) {
                 connection.send(Command::disconnect());
                 return false;
+            }
+
+            // Teclas de UI (no envian comando al servidor)
+            if (event.key.keysym.sym == SDLK_i) {
+                state.toggle_inventory();
+                continue;
             }
 
             Command cmd = Command::disconnect();

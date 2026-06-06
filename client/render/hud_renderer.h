@@ -26,6 +26,7 @@ private:
     TextRenderer text;
 
     void draw_bar(int x, int y, int w, int h, float ratio, SDL_Color fill);
+    void draw_inventory(const ClientGameState& state);
 };
 
 #endif

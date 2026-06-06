@@ -22,7 +22,8 @@ private:
                    SDL2pp::Renderer& renderer, WorldRenderer& world,
                    HudRenderer& hud, ClientGameState& state);
 
-    bool process_input(ServerConnection& connection, const InputHandler& input);
+    bool process_input(ServerConnection& connection, const InputHandler& input,
+                       ClientGameState& state);
 
     bool process_updates(ServerConnection& connection, ClientGameState& state);
 
