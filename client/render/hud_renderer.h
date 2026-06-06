@@ -10,11 +10,20 @@
 #include "render/text_renderer.h"
 
 class HudRenderer {
+private:
+    SDL2pp::Renderer& renderer;
+    const ClientConfig& config;
+    TextRenderer text;
+    SDL_Texture* tex_frame;
+    
+    void draw_bar(int x, int y, int w, int h, float ratio, SDL_Color fill);
+
 public:
     uint32_t last_error_seq = 0;
     Uint32 error_shown_at = 0;
 
     HudRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);
+    ~HudRenderer();
 
     void render(const ClientGameState& state);
 

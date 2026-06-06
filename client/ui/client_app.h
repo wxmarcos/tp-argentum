@@ -25,10 +25,15 @@ private:
     bool process_input(ServerConnection& connection, const InputHandler& input,
                        ClientGameState& state);
 
+    void handle_click(ServerConnection& connection,
+                      const ClientGameState& state, int mouse_x, int mouse_y);
+                      
     bool process_updates(ServerConnection& connection, ClientGameState& state);
 
     void process_login_response(ServerConnection& connection,
                                 const Snapshot& snapshot);
+
+    int await_response(ServerConnection& connection, ClientGameState& state);
 
 public:
     explicit ClientApp(ClientConfig config);

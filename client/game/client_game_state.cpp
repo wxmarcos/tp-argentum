@@ -278,6 +278,23 @@ void ClientGameState::apply_inventory_update(const Snapshot& snapshot) {
     inventory[item.slot_id] = {item.item, item.cantidad, item.equipado};
 }
 
+bool ClientGameState::entity_at(uint16_t x, uint16_t y,
+                                std::string& out_nick) const {
+    for (const auto& [nick, cv] : creatures) {
+        if (cv.x == x && cv.y == y) {
+            out_nick = nick;
+            return true;
+        }
+    }
+    for (const auto& [nick, pv] : others) {
+        if (pv.x == x && pv.y == y) {
+            out_nick = nick;
+            return true;
+        }
+    }
+    return false;
+}
+
 void ClientGameState::apply_damage_event(const Snapshot& snapshot) {
     const std::string& target = snapshot.get_target();
     uint16_t x = 0;
