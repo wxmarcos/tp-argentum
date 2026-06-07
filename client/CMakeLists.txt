@@ -41,6 +41,7 @@ target_sources(taller_client
     render/tmx_loader.h
     render/text_renderer.h
     render/hud_renderer.h
+    render/effect_kind.h
     audio/audio_manager.h
     config/client_config.h
     )

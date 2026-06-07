@@ -4,10 +4,12 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "common/protocol_defs.h"
 #include "protocol/game_update.h"
+#include "render/effect_kind.h"
 
 struct PlayerStats {
     std::string raza;
@@ -73,11 +75,13 @@ private:
 
     std::unordered_map<std::string, PlayerView> others;
     std::unordered_map<std::string, CreatureView> creatures;
+    std::unordered_set<std::string> dead_entities;
 
     int map_width;
     int map_height;
 
     std::vector<FloatingEvent> floating_events;
+    std::vector<EffectSpawn> effect_spawns;
 
     bool resolve_entity_pos(const std::string& nick, uint16_t& x,
                             uint16_t& y) const;
@@ -125,8 +129,16 @@ public:
         return floating_events;
     }
 
+    const std::vector<EffectSpawn>& get_effect_spawns() const {
+        return effect_spawns;
+    }
+
     const std::unordered_map<std::string, CreatureView>& get_creatures() const {
         return creatures;
+    }
+
+    bool is_dead(const std::string& nick) const {
+        return dead_entities.count(nick) > 0;
     }
 
     bool entity_at(uint16_t x, uint16_t y, std::string& out_nick) const;
