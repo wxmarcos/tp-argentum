@@ -1,5 +1,6 @@
 #include "render/hud_renderer.h"
 
+#include <SDL2/SDL_image.h>
 #include <filesystem>
 #include <string>
 
@@ -10,7 +11,17 @@ HudRenderer::HudRenderer(SDL2pp::Renderer& renderer,
     text(renderer.Get(),
          (std::filesystem::current_path() / config.font_path)
              .lexically_normal(),
-         config.font_size) {}
+         config.font_size),
+    tex_frame(nullptr) {
+    const auto path =
+        (std::filesystem::current_path() / config.assets_path / "ui/marco.png")
+            .lexically_normal();
+    SDL_Surface* s = IMG_Load(path.string().c_str());
+    if (s) {
+        tex_frame = SDL_CreateTextureFromSurface(renderer.Get(), s);
+        SDL_FreeSurface(s);
+    }
+}
 
 void HudRenderer::draw_bar(int x, int y, int w, int h, float ratio,
                            SDL_Color fill) {
@@ -112,5 +123,17 @@ void HudRenderer::render(const ClientGameState& state) {
                   std::to_string(s.oro),
               x, y3, white);
 
+    if (tex_frame) {
+        const SDL2pp::Point out = renderer.GetOutputSize();
+        const SDL_Rect full{0, 0, out.x, out.y};
+        SDL_RenderCopy(renderer.Get(), tex_frame, nullptr, &full);
+    }
+
     renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+}
+
+HudRenderer::~HudRenderer() {
+    if (tex_frame) {
+        SDL_DestroyTexture(tex_frame);
+    }
 }

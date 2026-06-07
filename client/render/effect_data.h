@@ -2,8 +2,16 @@
 #define CLIENT_RENDER_EFFECT_DATA_H
 
 #include <SDL2/SDL.h>
+#include "render/effect_kind.h"
 
 #include <vector>
+
+struct ActiveEffect {
+    EffectKind kind;
+    int wx;
+    int wy;
+    uint32_t age_ms;
+};
 
 struct EffectData {
     std::vector<SDL_Rect> frames;
@@ -149,6 +157,37 @@ inline EffectData make_ataqueComunDorado_effect_data() {
         {226, 173, 69, 43}, {293, 179, 69, 43},
     };
     return d;
+}
+
+struct EffectDef {
+    EffectKind kind;
+    EffectData (*make)();
+    const char* sheet;
+};
+
+inline std::vector<EffectDef> all_effect_defs() {
+    return {
+        {EffectKind::Meditar, make_meditar_effect_data, "efectos/meditar.png"},
+        {EffectKind::EfectoMorir, make_efectoMorir_effect_data,
+         "efectos/efectoMorir.png"},
+        {EffectKind::Resucitar, make_resucitar_effect_data,
+         "efectos/resucitar.png"},
+        {EffectKind::ExplosionSuper, make_explosionSuper_effect_data,
+         "efectos/explosionSuper.png"},
+        {EffectKind::ExplosionComun, make_explosionComun_effect_data,
+         "efectos/explosionComun.png"},
+        {EffectKind::Curarse, make_curarse_effect_data, "efectos/curarse.png"},
+        {EffectKind::AtaqueBaculoComun, make_ataqueBaculoComun_effect_data,
+         "efectos/ataqueBaculoComun.png"},
+        {EffectKind::AtaqueBaculoDorado, make_ataqueBaculoDorado_effect_data,
+         "efectos/ataqueBaculoDorado.png"},
+        {EffectKind::AtaqueComunRojo, make_ataqueComunRojo_effect_data,
+         "efectos/ataqueComun.png"},
+        {EffectKind::AtaqueComunGris, make_ataqueComunGris_effect_data,
+         "efectos/ataqueComun.png"},
+        {EffectKind::AtaqueComunDorado, make_ataqueComunDorado_effect_data,
+         "efectos/ataqueComun.png"},
+    };
 }
 
 #endif

@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.8" tiledversion="1.8.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="79">
- <tileset firstgid="1" source="./pisos.tsx"/>
- <tileset firstgid="257" source="./pulpo.tsx"/>
- <tileset firstgid="1281" source="./accesorios5.tsx"/>
- <tileset firstgid="2305" source="./paredesMazmorra.tsx"/>
- <tileset firstgid="3329" source="./pisos2.tsx"/>
- <tileset firstgid="3585" source="./dragon.tsx"/>
- <tileset firstgid="4609" source="./reja.tsx"/>
- <tileset firstgid="4618" source="./rejavertical.tsx"/>
- <tileset firstgid="4627" source="./castillo2partes.tsx"/>
- <tileset firstgid="5651" source="./altar.tsx"/>
- <tileset firstgid="5907" source="./altarIglesia.tsx"/>
- <tileset firstgid="6931" source="./accesorios.tsx"/>
- <tileset firstgid="7955" source="./carteles.tsx"/>
+ <tileset firstgid="1" source="pisos.tsx"/>
+ <tileset firstgid="257" source="pulpo.tsx"/>
+ <tileset firstgid="1281" source="accesorios5.tsx"/>
+ <tileset firstgid="2305" source="paredesMazmorra.tsx"/>
+ <tileset firstgid="3329" source="pisos2.tsx"/>
+ <tileset firstgid="3585" source="dragon.tsx"/>
+ <tileset firstgid="4609" source="reja.tsx"/>
+ <tileset firstgid="4618" source="rejavertical.tsx"/>
+ <tileset firstgid="4627" source="castillo2partes.tsx"/>
+ <tileset firstgid="5651" source="altar.tsx"/>
+ <tileset firstgid="5907" source="altarIglesia.tsx"/>
+ <tileset firstgid="6931" source="accesorios.tsx"/>
+ <tileset firstgid="7955" source="carteles.tsx"/>
  <layer id="1" name="suelo" width="100" height="100">
   <data encoding="csv">
 1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,1557,1558,1559,1560,
@@ -325,7 +325,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4851,4919,4919,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="4" name="colisiones" visible="0">
+ <objectgroup id="4" name="Colision" visible="0">
   <object id="2" x="202.667" y="382.667" width="574.667" height="236"/>
   <object id="7" x="153.333" y="608" width="65.3333" height="472"/>
   <object id="8" x="374.667" y="768" width="236" height="25.3333"/>

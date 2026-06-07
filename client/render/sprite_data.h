@@ -121,6 +121,32 @@ inline SpriteData make_gnomo_sprite_data() {
     return d;
 }
 
+inline SpriteData make_fantasma_sprite_data() {
+    SpriteData d;
+
+    d.frame_rects[DIR_SOUTH][0] = {4, 268, 23, 34};
+    d.frame_rects[DIR_SOUTH][1] = {36, 268, 23, 34};
+    d.frame_rects[DIR_SOUTH][2] = {68, 268, 23, 34};
+    d.frame_rects[DIR_SOUTH][3] = {100, 268, 23, 34};
+
+    d.frame_rects[DIR_NORTH][0] = {4, 333, 22, 44};
+    d.frame_rects[DIR_NORTH][1] = {36, 333, 22, 44};
+    d.frame_rects[DIR_NORTH][2] = {68, 333, 22, 44};
+    d.frame_rects[DIR_NORTH][3] = {100, 333, 22, 44};
+
+    d.frame_rects[DIR_EAST][0] = {13, 398, 40, 35};
+    d.frame_rects[DIR_EAST][1] = {75, 398, 40, 35};
+    d.frame_rects[DIR_EAST][2] = {140, 398, 40, 35};
+    d.frame_rects[DIR_EAST][3] = {202, 398, 40, 35};
+
+    d.frame_rects[DIR_WEST][0] = {11, 464, 40, 33};
+    d.frame_rects[DIR_WEST][1] = {75, 464, 40, 33};
+    d.frame_rects[DIR_WEST][2] = {139, 464, 40, 33};
+    d.frame_rects[DIR_WEST][3] = {203, 464, 40, 33};
+    
+    return d;
+}
+
 inline SpriteData make_mago_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {4, 13, 20, 33};
@@ -237,15 +263,15 @@ inline SpriteData make_goblin_sprite_data() {
     d.frame_rects[DIR_NORTH][2] = {53, 36, 18, 25};
     d.frame_rects[DIR_NORTH][3] = {78, 36, 18, 25};
 
-    d.frame_rects[DIR_EAST][0] = {3, 67, 18, 25};
-    d.frame_rects[DIR_EAST][1] = {28, 67, 18, 25};
-    d.frame_rects[DIR_EAST][2] = {53, 67, 18, 25};
-    d.frame_rects[DIR_EAST][3] = {78, 67, 18, 25};
+    d.frame_rects[DIR_EAST][0] = {4, 98, 18, 25};
+    d.frame_rects[DIR_EAST][1] = {30, 98, 18, 25};
+    d.frame_rects[DIR_EAST][2] = {54, 98, 18, 25};
+    d.frame_rects[DIR_EAST][3] = {79, 98, 18, 25};
 
-    d.frame_rects[DIR_WEST][0] = {4, 98, 18, 25};
-    d.frame_rects[DIR_WEST][1] = {30, 98, 18, 25};
-    d.frame_rects[DIR_WEST][2] = {54, 98, 18, 25};
-    d.frame_rects[DIR_WEST][3] = {79, 98, 18, 25};
+    d.frame_rects[DIR_WEST][0] = {3, 67, 18, 25};
+    d.frame_rects[DIR_WEST][1] = {28, 67, 18, 25};
+    d.frame_rects[DIR_WEST][2] = {53, 67, 18, 25};
+    d.frame_rects[DIR_WEST][3] = {78, 67, 18, 25};
 
     return d;
 }
@@ -261,16 +287,16 @@ inline SpriteData make_esqueleto_sprite_data() {
     d.frame_rects[DIR_NORTH][1] = {26, 49, 21, 45};
     d.frame_rects[DIR_NORTH][2] = {51, 49, 21, 45};
     d.frame_rects[DIR_NORTH][3] = {75, 49, 21, 45};
+    
+    d.frame_rects[DIR_EAST][0] = {3, 96, 21, 45};
+    d.frame_rects[DIR_EAST][1] = {28, 96, 21, 45};
+    d.frame_rects[DIR_EAST][2] = {53, 96, 21, 45};
+    d.frame_rects[DIR_EAST][3] = {77, 96, 21, 45};
 
-    d.frame_rects[DIR_EAST][0] = {3, 143, 21, 45};
-    d.frame_rects[DIR_EAST][1] = {29, 143, 21, 45};
-    d.frame_rects[DIR_EAST][2] = {53, 143, 21, 45};
-    d.frame_rects[DIR_EAST][3] = {77, 143, 21, 45};
-
-    d.frame_rects[DIR_WEST][0] = {3, 96, 21, 45};
-    d.frame_rects[DIR_WEST][1] = {28, 96, 21, 45};
-    d.frame_rects[DIR_WEST][2] = {53, 96, 21, 45};
-    d.frame_rects[DIR_WEST][3] = {77, 96, 21, 45};
+    d.frame_rects[DIR_WEST][0] = {3, 143, 21, 45};
+    d.frame_rects[DIR_WEST][1] = {29, 143, 21, 45};
+    d.frame_rects[DIR_WEST][2] = {53, 143, 21, 45};
+    d.frame_rects[DIR_WEST][3] = {77, 143, 21, 45};
 
     return d;
 }
@@ -287,15 +313,15 @@ inline SpriteData make_zombie_sprite_data() {
     d.frame_rects[DIR_NORTH][2] = {60, 49, 15, 43};
     d.frame_rects[DIR_NORTH][3] = {87, 49, 15, 43};
 
-    d.frame_rects[DIR_EAST][0] = {6, 95, 15, 43};
-    d.frame_rects[DIR_EAST][1] = {33, 95, 15, 43};
-    d.frame_rects[DIR_EAST][2] = {61, 95, 15, 43};
-    d.frame_rects[DIR_EAST][3] = {88, 95, 15, 43};
+    d.frame_rects[DIR_EAST][0] = {4, 142, 15, 43};
+    d.frame_rects[DIR_EAST][1] = {31, 142, 15, 43};
+    d.frame_rects[DIR_EAST][2] = {59, 142, 15, 43};
+    d.frame_rects[DIR_EAST][3] = {86, 142, 15, 43};
 
-    d.frame_rects[DIR_WEST][0] = {4, 142, 15, 43};
-    d.frame_rects[DIR_WEST][1] = {31, 142, 15, 43};
-    d.frame_rects[DIR_WEST][2] = {59, 142, 15, 43};
-    d.frame_rects[DIR_WEST][3] = {86, 142, 15, 43};
+    d.frame_rects[DIR_WEST][0] = {6, 95, 15, 43};
+    d.frame_rects[DIR_WEST][1] = {33, 95, 15, 43};
+    d.frame_rects[DIR_WEST][2] = {61, 95, 15, 43};
+    d.frame_rects[DIR_WEST][3] = {88, 95, 15, 43};
 
     return d;
 }
@@ -312,15 +338,15 @@ inline SpriteData make_orco_sprite_data() {
     d.frame_rects[DIR_NORTH][2] = {117, 101, 53, 87};
     d.frame_rects[DIR_NORTH][3] = {174, 101, 53, 87};
 
-    d.frame_rects[DIR_EAST][0] = {4, 201, 53, 87};
-    d.frame_rects[DIR_EAST][1] = {60, 201, 53, 87};
-    d.frame_rects[DIR_EAST][2] = {117, 201, 53, 87};
-    d.frame_rects[DIR_EAST][3] = {174, 201, 53, 87};
+    d.frame_rects[DIR_EAST][0] = {6, 300, 53, 87};
+    d.frame_rects[DIR_EAST][1] = {60, 300, 53, 87};
+    d.frame_rects[DIR_EAST][2] = {118, 300, 53, 87};
+    d.frame_rects[DIR_EAST][3] = {175, 300, 53, 87};
 
-    d.frame_rects[DIR_WEST][0] = {6, 300, 53, 87};
-    d.frame_rects[DIR_WEST][1] = {60, 300, 53, 87};
-    d.frame_rects[DIR_WEST][2] = {118, 300, 53, 87};
-    d.frame_rects[DIR_WEST][3] = {175, 300, 53, 87};
+    d.frame_rects[DIR_WEST][0] = {4, 201, 53, 87};
+    d.frame_rects[DIR_WEST][1] = {60, 201, 53, 87};
+    d.frame_rects[DIR_WEST][2] = {117, 201, 53, 87};
+    d.frame_rects[DIR_WEST][3] = {174, 201, 53, 87};
 
     return d;
 }
@@ -337,15 +363,15 @@ inline SpriteData make_arana_sprite_data() {
     d.frame_rects[DIR_NORTH][2] = {197, 135, 88, 57};
     d.frame_rects[DIR_NORTH][3] = {295, 135, 88, 57};
 
-    d.frame_rects[DIR_EAST][0] = {3, 230, 88, 57};
-    d.frame_rects[DIR_EAST][1] = {98, 230, 88, 57};
-    d.frame_rects[DIR_EAST][2] = {195, 230, 88, 57};
-    d.frame_rects[DIR_EAST][3] = {291, 230, 88, 57};
+    d.frame_rects[DIR_EAST][0] = {7, 326, 88, 57};
+    d.frame_rects[DIR_EAST][1] = {104, 326, 88, 57};
+    d.frame_rects[DIR_EAST][2] = {199, 326, 88, 57};
+    d.frame_rects[DIR_EAST][3] = {296, 326, 88, 57};
 
-    d.frame_rects[DIR_WEST][0] = {7, 326, 88, 57};
-    d.frame_rects[DIR_WEST][1] = {104, 326, 88, 57};
-    d.frame_rects[DIR_WEST][2] = {199, 326, 88, 57};
-    d.frame_rects[DIR_WEST][3] = {296, 326, 88, 57};
+    d.frame_rects[DIR_WEST][0] = {3, 230, 88, 57};
+    d.frame_rects[DIR_WEST][1] = {98, 230, 88, 57};
+    d.frame_rects[DIR_WEST][2] = {195, 230, 88, 57};
+    d.frame_rects[DIR_WEST][3] = {291, 230, 88, 57};
 
     return d;
 }
@@ -362,15 +388,15 @@ inline SpriteData make_golem_sprite_data() {
     d.frame_rects[DIR_NORTH][2] = {204, 104, 73, 80};
     d.frame_rects[DIR_NORTH][3] = {300, 104, 73, 80};
 
-    d.frame_rects[DIR_EAST][0] = {8, 297, 73, 80};
-    d.frame_rects[DIR_EAST][1] = {104, 297, 73, 80};
-    d.frame_rects[DIR_EAST][2] = {200, 297, 73, 80};
-    d.frame_rects[DIR_EAST][3] = {296, 297, 73, 80};
+    d.frame_rects[DIR_EAST][0] = {16, 203, 73, 80};
+    d.frame_rects[DIR_EAST][1] = {111, 203, 73, 80};
+    d.frame_rects[DIR_EAST][2] = {208, 203, 73, 80};
+    d.frame_rects[DIR_EAST][3] = {303, 203, 73, 80};
 
-    d.frame_rects[DIR_WEST][0] = {16, 203, 73, 80};
-    d.frame_rects[DIR_WEST][1] = {111, 203, 73, 80};
-    d.frame_rects[DIR_WEST][2] = {208, 203, 73, 80};
-    d.frame_rects[DIR_WEST][3] = {303, 203, 73, 80};
+    d.frame_rects[DIR_WEST][0] = {8, 297, 73, 80};
+    d.frame_rects[DIR_WEST][1] = {104, 297, 73, 80};
+    d.frame_rects[DIR_WEST][2] = {200, 297, 73, 80};
+    d.frame_rects[DIR_WEST][3] = {296, 297, 73, 80};
 
     return d;
 }

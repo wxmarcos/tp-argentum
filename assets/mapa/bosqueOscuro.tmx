@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.8" tiledversion="1.8.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="109">
- <tileset firstgid="1" source="./cespednegro.tsx"/>
- <tileset firstgid="1025" source="./rocasArboles.tsx"/>
- <tileset firstgid="2049" source="./accesorioscespednegro.tsx"/>
- <tileset firstgid="3073" source="./cuerno1.tsx"/>
- <tileset firstgid="3137" source="./cuerno2.tsx"/>
- <tileset firstgid="3201" source="./carteles.tsx"/>
- <tileset firstgid="4225" source="./accesoriosOscuros.tsx"/>
- <tileset firstgid="8321" source="./estatuillas1.tsx"/>
- <tileset firstgid="9345" source="./accesorios1.tsx"/>
- <tileset firstgid="9601" source="./casaOscura.tsx"/>
- <tileset firstgid="10625" source="./casaRota.tsx"/>
+ <tileset firstgid="1" source="cespednegro.tsx"/>
+ <tileset firstgid="1025" source="rocasArboles.tsx"/>
+ <tileset firstgid="2049" source="accesorioscespednegro.tsx"/>
+ <tileset firstgid="3073" source="cuerno1.tsx"/>
+ <tileset firstgid="3137" source="cuerno2.tsx"/>
+ <tileset firstgid="3201" source="carteles.tsx"/>
+ <tileset firstgid="4225" source="accesoriosOscuros.tsx"/>
+ <tileset firstgid="8321" source="estatuillas1.tsx"/>
+ <tileset firstgid="9345" source="accesorios1.tsx"/>
+ <tileset firstgid="9601" source="casaOscura.tsx"/>
+ <tileset firstgid="10625" source="casaRota.tsx"/>
  <layer id="1" name="Suelo" width="100" height="100">
   <data encoding="csv">
 61,62,63,64,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,
@@ -323,7 +323,7 @@
 0,0,0,0,0,0,2017,2018,2019,2020,2021,2022,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1960,1961,1962,1963,1964,0,2017,2018,2019,2020,2021,2022,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="4" name="Colisiones" visible="0" offsetx="-1" offsety="-2">
+ <objectgroup id="4" name="Colision" visible="0" offsetx="-1" offsety="-2">
   <object id="40" x="1311" y="776.667" width="75.3333" height="139.333"/>
   <object id="42" x="1369" y="701.333" width="105.333" height="98.6667"/>
   <object id="44" x="1343.67" y="916" width="80" height="134"/>

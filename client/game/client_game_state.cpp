@@ -49,6 +49,7 @@ ClientGameState::ClientGameState(const std::string& local_nick, int map_width,
 
 void ClientGameState::begin_frame() {
     floating_events.clear();
+    effect_spawns.clear();
     local_moved = false;
     for (auto& [nick, pv] : others) {
         pv.moved = false;
@@ -180,6 +181,7 @@ void ClientGameState::apply_entity_remove(const Snapshot& snapshot) {
     if (nick == local_nick) {
         return;
     }
+    dead_entities.erase(nick);
     std::string type;
     if (classify_creature(nick, type)) {
         creatures.erase(nick);
@@ -253,27 +255,53 @@ bool ClientGameState::resolve_entity_pos(const std::string& nick, uint16_t& x,
     return false;
 }
 
+bool ClientGameState::entity_at(uint16_t x, uint16_t y,
+                                std::string& out_nick) const {
+    for (const auto& [nick, cv] : creatures) {
+        if (cv.x == x && cv.y == y) {
+            out_nick = nick;
+            return true;
+        }
+    }
+    for (const auto& [nick, pv] : others) {
+        if (pv.x == x && pv.y == y) {
+            out_nick = nick;
+            return true;
+        }
+    }
+    return false;
+}
+
 void ClientGameState::apply_inventory_update(const Snapshot&) {
     // TODO
 }
 
 void ClientGameState::apply_damage_event(const Snapshot& snapshot) {
+    const std::string& attacker = snapshot.get_attacker();
     const std::string& target = snapshot.get_target();
     uint16_t x = 0;
     uint16_t y = 0;
     if (!resolve_entity_pos(target, x, y)) {
         return;
     }
+
+    const bool target_es_jugador =
+        (target == local_nick) || (others.count(target) > 0);
+
     FloatingKind kind;
     if (snapshot.is_critical()) {
         kind = FloatingKind::Crit;
-    } else if (target == local_nick) {
+    } else if (attacker == local_nick) {
+        kind = FloatingKind::DamageDealt;
+    } else if (target_es_jugador) {
         kind = FloatingKind::DamageReceived;
     } else {
         kind = FloatingKind::DamageDealt;
     }
+
     floating_events.push_back(
         {x, y, std::to_string(snapshot.get_damage()), kind});
+    effect_spawns.push_back({x, y, EffectKind::AtaqueComunRojo});
 }
 
 void ClientGameState::apply_dodge_event(const Snapshot& snapshot) {
@@ -294,6 +322,8 @@ void ClientGameState::apply_death_event(const Snapshot& snapshot) {
         return;
     }
     floating_events.push_back({x, y, "¡Murió!", FloatingKind::Death});
+    effect_spawns.push_back({x, y, EffectKind::EfectoMorir});
+    dead_entities.insert(target);
 }
 
 void ClientGameState::apply_meditation_status(const Snapshot&) {
