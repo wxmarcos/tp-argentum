@@ -155,6 +155,96 @@ void Game::cargarJugadoresPersistidos() {
         }
     }
 }
+bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
+    bool ok = agregarJugador(p.nick, p.mapa_id, p.x, p.y, p.raza, p.clase);
+    if (!ok) {
+        return false;
+    }
+
+    Jugador* jugador = getJugador(p.nick);
+    if (!jugador) {
+        return false;
+    }
+
+    jugador->setDireccion(static_cast<Direccion>(p.direction));
+
+    jugador->restaurarEstado(p.nivel, p.vida, p.vida_max, p.mana, p.mana_max,
+                             p.experiencia, p.oro, p.constitucion,
+                             p.inteligencia, p.fuerza, p.agilidad);
+
+    auto inventario = p.inventario;
+
+    std::sort(
+        inventario.begin(), inventario.end(),
+        [](const auto& a, const auto& b) { return a.slot_id < b.slot_id; });
+
+    for (const auto& item_persistido : inventario) {
+        auto item = crear_item_por_nombre(item_persistido.item);
+
+        if (!item) {
+            std::cout << "[Game] item desconocido en persistencia: "
+                      << item_persistido.item << "\n";
+            continue;
+        }
+
+        std::optional<int> slot_agregado =
+            jugador->agarrarItem(std::move(item), item_persistido.cantidad);
+
+        if (!slot_agregado.has_value()) {
+            std::cout << "[Game] no se pudo cargar item: "
+                      << item_persistido.item << "\n";
+            continue;
+        }
+        std::cout << "[Game] jugador restaurado OK " << p.nick << " inventario="
+                  << jugador->getInventario().getSlots().size() << "\n";
+        int slot = item_persistido.slot_id;
+
+        if (!item_persistido.equipado) {
+            continue;
+        }
+
+        const auto& slots = jugador->getInventario().getSlots();
+
+        if (slot < 0 || slot >= static_cast<int>(slots.size())) {
+            continue;
+        }
+
+        if (!slots[slot].has_value()) {
+            continue;
+        }
+
+        switch (slots[slot]->item->getTipo()) {
+            case TipoItem::ARMA:
+                jugador->equiparArma(slot);
+                break;
+
+            case TipoItem::BACULO:
+                jugador->equiparBaculo(slot);
+                break;
+
+            case TipoItem::ARMADURA:
+                jugador->equiparArmadura(slot);
+                break;
+
+            case TipoItem::CASCO:
+                jugador->equiparCasco(slot);
+                break;
+
+            case TipoItem::ESCUDO:
+                jugador->equiparEscudo(slot);
+                break;
+
+            default:
+                break;
+        }
+        std::cout << "[Game] cargando item " << item_persistido.item
+                  << " slot_persistido=" << item_persistido.slot_id
+                  << " cantidad=" << item_persistido.cantidad
+                  << " equipado=" << item_persistido.equipado << "\n";
+    }
+
+    return true;
+}
 
 void Game::cargarNPCs() {
     for (const auto& cm : config.getMapas()) {
@@ -258,9 +348,9 @@ bool Game::agregarJugador(const std::string& nombre, int mapaId, int posX,
 
     auto jugador = std::make_unique<Jugador>(
         nombre, posX, posY, itRaza->second.get(), itClase->second.get(),
-        config.getInventarioCapacidadMax(),
-        config.getFormulaExpCoeficiente(), config.getFormulaExpExponente(),
-        config.getFormulaOroMaxCoeficiente(), config.getFormulaOroMaxExponente());
+        config.getInventarioCapacidadMax(), config.getFormulaExpCoeficiente(),
+        config.getFormulaExpExponente(), config.getFormulaOroMaxCoeficiente(),
+        config.getFormulaOroMaxExponente());
     jugador->setMapaId(mapaId);
     mundo.agregarPersonaje(jugador.get());
     jugadores[nombre] = std::move(jugador);
@@ -430,7 +520,8 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     // Flauta elfica: Se cura a si mismo, ignora objetivo
     if (baculo && baculo->getTipoHechizo() == TipoHechizo::CURACION) {
         if (!atacante->gastarMana(baculo->getCostoMana())) return resultado;
-        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(), baculo->getEfectoMax());
+        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
+                                               baculo->getEfectoMax());
         atacante->curar(curacion);
         resultado.danioAplicado = curacion;
         return resultado;
@@ -450,7 +541,8 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
                      : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
                                                baculo->getEfectoMax());
 
-    resultado.fueCritico = Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
+    resultado.fueCritico =
+        Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
     int danioFinal = danio;
@@ -501,7 +593,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
     // Flauta elfica - se cura a si mismo, ignora objetivo
     if (baculo && baculo->getTipoHechizo() == TipoHechizo::CURACION) {
         if (!atacante->gastarMana(baculo->getCostoMana())) return resultado;
-        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(), baculo->getEfectoMax());
+        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
+                                               baculo->getEfectoMax());
         atacante->curar(curacion);
         resultado.danioAplicado = curacion;
         return resultado;
@@ -521,7 +614,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
                      : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
                                                baculo->getEfectoMax());
 
-    resultado.fueCritico = Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
+    resultado.fueCritico =
+        Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
     if (!resultado.fueCritico)
@@ -613,18 +707,75 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         Jugador* jugador = getJugador(cmd.get_nick());
 
         if (!jugador) {
-            snapshots.push_back(Snapshot::error_message(
-                cmd.get_nick(), "Login fallido: personaje inexistente"));
-            return snapshots;
+            std::cout
+                << "[Game] LOGIN no esta en memoria, buscando en persistencia: "
+                << cmd.get_nick()
+                << "\n";
+
+            std::cout
+                << "[DEBUG] ruta jugadores = "
+                << config.getRutaJugadores()
+                << "\n";
+
+            auto players =
+                PersistenceLoader::load_players(config.getRutaJugadores());
+
+            std::cout
+                << "[DEBUG] players cargados = "
+                << players.size()
+                << "\n";
+
+            bool restaurado = false;
+
+            for (const auto& p : players) {
+                std::cout
+                    << "[DEBUG] nick encontrado = "
+                    << p.nick
+                    << " inventario="
+                    << p.inventario.size()
+                    << "\n";
+
+                if (p.nick == cmd.get_nick()) {
+                    std::cout
+                        << "[Game] restaurando jugador persistido "
+                        << p.nick
+                        << " inventario="
+                        << p.inventario.size()
+                        << "\n";
+
+                    restaurado = restaurarJugadorPersistido(p);
+                    break;
+                }
+            }
+
+            if (!restaurado) {
+                snapshots.push_back(Snapshot::error_message(
+                    cmd.get_nick(),
+                    "Login fallido: personaje inexistente"));
+                return snapshots;
+            }
+
+            jugador = getJugador(cmd.get_nick());
+
+            if (!jugador) {
+                snapshots.push_back(Snapshot::error_message(
+                    cmd.get_nick(),
+                    "Login fallido: error restaurando personaje"));
+                return snapshots;
+            }
         }
+
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_login(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(),
+            static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
+
         snapshots.push_back(
             SnapshotFactory::player_stats_from_player(*jugador));
+
         snapshots.push_back(
             SnapshotFactory::player_inventory_from_player(*jugador));
 
@@ -753,7 +904,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
             // -- PICK ITEM --------------------------
         case protocol::ClientOpcode::PICK_ITEM: {
-            std::optional<int> slot = tomarItem(nombre, static_cast<int>(cmd.get_item_id()));
+            std::optional<int> slot =
+                tomarItem(nombre, static_cast<int>(cmd.get_item_id()));
 
             if (slot.has_value()) {
                 snapshots.push_back(
@@ -918,13 +1070,15 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         // -- CHEATS --------------------------
         case protocol::ClientOpcode::CHEAT_GOD: {
             if (jugador) jugador->activarCheatVidaInfinita();
-            snapshots.push_back(Snapshot::error_message(nombre, "Cheat: vida infinita activado"));
+            snapshots.push_back(Snapshot::error_message(
+                nombre, "Cheat: vida infinita activado"));
             break;
         }
 
         case protocol::ClientOpcode::CHEAT_MANA: {
             if (jugador) jugador->activarCheatManaInfinito();
-            snapshots.push_back(Snapshot::error_message(nombre, "Cheat: mana infinito activado"));
+            snapshots.push_back(Snapshot::error_message(
+                nombre, "Cheat: mana infinito activado"));
             break;
         }
 
@@ -937,9 +1091,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
                 auto items = jugador->soltarTodosLosItems();
                 for (auto& item : items)
-                    mundo.tirarItem(jugador->getMapaId(),
-                                    jugador->getPosX(), jugador->getPosY(),
-                                    std::move(item));
+                    mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
+                                    jugador->getPosY(), std::move(item));
 
                 int oroExceso = Formulas::calcularOroExceso(
                     jugador->getOro(), jugador->getOroMax());
@@ -947,10 +1100,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             break;
         }
-        
+
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
             if (jugador) jugador->revivir(jugador->getVidaMax());
-            snapshots.push_back(Snapshot::error_message(nombre, "Cheat: resucitado"));
+            snapshots.push_back(
+                Snapshot::error_message(nombre, "Cheat: resucitado"));
             break;
         }
 
@@ -990,10 +1144,10 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                     nombre, "No puedes curarte si eres un fantasma"));
                 break;
             }
-            
+
             if (!hayNPCCercano(jugador, sacerdotes)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Debes estar cerca de un sacerdote para curarte"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Debes estar cerca de un sacerdote para curarte"));
                 break;
             }
             jugador->curar(jugador->getVidaMax());
@@ -1006,167 +1160,183 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         // -- BUY ITEM --------------------------
         case protocol::ClientOpcode::BUY_ITEM: {
             bool comercianteCerca = hayNPCCercano(jugador, comerciantes);
-            bool sacerdoteCerca  = hayNPCCercano(jugador, sacerdotes);
+            bool sacerdoteCerca = hayNPCCercano(jugador, sacerdotes);
 
             if (!comercianteCerca && !sacerdoteCerca) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Debes estar cercano a un comerciante o sacerdote para comprar"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre,
+                    "Debes estar cercano a un comerciante o sacerdote para "
+                    "comprar"));
                 break;
             }
 
             const std::string& itemNombre = cmd.get_text();
             int precio = config.getPrecioItem(itemNombre);
             if (precio == 0) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Ese item no está disponible"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Ese item no está disponible"));
                 break;
             }
 
             auto item = crear_item_por_nombre(itemNombre);
             if (!item) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Item desconocido"));
+                snapshots.push_back(
+                    Snapshot::error_message(nombre, "Item desconocido"));
                 break;
             }
 
             // Validar que el NPC cercano vende este tipo de ítem:
-            // Sacerdote: báculos y pociones - Comerciante: todo excepto báculos.
+            // Sacerdote: báculos y pociones - Comerciante: todo excepto
+            // báculos.
             TipoItem tipoItem = item->getTipo();
-            bool esBaculo  = (tipoItem == TipoItem::BACULO);
-            bool esPocion  = (tipoItem == TipoItem::POCION);
-            bool vendidoPorSacerdote   = esBaculo || esPocion;
+            bool esBaculo = (tipoItem == TipoItem::BACULO);
+            bool esPocion = (tipoItem == TipoItem::POCION);
+            bool vendidoPorSacerdote = esBaculo || esPocion;
             bool vendidoPorComerciante = !esBaculo;
 
             if ((!sacerdoteCerca || !vendidoPorSacerdote) &&
                 (!comercianteCerca || !vendidoPorComerciante)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "El NPC cercano no vende ese tipo de item"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "El NPC cercano no vende ese tipo de item"));
                 break;
             }
 
             if (!jugador->gastarOro(precio)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "No tenes suficiente oro"));
+                snapshots.push_back(
+                    Snapshot::error_message(nombre, "No tenes suficiente oro"));
                 break;
             }
 
             jugador->agarrarItem(std::move(item));
-            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         // -- SELL ITEM --------------------------
         case protocol::ClientOpcode::SELL_ITEM: {
             if (!hayNPCCercano(jugador, comerciantes)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
+                snapshots.push_back(Snapshot::error_message(
+                    nombre,
                     "Debes estar cercano a un comerciante para vender"));
                 break;
             }
 
             int slot = static_cast<int>(cmd.get_slot());
             const auto& slots = jugador->getInventario().getSlots();
-            if (slot < 0 || slot >= (int)slots.size()) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Slot de inventario invalido"));
+            if (slot < 0 || slot >= static_cast<int>(slots.size())) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Slot de inventario invalido"));
                 break;
             }
 
             if (!slots[slot].has_value()) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Slot de inventario invalido"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Slot de inventario invalido"));
                 break;
             }
             const std::string itemNombre = slots[slot]->item->getNombre();
             int precioVenta = config.getPrecioItem(itemNombre) / 2;
             auto soltado = jugador->soltarItem(slot);
             if (!soltado) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "No se pudo vender el item"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No se pudo vender el item"));
                 break;
             }
             jugador->agregarOro(precioVenta);
-            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         // -- DEPOSIT ITEM --------------------------
         case protocol::ClientOpcode::DEPOSIT_ITEM: {
             if (!hayNPCCercano(jugador, banqueros)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
+                snapshots.push_back(Snapshot::error_message(
+                    nombre,
                     "Debes estar cercano a un banquero para depositar"));
                 break;
             }
 
-            auto& cuentaDeposito = cuentasBancarias.try_emplace(nombre, nombre).first->second;
+            auto& cuentaDeposito =
+                cuentasBancarias.try_emplace(nombre, nombre).first->second;
             int slot = static_cast<int>(cmd.get_slot());
             auto soltado = jugador->soltarItem(slot);
             if (!soltado) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Slot de inventario invalido"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Slot de inventario invalido"));
                 break;
             }
             cuentaDeposito.depositarItem(std::move(*soltado));
-            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         // -- DEPOSIT GOLD --------------------------
         case protocol::ClientOpcode::DEPOSIT_GOLD: {
             if (!hayNPCCercano(jugador, banqueros)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
+                snapshots.push_back(Snapshot::error_message(
+                    nombre,
                     "Debes estar cercano a un banquero para depositar"));
                 break;
             }
 
             int cantidad = static_cast<int>(cmd.get_amount());
             if (!jugador->gastarOro(cantidad)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "No tenes suficiente oro"));
+                snapshots.push_back(
+                    Snapshot::error_message(nombre, "No tenes suficiente oro"));
                 break;
             }
-            cuentasBancarias.try_emplace(nombre, nombre).first->second.depositarOro(cantidad);
-            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+            cuentasBancarias.try_emplace(nombre, nombre)
+                .first->second.depositarOro(cantidad);
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         // -- WITHDRAW ITEM --------------------------
         case protocol::ClientOpcode::WITHDRAW_ITEM: {
             if (!hayNPCCercano(jugador, banqueros)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Debes estar cercano a un banquero para retirar"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Debes estar cercano a un banquero para retirar"));
                 break;
             }
 
-            auto& cuentaRetiro = cuentasBancarias.try_emplace(nombre, nombre).first->second;
+            auto& cuentaRetiro =
+                cuentasBancarias.try_emplace(nombre, nombre).first->second;
             int indice = static_cast<int>(cmd.get_item_id());
             auto slot = cuentaRetiro.retirarItem(indice);
             if (!slot) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Indice de banco invalido"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Indice de banco invalido"));
                 break;
             }
             jugador->agarrarItem(std::move(slot->item), slot->cantidad);
-            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         // -- WITHDRAW GOLD --------------------------
         case protocol::ClientOpcode::WITHDRAW_GOLD: {
             if (!hayNPCCercano(jugador, banqueros)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "Debes estar cercano a un banquero para retirar"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Debes estar cercano a un banquero para retirar"));
                 break;
             }
 
             int cantidad = static_cast<int>(cmd.get_amount());
-            auto& cuentaRetiro = cuentasBancarias.try_emplace(nombre, nombre).first->second;
+            auto& cuentaRetiro =
+                cuentasBancarias.try_emplace(nombre, nombre).first->second;
             if (!cuentaRetiro.retirarOro(cantidad)) {
-                snapshots.push_back(Snapshot::error_message(nombre,
-                    "No tenes suficiente oro en el banco"));
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No tenes suficiente oro en el banco"));
                 break;
             }
             jugador->agregarOro(cantidad);
-            snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
@@ -1320,9 +1490,8 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
 
                 auto items = objetivo->soltarTodosLosItems();
                 for (auto& item : items)
-                    mundo.tirarItem(objetivo->getMapaId(),
-                                    objetivo->getPosX(), objetivo->getPosY(),
-                                    std::move(item));
+                    mundo.tirarItem(objetivo->getMapaId(), objetivo->getPosX(),
+                                    objetivo->getPosY(), std::move(item));
 
                 int oroExceso = Formulas::calcularOroExceso(
                     objetivo->getOro(), objetivo->getOroMax());
@@ -1350,11 +1519,11 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
         }
     }
 
-    for (const auto& id : criaturasMuertas)
-        removerCriatura(id);
+    for (const auto& id : criaturasMuertas) removerCriatura(id);
 }
 
-bool Game::hayNPCCercano(const Jugador* jugador, const std::vector<InfoNPC>& npcs) const {
+bool Game::hayNPCCercano(const Jugador* jugador,
+                         const std::vector<InfoNPC>& npcs) const {
     for (const auto& npc : npcs) {
         if (npc.mapaId != jugador->getMapaId()) continue;
         int dx = std::abs(npc.x - jugador->getPosX());
