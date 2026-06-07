@@ -49,7 +49,7 @@ private:
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
-    // void cargarJugadoresPersistidos();
+    void cargarJugadoresPersistidos();
     bool restaurarJugadorPersistido(const PersistenceTask& player);
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);

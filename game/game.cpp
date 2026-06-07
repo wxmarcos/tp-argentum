@@ -37,7 +37,7 @@ Game::Game(Config& config):
     inicializarRazas();
     inicializarClases();
     cargarMundo();
-    // cargarJugadoresPersistidos();
+    cargarJugadoresPersistidos();
 
     for (const auto& cm : config.getMapas()) {
         infoSpawn[cm.id] = {cm.poblacionMax, cm.criaturasPosibles};
@@ -709,18 +709,39 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         if (!jugador) {
             std::cout
                 << "[Game] LOGIN no esta en memoria, buscando en persistencia: "
-                << cmd.get_nick() << "\n";
+                << cmd.get_nick()
+                << "\n";
+
+            std::cout
+                << "[DEBUG] ruta jugadores = "
+                << config.getRutaJugadores()
+                << "\n";
 
             auto players =
                 PersistenceLoader::load_players(config.getRutaJugadores());
 
+            std::cout
+                << "[DEBUG] players cargados = "
+                << players.size()
+                << "\n";
+
             bool restaurado = false;
 
             for (const auto& p : players) {
+                std::cout
+                    << "[DEBUG] nick encontrado = "
+                    << p.nick
+                    << " inventario="
+                    << p.inventario.size()
+                    << "\n";
+
                 if (p.nick == cmd.get_nick()) {
-                    std::cout << "[Game] restaurando jugador persistido "
-                              << p.nick << " inventario=" << p.inventario.size()
-                              << "\n";
+                    std::cout
+                        << "[Game] restaurando jugador persistido "
+                        << p.nick
+                        << " inventario="
+                        << p.inventario.size()
+                        << "\n";
 
                     restaurado = restaurarJugadorPersistido(p);
                     break;
@@ -729,7 +750,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
             if (!restaurado) {
                 snapshots.push_back(Snapshot::error_message(
-                    cmd.get_nick(), "Login fallido: personaje inexistente"));
+                    cmd.get_nick(),
+                    "Login fallido: personaje inexistente"));
                 return snapshots;
             }
 
@@ -746,7 +768,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_login(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(),
+            static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
