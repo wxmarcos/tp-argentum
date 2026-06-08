@@ -1,4 +1,4 @@
-#include "casco.h"
+#include "game/items/casco.h"
 
 Casco::Casco(const std::string& nombre, int defensaMin, int defensaMax):
     nombre(nombre), defensaMin(defensaMin), defensaMax(defensaMax) {}

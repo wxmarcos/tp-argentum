@@ -2,8 +2,10 @@
  
 #include <algorithm>
 #include <filesystem>
+#include <map>
  
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
  
 static constexpr int ANIM_FRAMES    = 4;
 static constexpr int ANIM_MS_FRAME  = 150;
@@ -28,6 +30,8 @@ int creature_scale_pct(const std::string& type) {
     if (type == "goblin") return 90;
     return 100;
 }
+
+const Uint32 DEATH_ANIM_MS = 900;
 }
  
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
@@ -58,6 +62,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
         std::cerr << "[WorldRenderer] Error cargando mapa: "
                   << e.what() << "\n";
     }
+    load_effects();
 }
  
 int WorldRenderer::dir_to_idx(protocol::Direction dir) {
@@ -223,7 +228,47 @@ void WorldRenderer::draw_character(int world_x, int world_y,
         SDL_RenderCopy(renderer.Get(), head_tex, &src, &dst);
     }
 }
- 
+
+void WorldRenderer::draw_ghost(int world_x, int world_y, protocol::Direction dir,
+                               int frame, int cam_offset_x, int cam_offset_y) {
+    const int ts = config.tile_size;
+    const int px = cam_offset_x + world_x * ts;
+    const int py = cam_offset_y + world_y * ts;
+    if (px + ts * 2 < 0 || px > config.window_width || py + ts * 2 < 0 ||
+        py > config.window_height) {
+        return;
+    }
+    SDL_Texture* tex = registry.get_texture("fantasma");
+    if (!tex) return;
+
+    const SDL_Rect src = registry.get_frame("fantasma", dir_to_idx(dir), frame);
+    const int body_h = ts * 2;
+    const int body_top = py + ts - body_h;
+    const int draw_w = src.h > 0 ? (src.w * body_h) / src.h : ts;
+    const SDL_Rect dst{px + (ts - draw_w) / 2, body_top, draw_w, body_h};
+    SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
+}
+
+void WorldRenderer::draw_player(const std::string& nick, bool dead, int world_x,
+                                int world_y, protocol::Direction dir,
+                                const std::string& sprite_key,
+                                const std::string& raza, int frame,
+                                int cam_offset_x, int cam_offset_y) {
+    if (dead) {
+        const Uint32 now = SDL_GetTicks();
+        auto [it, ins] = ghost_since.try_emplace(nick, now);
+        if (now - it->second >= DEATH_ANIM_MS) {
+            draw_ghost(world_x, world_y, dir, frame, cam_offset_x, cam_offset_y);
+            return;
+        }
+
+    } else {
+        ghost_since.erase(nick);
+    }
+    draw_character(world_x, world_y, dir, sprite_key, raza, frame, cam_offset_x,
+                   cam_offset_y);
+}
+
 void WorldRenderer::draw_creature(int world_x, int world_y,
                                   protocol::Direction dir,
                                   const std::string& type,
@@ -318,13 +363,74 @@ void WorldRenderer::draw_floating_texts(const ClientGameState& state,
     }
 }
 
+void WorldRenderer::load_effects() {
+    std::map<std::string, SDL_Texture*> by_path;
+    for (const auto& def : all_effect_defs()) {
+        effect_data_map[def.kind] = def.make();
+        const std::string path = def.sheet;
+        auto found = by_path.find(path);
+        if (found != by_path.end()) {
+            effect_tex[def.kind] = found->second;
+            continue;
+        }
+        const auto full =
+            (std::filesystem::current_path() / config.assets_path / path)
+                .lexically_normal();
+        SDL_Texture* tex = nullptr;
+        if (SDL_Surface* s = IMG_Load(full.string().c_str())) {
+            tex = SDL_CreateTextureFromSurface(renderer.Get(), s);
+            SDL_FreeSurface(s);
+            owned_effect_tex.push_back(tex);
+        }
+        by_path[path] = tex;
+        effect_tex[def.kind] = tex;
+    }
+}
+
+void WorldRenderer::draw_effects(const ClientGameState& state,
+                                 uint32_t delta_ms, int cam_offset_x,
+                                 int cam_offset_y) {
+    for (const auto& sp : state.get_effect_spawns()) {
+        active_effects.push_back({sp.kind, sp.x, sp.y, 0});
+    }
+
+    const int ts = config.tile_size;
+    auto it = active_effects.begin();
+    while (it != active_effects.end()) {
+        const EffectData& d = effect_data_map[it->kind];
+        const int total = static_cast<int>(d.frames.size()) * d.ms_per_frame;
+        it->age_ms += delta_ms;
+        if (total <= 0 || it->age_ms >= static_cast<uint32_t>(total)) {
+            it = active_effects.erase(it);
+            continue;
+        }
+        int fi = static_cast<int>(it->age_ms / d.ms_per_frame);
+        if (fi >= static_cast<int>(d.frames.size())) {
+            fi = static_cast<int>(d.frames.size()) - 1;
+        }
+        const SDL_Rect& src = d.frames[fi];
+        SDL_Texture* tex = effect_tex[it->kind];
+        if (tex && src.h > 0) {
+            const float target_h = ts * 2.6f;
+            const float scale = target_h / src.h;
+            const int dw = static_cast<int>(src.w * scale);
+            const int dh = static_cast<int>(target_h);
+            const int cx = cam_offset_x + it->wx * ts + ts / 2;
+            const int cy = cam_offset_y + it->wy * ts + ts / 2;
+            const SDL_Rect dst{cx - dw / 2, cy - dh / 2, dw, dh};
+            SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
+        }
+        ++it;
+    }
+}
+
 void WorldRenderer::render(const ClientGameState& state,
                            uint32_t delta_ms) {
- 
+
     const int ts = config.tile_size;
     const int screen_cx = config.window_width  / 2;
     const int screen_cy = config.window_height / 2;
- 
+
     int cam_x, cam_y;
     if (state.has_local_position()) {
         cam_x = state.get_local_x();
@@ -333,15 +439,15 @@ void WorldRenderer::render(const ClientGameState& state,
         cam_x = state.get_map_width()  / 2;
         cam_y = state.get_map_height() / 2;
     }
- 
+
     const int cam_offset_x = screen_cx - cam_x * ts - ts / 2;
     const int cam_offset_y = screen_cy - cam_y * ts - ts / 2;
- 
+
     const int layers = map ? map->get_layers() : 1;
     for (int layer = 0; layer < layers; ++layer) {
         draw_map_layer(layer, cam_offset_x, cam_offset_y);
     }
- 
+
     // jugador local
     if (state.has_local_position()) {
         local_anim.update(delta_ms,
@@ -356,32 +462,36 @@ void WorldRenderer::render(const ClientGameState& state,
             if (!s.raza.empty())  local_raza  = s.raza;
         }
 
-        draw_character(state.get_local_x(), state.get_local_y(),
-                       state.get_local_dir(),
-                       local_clase,
-                       local_raza,
-                       local_anim.current_frame(),
-                       cam_offset_x, cam_offset_y);
+        draw_player(state.get_local_nick(),
+                    state.is_dead(state.get_local_nick()),
+                    state.get_local_x(), state.get_local_y(),
+                    state.get_local_dir(),
+                    local_clase,
+                    local_raza,
+                    local_anim.current_frame(),
+                    cam_offset_x, cam_offset_y);
+
         draw_name(state.get_local_nick(),
                   state.get_local_x(), state.get_local_y(),
                   cam_offset_x, cam_offset_y);
     }
- 
+
     // otros jugadores
     for (const auto& [nick, pv] : state.get_others()) {
         auto [it, inserted] = other_anims.try_emplace(
                 nick, ANIM_FRAMES, ANIM_MS_FRAME);
- 
+
         it->second.update(delta_ms, pv.direction, pv.moved);
- 
-        draw_character(pv.x, pv.y, pv.direction,
-                       pv.clase.empty() ? "humano" : pv.clase,
-                       pv.raza.empty()  ? "humano" : pv.raza,
-                       it->second.current_frame(),
-                       cam_offset_x, cam_offset_y);
+
+        draw_player(nick, state.is_dead(nick),
+                    pv.x, pv.y, pv.direction,
+                    pv.clase.empty() ? "humano" : pv.clase,
+                    pv.raza.empty()  ? "humano" : pv.raza,
+                    it->second.current_frame(),
+                    cam_offset_x, cam_offset_y);
         draw_name(pv.nick, pv.x, pv.y, cam_offset_x, cam_offset_y);
     }
- 
+
     for (auto it = other_anims.begin(); it != other_anims.end();) {
         if (!state.get_others().count(it->first)) {
             it = other_anims.erase(it);
@@ -389,20 +499,20 @@ void WorldRenderer::render(const ClientGameState& state,
             ++it;
         }
     }
- 
+
     // criaturas/npcs
     for (const auto& [key, cv] : state.get_creatures()) {
         auto [it, inserted] = creature_anims.try_emplace(
                 key, ANIM_FRAMES, ANIM_MS_FRAME);
- 
+
         it->second.update(delta_ms, cv.direction, cv.moved);
- 
+
         draw_creature(cv.x, cv.y, cv.direction,
                       cv.type,
                       it->second.current_frame(),
                       cam_offset_x, cam_offset_y);
     }
- 
+
     for (auto cit = creature_anims.begin(); cit != creature_anims.end();) {
         if (!state.get_creatures().count(cit->first)) {
             cit = creature_anims.erase(cit);
@@ -411,6 +521,12 @@ void WorldRenderer::render(const ClientGameState& state,
         }
     }
 
+    draw_effects(state, delta_ms, cam_offset_x, cam_offset_y);
     draw_floating_texts(state, delta_ms, cam_offset_x, cam_offset_y);
 }
- 
+
+WorldRenderer::~WorldRenderer() {
+    for (SDL_Texture* t : owned_effect_tex) {
+        if (t) SDL_DestroyTexture(t);
+    }
+}

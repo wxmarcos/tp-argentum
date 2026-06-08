@@ -86,3 +86,8 @@ std::unique_ptr<Pocion> ItemFactory::crearPocionDeVida() {
 std::unique_ptr<Pocion> ItemFactory::crearPocionDeMana() {
     return std::make_unique<Pocion>(TipoPocion::MANA, 100);
 }
+
+// Oro
+std::unique_ptr<Oro> ItemFactory::crearOro(int cantidad) {
+    return std::make_unique<Oro>(cantidad);
+}

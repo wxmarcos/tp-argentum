@@ -214,7 +214,8 @@ int Config::getPrecioItem(const std::string& nombre) const {
         if (c == ' ')
             clave += '_';
         else
-            clave += static_cast<char>(std::tolower(c));
+            clave += static_cast<char>(
+                std::tolower(static_cast<unsigned char>(c)));
     }
     return impl->get<int64_t>(clave, 0);
 }

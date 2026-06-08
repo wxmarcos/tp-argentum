@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-enum class TipoItem { ARMA, BACULO, ARMADURA, CASCO, ESCUDO, POCION };
+enum class TipoItem { ARMA, BACULO, ARMADURA, CASCO, ESCUDO, POCION, ORO };
 
 class Item {
 public:

@@ -23,6 +23,8 @@
 #include "game/items/escudo.h"
 #include "game/items/itemFactory.h"
 #include "game/items/item_defs.h"
+#include "game/items/inventario.h"
+#include "game/items/oro.h"
 #include "game/razas/elfo.h"
 #include "game/razas/enano.h"
 #include "game/razas/gnomo.h"
@@ -484,14 +486,19 @@ static std::unique_ptr<Item> crearItemAleatorio() {
     return items[idx]();
 }
 
-void Game::procesarDropCriatura(Jugador* atacante, Criatura* criatura) {
+void Game::procesarDropCriatura(Jugador* /*atacante*/, Criatura* criatura) {
     double r = static_cast<double>(rand()) / RAND_MAX;
 
     if (r < 0.90) return;  // 90% de no dropear nada
 
+    int mx = criatura->getMapaId();
+    int px = criatura->getPosX();
+    int py = criatura->getPosY();
+
     if (r < 0.98) {  // 8% de dropear oro
-        atacante->agregarOro(
-            Formulas::calcularOroDropNPC(criatura->getVidaMax()));
+        int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax());
+        mundo.tirarItem(mx, px, py,
+                        SlotInventario(ItemFactory::crearOro(cantidad)));
         return;
     }
 
@@ -499,12 +506,12 @@ void Game::procesarDropCriatura(Jugador* atacante, Criatura* criatura) {
         bool esVida = rand() % 2 == 0;
         auto pocion = esVida ? ItemFactory::crearPocionDeVida()
                              : ItemFactory::crearPocionDeMana();
-        atacante->agarrarItem(std::move(pocion));
+        mundo.tirarItem(mx, px, py, SlotInventario(std::move(pocion)));
         return;
     }
 
     // 1% de dropear item aleatorio
-    atacante->agarrarItem(crearItemAleatorio());
+    mundo.tirarItem(mx, px, py, SlotInventario(crearItemAleatorio()));
 }
 
 ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
@@ -702,47 +709,16 @@ std::vector<Snapshot> Game::tick(float dt) {
 std::vector<Snapshot> Game::process(const Command& cmd) {
     std::vector<Snapshot> snapshots;
 
-    // -- Login --------------------------
     if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
         Jugador* jugador = getJugador(cmd.get_nick());
 
         if (!jugador) {
-            std::cout
-                << "[Game] LOGIN no esta en memoria, buscando en persistencia: "
-                << cmd.get_nick()
-                << "\n";
-
-            std::cout
-                << "[DEBUG] ruta jugadores = "
-                << config.getRutaJugadores()
-                << "\n";
-
-            auto players =
-                PersistenceLoader::load_players(config.getRutaJugadores());
-
-            std::cout
-                << "[DEBUG] players cargados = "
-                << players.size()
-                << "\n";
+            auto players = PersistenceLoader::load_players(config.getRutaJugadores());
 
             bool restaurado = false;
 
             for (const auto& p : players) {
-                std::cout
-                    << "[DEBUG] nick encontrado = "
-                    << p.nick
-                    << " inventario="
-                    << p.inventario.size()
-                    << "\n";
-
                 if (p.nick == cmd.get_nick()) {
-                    std::cout
-                        << "[Game] restaurando jugador persistido "
-                        << p.nick
-                        << " inventario="
-                        << p.inventario.size()
-                        << "\n";
-
                     restaurado = restaurarJugadorPersistido(p);
                     break;
                 }
@@ -773,38 +749,36 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
-        snapshots.push_back(
-            SnapshotFactory::player_stats_from_player(*jugador));
-
-        snapshots.push_back(
-            SnapshotFactory::player_inventory_from_player(*jugador));
+        snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+        snapshots.push_back(SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick());
 
         return snapshots;
     }
 
-    // -- Create Character --------------------------
     if (cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
-        bool creado = agregarJugador(cmd.get_nick(), 1, 10, 10, cmd.get_raza(),
-                                     cmd.get_clase());
+        bool creado = agregarJugador(
+            cmd.get_nick(), 1, 10, 10, cmd.get_raza(), cmd.get_clase());
+
         if (!creado) {
             snapshots.push_back(Snapshot::error_message(
                 cmd.get_nick(), "No se pudo crear el personaje"));
             return snapshots;
         }
-        player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         Jugador* jugador = getJugador(cmd.get_nick());
+
+        player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
+
         snapshots.push_back(Snapshot::entity_created(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(),
+            static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
-        snapshots.push_back(
-            SnapshotFactory::player_stats_from_player(*jugador));
-        snapshots.push_back(
-            SnapshotFactory::player_inventory_from_player(*jugador));
+        snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+        snapshots.push_back(SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick());
 
@@ -907,17 +881,17 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             std::optional<int> slot =
                 tomarItem(nombre, static_cast<int>(cmd.get_item_id()));
 
-            if (slot.has_value()) {
+            if (!slot.has_value()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No hay item para recoger"));
+            } else if (*slot == -1) {
+                // Era oro: no hay slot de inventario, solo actualizar stats
                 snapshots.push_back(
-                    Snapshot::error_message(nombre, "Item recogido"));
-
+                    SnapshotFactory::player_stats_from_player(*jugador));
+            } else {
                 snapshots.push_back(
                     SnapshotFactory::player_inventory_slot_from_player(*jugador,
                                                                        *slot));
-
-            } else {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "No hay item para recoger"));
             }
 
             break;
@@ -956,6 +930,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 nombre, objetivo,
                 static_cast<uint16_t>(resultado.danioAplicado),
                 resultado.fueCritico));
+
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
 
             if (Jugador* victima = getJugador(objetivo)) {
                 snapshots.push_back(
@@ -1132,8 +1109,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                                          destino.y);
             snapshots.push_back(
                 Snapshot::error_message(nombre,
-                                        "Resucitando*jugador quedas "
-                                        "inmovilizado hasta haber resucitado"));
+                                        "Resucitando... quedaras inmovilizado "
+                                        "hasta llegar al sacerdote"));
             break;
         }
 
@@ -1269,7 +1246,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             cuentaDeposito.depositarItem(std::move(*soltado));
             snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+                SnapshotFactory::player_inventory_from_player(*jugador));
             break;
         }
 
@@ -1314,7 +1291,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             jugador->agarrarItem(std::move(slot->item), slot->cantidad);
             snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+                SnapshotFactory::player_inventory_from_player(*jugador));
             break;
         }
 
@@ -1606,14 +1583,22 @@ std::optional<int> Game::tomarItem(const std::string& nombre, int indice) {
         return std::nullopt;
     }
 
-    if (jugador->getInventario().estaLleno()) {
-        return std::nullopt;
-    }
-
     auto slot_piso = mundo.tomarItemEnPosicion(
         jugador->getMapaId(), jugador->getPosX(), jugador->getPosY(), indice);
 
     if (!slot_piso) {
+        return std::nullopt;
+    }
+
+    // Oro: no va al inventario, se suma directamente al jugador
+    if (slot_piso->item->getTipo() == TipoItem::ORO) {
+        jugador->agregarOro(slot_piso->cantidad);
+        return -1;  // Valor especial: operación exitosa sin slot de inventario
+    }
+
+    if (jugador->getInventario().estaLleno()) {
+        mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
+                        jugador->getPosY(), std::move(*slot_piso));
         return std::nullopt;
     }
 

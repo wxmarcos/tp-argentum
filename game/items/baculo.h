@@ -1,5 +1,5 @@
 #pragma once
-#include "item.h"
+#include "game/items/item.h"
 
 enum class TipoHechizo { DANIO, CURACION };
 

@@ -46,6 +46,7 @@ target_sources(taller_game PRIVATE
     items/casco.cpp
     items/escudo.cpp
     items/pocion.cpp
+    items/oro.cpp
     items/inventario.cpp
     items/itemFactory.cpp
 

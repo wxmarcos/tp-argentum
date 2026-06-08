@@ -34,10 +34,11 @@ void SpriteRegistry::register_head(const std::string& raza,
 }
 
 void SpriteRegistry::load_all() {
-    // const SpriteData std_data = make_standard_sprite_data();
 
     register_sprite("humano", "cuerpos/razas/humanoCuerpo.png",
                     make_humano_sprite_data());
+    register_sprite("fantasma", "cuerpos/fantasmin.png",
+                    make_fantasma_sprite_data());
     register_sprite("elfo", "cuerpos/razas/elfoCuerpo.png",
                     make_elfo_sprite_data());
     register_sprite("enano", "cuerpos/razas/enanoCuerpo.png",

@@ -7,6 +7,7 @@
 #include "game/items/casco.h"
 #include "game/items/escudo.h"
 #include "game/items/item_defs.h"
+#include "game/items/oro.h"
 #include "game/items/pocion.h"
 
 class ItemFactory {
@@ -38,4 +39,6 @@ public:
 
     static std::unique_ptr<Pocion> crearPocionDeVida();
     static std::unique_ptr<Pocion> crearPocionDeMana();
+
+    static std::unique_ptr<Oro> crearOro(int cantidad);
 };
