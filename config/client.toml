@@ -15,7 +15,7 @@ assets_path = "assets/graficos"
 [world]
 map_width = 100
 map_height = 100
-map_name = "mazmorra"
+map_name = "ciudad"
 
 [mapas]
 1 = "bosque"

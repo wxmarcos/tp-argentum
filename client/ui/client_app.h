@@ -15,8 +15,6 @@ class Snapshot;
 class ClientApp {
 private:
     ClientConfig config;
-    bool awaiting_login;
-    bool tried_login;
 
     void main_loop(ServerConnection& connection, InputHandler& input,
                    SDL2pp::Renderer& renderer, WorldRenderer& world,
@@ -29,9 +27,6 @@ private:
                       const ClientGameState& state, int mouse_x, int mouse_y);
                       
     bool process_updates(ServerConnection& connection, ClientGameState& state);
-
-    void process_login_response(ServerConnection& connection,
-                                const Snapshot& snapshot);
 
     int await_response(ServerConnection& connection, ClientGameState& state);
 

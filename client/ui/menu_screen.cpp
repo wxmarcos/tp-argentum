@@ -120,17 +120,17 @@ void MenuScreen::draw_selected(const SDL_Rect& r) {
     renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
 }
 
-bool MenuScreen::run_inicio() {
+MenuResult MenuScreen::run_inicio() {
     while (true) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) return false;
+            if (e.type == SDL_QUIT) return MenuResult::QUIT;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
-                return false;
+                return MenuResult::QUIT;
             if (e.type == SDL_MOUSEBUTTONDOWN &&
                 e.button.button == SDL_BUTTON_LEFT &&
                 in_rect(comenzar_rect, e.button.x, e.button.y)) {
-                return true;
+                return MenuResult::NEXT;
             }
         }
         renderer.SetDrawColor(0, 0, 0, 255);
@@ -141,24 +141,26 @@ bool MenuScreen::run_inicio() {
     }
 }
 
-bool MenuScreen::run_login(std::string& nick) {
+MenuResult MenuScreen::run_login(std::string& nick) {
     SDL_StartTextInput();
-    bool ret = false;
+    MenuResult result = MenuResult::BACK;
     bool running = true;
     while (running) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
+                result = MenuResult::QUIT;
                 running = false;
                 break;
             }
             if (e.type == SDL_KEYDOWN) {
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
+                    result = MenuResult::BACK;
                     running = false;
                 } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
                     utf8_backspace(nick);
                 } else if (e.key.keysym.sym == SDLK_RETURN && !nick.empty()) {
-                    ret = true;
+                    result = MenuResult::NEXT;
                     running = false;
                 }
             } else if (e.type == SDL_TEXTINPUT) {
@@ -166,10 +168,11 @@ bool MenuScreen::run_login(std::string& nick) {
             } else if (e.type == SDL_MOUSEBUTTONDOWN &&
                        e.button.button == SDL_BUTTON_LEFT) {
                 if (in_rect(login_volver, e.button.x, e.button.y)) {
+                    result = MenuResult::BACK;
                     running = false;
                 } else if (in_rect(login_jugar, e.button.x, e.button.y) &&
                            !nick.empty()) {
-                    ret = true;
+                    result = MenuResult::NEXT;
                     running = false;
                 }
             }
@@ -178,27 +181,30 @@ bool MenuScreen::run_login(std::string& nick) {
         renderer.Clear();
         blit_full(tex_login);
         const int ty = nick_box.y + (nick_box.h - text.line_height()) / 2;
-        text.draw(nick + "_", nick_box.x + 12, ty, SDL_Color{255, 255, 255, 255});
+        text.draw(nick + "_", nick_box.x + 12, ty,
+                  SDL_Color{255, 255, 255, 255});
         renderer.Present();
         SDL_Delay(16);
     }
     SDL_StopTextInput();
-    return ret;
+    return result;
 }
 
-bool MenuScreen::run_create(std::string& raza, std::string& clase) {
+MenuResult MenuScreen::run_create(std::string& raza, std::string& clase) {
     int raza_idx = -1;
     int clase_idx = -1;
-    bool ret = false;
+    MenuResult result = MenuResult::BACK;
     bool running = true;
     while (running) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
+                result = MenuResult::QUIT;
                 running = false;
                 break;
             }
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
+                result = MenuResult::BACK;
                 running = false;
             } else if (e.type == SDL_MOUSEBUTTONDOWN &&
                        e.button.button == SDL_BUTTON_LEFT) {
@@ -209,10 +215,11 @@ bool MenuScreen::run_create(std::string& raza, std::string& clase) {
                     if (in_rect(clase_rects[i], mx, my)) clase_idx = i;
                 }
                 if (in_rect(create_volver, mx, my)) {
+                    result = MenuResult::BACK;
                     running = false;
                 } else if (in_rect(create_jugar, mx, my) && raza_idx >= 0 &&
                            clase_idx >= 0) {
-                    ret = true;
+                    result = MenuResult::NEXT;
                     running = false;
                 }
             }
@@ -225,11 +232,11 @@ bool MenuScreen::run_create(std::string& raza, std::string& clase) {
         renderer.Present();
         SDL_Delay(16);
     }
-    if (ret) {
+    if (result == MenuResult::NEXT) {
         raza = RAZAS[raza_idx];
         clase = CLASES[clase_idx];
     }
-    return ret;
+    return result;
 }
 
 MenuScreen::~MenuScreen() {

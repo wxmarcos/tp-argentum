@@ -9,6 +9,8 @@
 #include "config/client_config.h"
 #include "render/text_renderer.h"
 
+enum class MenuResult { QUIT, BACK, NEXT };
+
 class MenuScreen {
 private:
     SDL2pp::Renderer& renderer;
@@ -44,9 +46,9 @@ public:
     MenuScreen(const MenuScreen&) = delete;
     MenuScreen& operator=(const MenuScreen&) = delete;
 
-    bool run_inicio();
-    bool run_login(std::string& nick);
-    bool run_create(std::string& raza, std::string& clase);
+    MenuResult run_inicio();
+    MenuResult run_login(std::string& nick);
+    MenuResult run_create(std::string& raza, std::string& clase);
 };
 
 #endif
