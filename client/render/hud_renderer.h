@@ -28,6 +28,7 @@ public:
     void render(const ClientGameState& state);
 
     void draw_error_toast(const ClientGameState& state);
+    void draw_inventory(const ClientGameState& state);
 };
 
 #endif

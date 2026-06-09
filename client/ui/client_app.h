@@ -23,11 +23,11 @@ private:
                    HudRenderer& hud, ClientGameState& state);
 
     bool process_input(ServerConnection& connection, const InputHandler& input,
-                       const ClientGameState& state);
+                       ClientGameState& state);
 
     void handle_click(ServerConnection& connection,
                       const ClientGameState& state, int mouse_x, int mouse_y);
-
+                      
     bool process_updates(ServerConnection& connection, ClientGameState& state);
 
     void process_login_response(ServerConnection& connection,

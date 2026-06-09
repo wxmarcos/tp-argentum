@@ -255,6 +255,31 @@ bool ClientGameState::resolve_entity_pos(const std::string& nick, uint16_t& x,
     return false;
 }
 
+void ClientGameState::apply_inventory_update(const Snapshot& snapshot) {
+    if (snapshot.get_nick() != local_nick) return;
+
+    const auto& items = snapshot.get_inventory_items();
+    if (items.empty()) return;
+
+    // Full update: el servidor manda todos los slots (tamaño == capacidadMax)
+    if (items.size() > 1) {
+        inventory.resize(items.size());
+        for (const auto& item : items) {
+            if (item.slot_id < inventory.size()) {
+                inventory[item.slot_id] = {item.item, item.cantidad, item.equipado};
+            }
+        }
+        return;
+    }
+
+    // Update de un solo slot
+    const auto& item = items[0];
+    if (item.slot_id >= inventory.size()) {
+        inventory.resize(item.slot_id + 1);
+    }
+    inventory[item.slot_id] = {item.item, item.cantidad, item.equipado};
+}
+
 bool ClientGameState::entity_at(uint16_t x, uint16_t y,
                                 std::string& out_nick) const {
     for (const auto& [nick, cv] : creatures) {
@@ -270,10 +295,6 @@ bool ClientGameState::entity_at(uint16_t x, uint16_t y,
         }
     }
     return false;
-}
-
-void ClientGameState::apply_inventory_update(const Snapshot&) {
-    // TODO
 }
 
 void ClientGameState::apply_damage_event(const Snapshot& snapshot) {

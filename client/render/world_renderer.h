@@ -49,6 +49,10 @@ class WorldRenderer {
     std::vector<ActiveEffect> active_effects;
 
     std::unordered_map<std::string, Uint32> ghost_since;
+    
+    uint16_t loaded_map_id = 0;
+
+    void load_map_by_id(uint16_t map_id);
 
     void visible_tile_range(int cam_offset_x, int cam_offset_y,
                             int& first_gx, int& last_gx,

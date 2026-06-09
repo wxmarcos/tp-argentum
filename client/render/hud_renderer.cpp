@@ -77,8 +77,66 @@ void HudRenderer::draw_error_toast(const ClientGameState& state) {
     renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
 }
 
+void HudRenderer::draw_inventory(const ClientGameState& state) {
+    const auto& slots = state.get_inventory();
+    if (slots.empty()) return;
+
+    const SDL_Color white{255, 255, 255, 255};
+    const SDL_Color gray{180, 180, 180, 255};
+    const SDL_Color yellow{255, 220, 60, 255};
+
+    const int row_h   = text.line_height() + 4;
+    const int panel_w = 240;
+    const int pad     = 8;
+    const int panel_h = pad * 2 + text.line_height() + 4 +
+                        static_cast<int>(slots.size()) * row_h;
+
+    const SDL2pp::Point out = renderer.GetOutputSize();
+    const int panel_x = out.x - panel_w - 8;
+    const int panel_y = 8;
+
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+    renderer.SetDrawColor(0, 0, 0, 180);
+    renderer.FillRect(SDL2pp::Rect(panel_x, panel_y, panel_w, panel_h));
+    renderer.SetDrawColor(80, 80, 80, 255);
+    renderer.DrawRect(SDL2pp::Rect(panel_x, panel_y, panel_w, panel_h));
+
+    text.draw_centered("INVENTARIO", panel_x + panel_w / 2,
+                       panel_y + pad, white);
+
+    int y = panel_y + pad + text.line_height() + 4;
+
+    for (size_t i = 0; i < slots.size(); ++i) {
+        const auto& slot = slots[i];
+        const int row_y = y + static_cast<int>(i) * row_h;
+
+        // fondo destacado para items equipados
+        if (!slot.empty() && slot.equipado) {
+            renderer.SetDrawColor(60, 80, 40, 120);
+            renderer.FillRect(SDL2pp::Rect(panel_x + 2, row_y,
+                                           panel_w - 4, row_h));
+        }
+
+        std::string line = "[" + std::to_string(i) + "] ";
+        if (slot.empty()) {
+            text.draw(line + "(vacio)", panel_x + pad, row_y, gray);
+        } else {
+            line += slot.item;
+            if (slot.cantidad > 1)
+                line += " x" + std::to_string(slot.cantidad);
+            if (slot.equipado)
+                line += " [E]";
+            text.draw(line, panel_x + pad, row_y,
+                      slot.equipado ? yellow : white);
+        }
+    }
+
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+}
+
 void HudRenderer::render(const ClientGameState& state) {
     draw_error_toast(state);
+    if (state.is_inventory_open()) draw_inventory(state);
     
     if (!state.has_local_stats()) {
         return;
