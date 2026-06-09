@@ -2,6 +2,7 @@
 #define CLIENT_CONFIG_H
 
 #include <string>
+#include <map>
 
 struct ClientConfig {
     std::string server_host = "localhost";
@@ -21,6 +22,7 @@ struct ClientConfig {
     int map_width = 50;
     int map_height = 50;
     std::string map_name = "bosqueOscuro";
+    std::map<int, std::string> map_files;
 
     int music_volume = 64;
     int effects_volume = 96;
@@ -29,6 +31,7 @@ struct ClientConfig {
     std::string character_raza = "humano";
     std::string character_clase = "mago";
 
+    std::string map_name_for(int id) const;
     static ClientConfig load();
 };
 

@@ -294,6 +294,17 @@ int Config::getServerTicksPerSecond() const {
 int Config::getServerMaxClients() const {
     return impl->get<int64_t>("server.max_clients", 100);
 }
+
+int Config::getSpawnMapaId() const {
+    return impl->get<int64_t>("spawn.mapa_id", 3);
+}
+int Config::getSpawnX() const {
+    return impl->get<int64_t>("spawn.x", 50);
+}
+int Config::getSpawnY() const {
+    return impl->get<int64_t>("spawn.y", 89);
+}
+
 // ----------------- Rutas de Persistencia -----------------
 
 std::string Config::getRutaJugadores() const {

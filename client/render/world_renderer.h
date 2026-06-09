@@ -99,6 +99,8 @@ class WorldRenderer {
 
     void render(const ClientGameState& state, uint32_t delta_ms);
 
+    void load_map(const std::string& map_name);
+
     ~WorldRenderer();
 };
 
