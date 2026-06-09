@@ -626,8 +626,10 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
         if (!jugador) {
             // Personaje inexistente: crearlo con los datos del comando
-            bool creado = agregarJugador(cmd.get_nick(), 1, 10, 10,
-                                         cmd.get_raza(), cmd.get_clase());
+            bool creado = agregarJugador(
+                cmd.get_nick(), config.getSpawnMapaId(),
+                config.getSpawnX(), config.getSpawnY(),
+                cmd.get_raza(), cmd.get_clase());
             if (!creado) {
                 snapshots.push_back(Snapshot::error_message(
                     cmd.get_nick(), "No se pudo crear el personaje"));
@@ -650,6 +652,14 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
         }
+
+        // Avisar al cliente en que mapa quedo (nuevo o persistido)
+        snapshots.push_back(Snapshot::map_change(
+            cmd.get_nick(),
+            static_cast<uint16_t>(jugador->getMapaId()),
+            static_cast<uint16_t>(jugador->getPosX()),
+            static_cast<uint16_t>(jugador->getPosY()),
+            static_cast<uint8_t>(jugador->getDireccion())));
 
         snapshots.push_back(
             SnapshotFactory::player_stats_from_player(*jugador));
@@ -730,7 +740,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
             if (!moved) {
                 snapshots.push_back(
-                    Snapshot::error_message(nombre, "No se pudo mover"));
+                    Snapshot::error_message(nombre, "Movimiento Invalido"));
                 break;
             }
 

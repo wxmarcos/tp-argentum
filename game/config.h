@@ -61,6 +61,10 @@ public:
     int getServerMapHeight() const;
     int getServerTicksPerSecond() const;
     int getServerMaxClients() const;
+    // Spawn
+    int getSpawnMapaId() const;
+    int getSpawnX() const;
+    int getSpawnY() const;
     // Mapas
     struct PosicionNPC {
         int x, y;

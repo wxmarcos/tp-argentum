@@ -46,25 +46,28 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
              config.font_size),
         local_anim(ANIM_FRAMES, ANIM_MS_FRAME) {
 
+    load_map(config.map_name);
+    load_effects();
+}
+
+void WorldRenderer::load_map(const std::string& map_name) {
     std::filesystem::path tmx_path =
         std::filesystem::current_path() /
         config.assets_path / ".." / "mapa" /
-        (config.map_name + ".tmx");
+        (map_name + ".tmx");
     tmx_path = tmx_path.lexically_normal();
 
     try {
         auto loaded = load_tmx(tmx_path, renderer.Get());
         catalog = std::move(loaded.catalog);
         map     = std::move(loaded.map);
-        std::cout << "[WorldRenderer] Mapa cargado: "
-                  << config.map_name << "\n";
+        std::cout << "[WorldRenderer] Mapa cargado: " << map_name << "\n";
     } catch (const std::exception& e) {
         std::cerr << "[WorldRenderer] Error cargando mapa: "
                   << e.what() << "\n";
     }
-    load_effects();
 }
- 
+
 int WorldRenderer::dir_to_idx(protocol::Direction dir) {
     switch (dir) {
         case protocol::Direction::SOUTH: return DIR_SOUTH;
@@ -74,7 +77,7 @@ int WorldRenderer::dir_to_idx(protocol::Direction dir) {
     }
     return DIR_SOUTH;
 }
- 
+
 void WorldRenderer::visible_tile_range(int cam_offset_x, int cam_offset_y,
                                        int& first_gx, int& last_gx,
                                        int& first_gy, int& last_gy) const {
@@ -91,7 +94,7 @@ void WorldRenderer::visible_tile_range(int cam_offset_x, int cam_offset_y,
     last_gy  = std::min(config.map_height - 1,
                         floor_div(config.window_height - cam_offset_y, ts));
 }
- 
+
 void WorldRenderer::draw_map_layer(int layer,
                                    int cam_offset_x,
                                    int cam_offset_y) {
@@ -160,7 +163,7 @@ void WorldRenderer::draw_map_layer(int layer,
         }
     }
 }
- 
+
 void WorldRenderer::draw_character(int world_x, int world_y,
                                    protocol::Direction dir,
                                    const std::string& sprite_key,

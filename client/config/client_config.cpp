@@ -70,6 +70,14 @@ ClientConfig ClientConfig::load() {
     read_field(tbl, "world", "map_height", cfg.map_height);
     read_field(tbl, "world", "map_name", cfg.map_name);
 
+    if (auto* mapas = tbl["mapas"].as_table()) {
+        for (auto&& [k, v] : *mapas) {
+            if (auto s = v.value<std::string>()) {
+                cfg.map_files[std::stoi(std::string(k.str()))] = *s;
+            }
+        }
+    }
+
     read_field(tbl, "audio", "music_volume", cfg.music_volume);
     read_field(tbl, "audio", "effects_volume", cfg.effects_volume);
 
@@ -82,4 +90,9 @@ ClientConfig ClientConfig::load() {
 
     std::cout << "[Config] Cargado desde " << path << "\n";
     return cfg;
+}
+
+std::string ClientConfig::map_name_for(int id) const {
+    auto it = map_files.find(id);
+    return it != map_files.end() ? it->second : map_name;
 }
