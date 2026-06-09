@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
+#include <chrono>
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
 #include "game/banco/cuentaBanco.h"
@@ -45,7 +45,10 @@ private:
     std::map<int, InfoSpawnMapa> infoSpawn;
 
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
+    std::unordered_map<std::string, std::chrono::steady_clock::time_point>
+    last_move_by_player;
 
+    bool puedeMoverAhora(const std::string& nombre);
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();

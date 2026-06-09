@@ -184,6 +184,26 @@ std::string Game::to_lower(const std::string& str) const {
 
     return text;
 }
+bool Game::puedeMoverAhora(const std::string& nombre) {
+    static constexpr int MOVE_COOLDOWN_MS = 150;
+
+    const auto now = std::chrono::steady_clock::now();
+
+    auto it = last_move_by_player.find(nombre);
+
+    if (it != last_move_by_player.end()) {
+        const auto elapsed =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                now - it->second);
+
+        if (elapsed.count() < MOVE_COOLDOWN_MS) {
+            return false;
+        }
+    }
+
+    last_move_by_player[nombre] = now;
+    return true;
+}
 
 bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
     bool ok = agregarJugador(
@@ -878,42 +898,46 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     switch (cmd.get_type()) {
         // -- Move --------------------------
         case protocol::ClientOpcode::MOVE: {
-            Jugador* jugador = getJugador(nombre);
+        Jugador* jugador = getJugador(nombre);
 
-            if (!jugador) {
-                snapshots.push_back(
-                    Snapshot::error_message(nombre, "Jugador inexistente"));
-                break;
-            }
-
-            int mapaAnterior = jugador->getMapaId();
-
-            bool moved = moverJugador(
-                nombre, static_cast<Direccion>(cmd.get_direction()));
-
-            if (!moved) {
-                snapshots.push_back(
-                    Snapshot::error_message(nombre, "No se pudo mover"));
-                break;
-            }
-
-            int mapaActual = jugador->getMapaId();
-
-            if (mapaActual != mapaAnterior) {
-                snapshots.push_back(Snapshot::map_change(
-                    nombre, static_cast<uint16_t>(jugador->getMapaId()),
-                    static_cast<uint16_t>(jugador->getPosX()),
-                    static_cast<uint16_t>(jugador->getPosY()),
-                    static_cast<uint8_t>(jugador->getDireccion())));
-            } else {
-                snapshots.push_back(Snapshot::entity_move(
-                    nombre, static_cast<uint16_t>(jugador->getPosX()),
-                    static_cast<uint16_t>(jugador->getPosY()),
-                    static_cast<uint8_t>(jugador->getDireccion())));
-            }
-
+        if (!jugador) {
+            snapshots.push_back(
+                Snapshot::error_message(nombre, "Jugador inexistente"));
             break;
         }
+
+        if (!puedeMoverAhora(nombre)) {
+            break;
+        }
+
+        int mapaAnterior = jugador->getMapaId();
+
+        bool moved = moverJugador(
+            nombre, static_cast<Direccion>(cmd.get_direction()));
+
+        if (!moved) {
+            snapshots.push_back(
+                Snapshot::error_message(nombre, "No se pudo mover"));
+            break;
+        }
+
+        int mapaActual = jugador->getMapaId();
+
+        if (mapaActual != mapaAnterior) {
+            snapshots.push_back(Snapshot::map_change(
+                nombre, static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+        } else {
+            snapshots.push_back(Snapshot::entity_move(
+                nombre, static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+        }
+
+        break;
+    }
 
             // -- PICK ITEM --------------------------
         case protocol::ClientOpcode::PICK_ITEM: {
