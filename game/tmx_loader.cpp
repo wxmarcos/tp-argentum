@@ -78,17 +78,6 @@ void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
         
         int tileXFin = static_cast<int>(std::floor((x + w - 1) / TILE_SIZE));
         int tileYFin = static_cast<int>(std::floor((y + h - 1) / TILE_SIZE));
-        std::cout
-            << "objeto: "
-            << "x=" << x
-            << " y=" << y
-            << " w=" << w
-            << " h=" << h
-            << " -> tiles("
-            << tileXInicio << "," << tileYInicio
-            << ") a ("
-            << tileXFin << "," << tileYFin
-            << ")\n";
 
         for (int ty = tileYInicio; ty <= tileYFin; ty++) {
             for (int tx = tileXInicio; tx <= tileXFin; tx++) {
@@ -114,9 +103,5 @@ void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
               << " tiles_bloqueados="
               << tilesBloqueados
               << "\n";
-    std::cout
-    << "objetos encontrados = "
-    << objetos
-    << std::endl;
     
 }
