@@ -50,6 +50,7 @@ private:
     void inicializarRazas();
     void inicializarClases();
     void cargarJugadoresPersistidos();
+    std::string to_lower(const std::string& str) const;
     bool restaurarJugadorPersistido(const PersistenceTask& player);
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);

@@ -59,4 +59,5 @@ target_sources(taller_game PRIVATE
     mundo.cpp
     clan.cpp
     game.cpp
+    tmx_loader.cpp
 )

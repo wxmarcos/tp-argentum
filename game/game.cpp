@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-
+#include "game/tmx_loader.h"
 #include "common/protocol_defs.h"
 #include "game/clases/clerigo.h"
 #include "game/clases/guerrero.h"
@@ -39,7 +39,7 @@ Game::Game(Config& config):
     inicializarRazas();
     inicializarClases();
     cargarMundo();
-    cargarJugadoresPersistidos();
+    //cargarJugadoresPersistidos();
 
     for (const auto& cm : config.getMapas()) {
         infoSpawn[cm.id] = {cm.poblacionMax, cm.criaturasPosibles};
@@ -52,11 +52,25 @@ Game::Game(Config& config):
 void Game::cargarMundo() {
     for (const auto& cm : config.getMapas()) {
         auto mapa = std::make_unique<Mapa>(cm.ancho, cm.alto, cm.esZonaSegura);
-        for (const auto& p : cm.portales)
+
+        if (!cm.archivoTmx.empty()) {
+            try {
+                TmxLoader::cargarColisiones(cm.archivoTmx, *mapa);
+                std::cout << "[Game] colisiones cargadas desde "
+                          << cm.archivoTmx << "\n";
+            } catch (const std::exception& e) {
+                std::cout << "[Game] WARNING: " << e.what() << "\n";
+            }
+        }
+
+        for (const auto& p : cm.portales) {
             mapa->registrarPortal(p.x, p.y, p.mapaDestino, p.destinoX,
                                   p.destinoY);
+        }
+
         infoMapasVecinos vecinos{cm.vecinoNorte, cm.vecinoSur, cm.vecinoEste,
                                  cm.vecinoOeste};
+
         mundo.agregarMapa(cm.id, std::move(mapa), vecinos);
     }
 }
@@ -77,6 +91,7 @@ void Game::inicializarClases() {
 
 // ----------------- Persistencia -----------------
 
+/*
 void Game::cargarJugadoresPersistidos() {
     auto players = PersistenceLoader::load_players(config.getRutaJugadores());
 
@@ -157,8 +172,28 @@ void Game::cargarJugadoresPersistidos() {
         }
     }
 }
+
+*/
+std::string Game::to_lower(const std::string& str) const {
+    std::string text = str;
+
+    std::transform(text.begin(), text.end(), text.begin(),
+                   [](unsigned char c) {
+                       return static_cast<char>(std::tolower(c));
+                   });
+
+    return text;
+}
+
 bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
-    bool ok = agregarJugador(p.nick, p.mapa_id, p.x, p.y, p.raza, p.clase);
+    bool ok = agregarJugador(
+        p.nick,
+        p.mapa_id,
+        p.x,
+        p.y,
+        to_lower(p.raza),
+        to_lower(p.clase));
+
     if (!ok) {
         return false;
     }
@@ -713,15 +748,15 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         Jugador* jugador = getJugador(cmd.get_nick());
 
         if (!jugador) {
-            auto players = PersistenceLoader::load_players(config.getRutaJugadores());
-
             bool restaurado = false;
 
-            for (const auto& p : players) {
-                if (p.nick == cmd.get_nick()) {
-                    restaurado = restaurarJugadorPersistido(p);
-                    break;
-                }
+            auto record = PersistenceLoader::load_player_by_nick(
+                config.getRutaJugadores(),
+                config.getRutaIndiceJugadores(),
+                cmd.get_nick());
+
+            if (record.has_value()) {
+                restaurado = restaurarJugadorPersistido(*record);
             }
 
             if (!restaurado) {
@@ -759,7 +794,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
     if (cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
         bool creado = agregarJugador(
-            cmd.get_nick(), 1, 10, 10, cmd.get_raza(), cmd.get_clase());
+            cmd.get_nick(), 1, 25, 25, cmd.get_raza(), cmd.get_clase());
 
         if (!creado) {
             snapshots.push_back(Snapshot::error_message(
@@ -788,10 +823,14 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     // -- Disconnect --------------------------
     if (cmd.is_disconnect()) {
         const std::string nombre = getNombreJugadorPorComando(cmd);
+
         if (!nombre.empty()) {
-            player_id_to_nick.erase(cmd.get_player_id());
             snapshots.push_back(Snapshot::entity_remove(nombre));
+
+            removerJugador(nombre);
+            player_id_to_nick.erase(cmd.get_player_id());
         }
+
         return snapshots;
     }
 

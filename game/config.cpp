@@ -300,6 +300,10 @@ std::string Config::getRutaJugadores() const {
     return impl->get<std::string>("rutas.ruta_jugadores", "data/players.bin");
 }
 
+std::string Config::getRutaIndiceJugadores() const {
+    return impl->get<std::string>("rutas.ruta_index_jugadores", "data/index.bin");
+}
+
 std::string Config::getRutaNPCsCriaturas() const {
     return impl->get<std::string>("rutas.ruta_npcs_criaturas",
                                   "data/npcs_criaturas.toml");
@@ -319,6 +323,13 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
         ConfigMapa cm;
         cm.id = std::stoi(std::string(clave.str()));
 
+        auto* archivoTmxNode = t->get("archivo_tmx");
+
+        if (archivoTmxNode) {
+            cm.archivoTmx = archivoTmxNode->value_or<std::string>("");
+        } else {
+            cm.archivoTmx = "";
+        }
         cm.ancho = t->get("ancho")
                        ? static_cast<int>(*t->get("ancho")->value<int64_t>())
                        : 100;
