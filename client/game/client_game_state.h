@@ -46,6 +46,13 @@ struct CreatureView {
     bool moved = false;
 };
 
+struct InventorySlotView {
+    std::string item;
+    uint16_t cantidad = 0;
+    bool equipado = false;
+    bool empty() const { return item.empty(); }
+};
+
 enum class FloatingKind { DamageDealt, DamageReceived, Crit, Dodge, Death };
 
 struct FloatingEvent {
@@ -82,6 +89,9 @@ private:
 
     std::vector<FloatingEvent> floating_events;
     std::vector<EffectSpawn> effect_spawns;
+
+    std::vector<InventorySlotView> inventory;
+    bool inventory_open = false;
 
     bool resolve_entity_pos(const std::string& nick, uint16_t& x,
                             uint16_t& y) const;
@@ -120,6 +130,10 @@ public:
     bool has_pending_error() const { return has_error; }
     const std::string& get_last_error() const { return last_error; }
     uint32_t get_error_seq() const { return error_seq; }
+
+    const std::vector<InventorySlotView>& get_inventory() const { return inventory; }
+    bool is_inventory_open() const { return inventory_open; }
+    void toggle_inventory() { inventory_open = !inventory_open; }
 
     const std::unordered_map<std::string, PlayerView>& get_others() const {
         return others;

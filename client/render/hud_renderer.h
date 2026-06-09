@@ -28,6 +28,14 @@ public:
     void render(const ClientGameState& state);
 
     void draw_error_toast(const ClientGameState& state);
+
+private:
+    SDL2pp::Renderer& renderer;
+    const ClientConfig& config;
+    TextRenderer text;
+
+    void draw_bar(int x, int y, int w, int h, float ratio, SDL_Color fill);
+    void draw_inventory(const ClientGameState& state);
 };
 
 #endif
