@@ -165,6 +165,10 @@ Command parse_command_payload(const std::vector<uint8_t>& payload,
             cmd = parse_nick_only(payload, offset, type, player_id);
             break;
 
+        case protocol::ClientOpcode::CHEAT_GOD:
+        case protocol::ClientOpcode::CHEAT_MANA:
+        case protocol::ClientOpcode::CHEAT_DIE:
+        case protocol::ClientOpcode::CHEAT_RESURRECT:
         case protocol::ClientOpcode::MEDITATE:
         case protocol::ClientOpcode::RESURRECT:
         case protocol::ClientOpcode::HEAL:
@@ -296,6 +300,10 @@ std::vector<uint8_t> build_command_payload(const Command& command) {
             serialize_nick_only(command, payload);
             break;
 
+        case protocol::ClientOpcode::CHEAT_GOD:
+        case protocol::ClientOpcode::CHEAT_MANA:
+        case protocol::ClientOpcode::CHEAT_DIE:
+        case protocol::ClientOpcode::CHEAT_RESURRECT:
         case protocol::ClientOpcode::MEDITATE:
         case protocol::ClientOpcode::RESURRECT:
         case protocol::ClientOpcode::HEAL:

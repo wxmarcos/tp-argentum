@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include "game/tmx_loader.h"
+
 #include "common/protocol_defs.h"
 #include "game/clases/clerigo.h"
 #include "game/clases/guerrero.h"
@@ -21,15 +21,16 @@
 #include "game/items/armadura.h"
 #include "game/items/casco.h"
 #include "game/items/escudo.h"
+#include "game/items/inventario.h"
 #include "game/items/itemFactory.h"
 #include "game/items/item_defs.h"
-#include "game/items/inventario.h"
 #include "game/items/oro.h"
 #include "game/razas/elfo.h"
 #include "game/razas/enano.h"
 #include "game/razas/gnomo.h"
 #include "game/razas/humano.h"
 #include "game/snapshot_factory.h"
+#include "game/tmx_loader.h"
 #include "server/persistence/persistence_loader.h"
 
 // ----------------- Constructor -----------------
@@ -39,7 +40,7 @@ Game::Game(Config& config):
     inicializarRazas();
     inicializarClases();
     cargarMundo();
-    //cargarJugadoresPersistidos();
+    // cargarJugadoresPersistidos();
 
     for (const auto& cm : config.getMapas()) {
         infoSpawn[cm.id] = {cm.poblacionMax, cm.criaturasPosibles};
@@ -177,10 +178,9 @@ void Game::cargarJugadoresPersistidos() {
 std::string Game::to_lower(const std::string& str) const {
     std::string text = str;
 
-    std::transform(text.begin(), text.end(), text.begin(),
-                   [](unsigned char c) {
-                       return static_cast<char>(std::tolower(c));
-                   });
+    std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
 
     return text;
 }
@@ -193,8 +193,8 @@ bool Game::puedeMoverAhora(const std::string& nombre) {
 
     if (it != last_move_by_player.end()) {
         const auto elapsed =
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                now - it->second);
+            std::chrono::duration_cast<std::chrono::milliseconds>(now -
+                                                                  it->second);
 
         if (elapsed.count() < MOVE_COOLDOWN_MS) {
             return false;
@@ -206,13 +206,8 @@ bool Game::puedeMoverAhora(const std::string& nombre) {
 }
 
 bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
-    bool ok = agregarJugador(
-        p.nick,
-        p.mapa_id,
-        p.x,
-        p.y,
-        to_lower(p.raza),
-        to_lower(p.clase));
+    bool ok = agregarJugador(p.nick, p.mapa_id, p.x, p.y, to_lower(p.raza),
+                             to_lower(p.clase));
 
     if (!ok) {
         return false;
@@ -772,8 +767,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             bool restaurado = false;
 
             auto record = PersistenceLoader::load_player_by_nick(
-                config.getRutaJugadores(),
-                config.getRutaIndiceJugadores(),
+                config.getRutaJugadores(), config.getRutaIndiceJugadores(),
                 cmd.get_nick());
 
             if (record.has_value()) {
@@ -782,8 +776,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
             if (!restaurado) {
                 snapshots.push_back(Snapshot::error_message(
-                    cmd.get_nick(),
-                    "Login fallido: personaje inexistente"));
+                    cmd.get_nick(), "Login fallido: personaje inexistente"));
                 return snapshots;
             }
 
@@ -800,21 +793,21 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_login(
-            cmd.get_nick(),
-            static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
         // Avisar al cliente en que mapa quedo (persistido)
         snapshots.push_back(Snapshot::map_change(
-            cmd.get_nick(),
-            static_cast<uint16_t>(jugador->getMapaId()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
             static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
-        snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
-        snapshots.push_back(SnapshotFactory::player_inventory_from_player(*jugador));
+        snapshots.push_back(
+            SnapshotFactory::player_stats_from_player(*jugador));
+        snapshots.push_back(
+            SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick());
 
@@ -822,10 +815,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     }
 
     if (cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
-        bool creado = agregarJugador(
-            cmd.get_nick(), config.getSpawnMapaId(),
-            config.getSpawnX(), config.getSpawnY(),
-            cmd.get_raza(), cmd.get_clase());
+        bool creado = agregarJugador(cmd.get_nick(), config.getSpawnMapaId(),
+                                     config.getSpawnX(), config.getSpawnY(),
+                                     cmd.get_raza(), cmd.get_clase());
 
         if (!creado) {
             snapshots.push_back(Snapshot::error_message(
@@ -838,21 +830,21 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_created(
-            cmd.get_nick(),
-            static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
         // Avisar al cliente en que mapa quedo (nuevo)
         snapshots.push_back(Snapshot::map_change(
-            cmd.get_nick(),
-            static_cast<uint16_t>(jugador->getMapaId()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
             static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
-        snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
-        snapshots.push_back(SnapshotFactory::player_inventory_from_player(*jugador));
+        snapshots.push_back(
+            SnapshotFactory::player_stats_from_player(*jugador));
+        snapshots.push_back(
+            SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick());
 
@@ -1127,71 +1119,55 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
         // -- CHEATS --------------------------
         case protocol::ClientOpcode::CHEAT_GOD: {
-            if (jugador) jugador->activarCheatVidaInfinita();
-            snapshots.push_back(Snapshot::error_message(
-                nombre, "Cheat: vida infinita activado"));
+            if (!jugador) break;
+
+            jugador->activarCheatVidaInfinita();
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         case protocol::ClientOpcode::CHEAT_MANA: {
-            if (jugador) jugador->activarCheatManaInfinito();
-            snapshots.push_back(Snapshot::error_message(
-                nombre, "Cheat: mana infinito activado"));
+            if (!jugador) break;
+
+            jugador->activarCheatManaInfinito();
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         case protocol::ClientOpcode::CHEAT_DIE: {
             if (!jugador) break;
+
             jugador->morir();
+
             if (!jugador->estaVivo()) {
                 snapshots.push_back(Snapshot::death_event(nombre));
                 snapshots.push_back(Snapshot::entity_remove(nombre));
 
                 auto items = jugador->soltarTodosLosItems();
-                for (auto& item : items)
+                for (auto& item : items) {
                     mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
                                     jugador->getPosY(), std::move(item));
+                }
 
                 int oroExceso = Formulas::calcularOroExceso(
                     jugador->getOro(), jugador->getOroMax());
-                if (oroExceso > 0) jugador->gastarOro(oroExceso);
+
+                if (oroExceso > 0) {
+                    jugador->gastarOro(oroExceso);
+                }
             }
+
             break;
         }
 
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
-            if (jugador) jugador->revivir(jugador->getVidaMax());
-            snapshots.push_back(
-                Snapshot::error_message(nombre, "Cheat: resucitado"));
-            break;
-        }
+            if (!jugador) break;
 
-        // -- RESURRECT --------------------------
-        case protocol::ClientOpcode::RESURRECT: {
-            if (!jugador || jugador->estaVivo()) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "Solo un fantasma puede usar /resucitar"));
-                break;
-            }
-            if (jugador->estaResucitando()) {
-                snapshots.push_back(
-                    Snapshot::error_message(nombre, "Ya estas resucitando"));
-                break;
-            }
-            InfoNPC destino;
-            float distancia;
-            if (!encontrarSacerdoteMasCercano(jugador, destino, distancia)) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "No hay ningun sacerdote en el mundo"));
-                break;
-            }
-            float tiempo = distancia / config.getVelocidadResurreccion();
-            jugador->iniciarResurreccion(tiempo, destino.mapaId, destino.x,
-                                         destino.y);
+            jugador->revivir(jugador->getVidaMax());
             snapshots.push_back(
-                Snapshot::error_message(nombre,
-                                        "Resucitando... quedaras inmovilizado "
-                                        "hasta llegar al sacerdote"));
+                SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
