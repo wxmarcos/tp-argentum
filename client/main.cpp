@@ -1,39 +1,13 @@
-#include "common/foo.h"
-
 #include <iostream>
-#include <exception>
 
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL.h>
+#include "config/client_config.h"
+#include "ui/client_app.h"
 
-using namespace SDL2pp;
-
-int main() try {
-	// Initialize SDL library
-	SDL sdl(SDL_INIT_VIDEO);
-
-	// Create main window: 640x480 dimensions, resizable, "SDL2pp demo" title
-	Window window("SDL2pp demo",
-			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			640, 480,
-			SDL_WINDOW_RESIZABLE);
-
-	// Create accelerated video renderer with default driver
-	Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
-
-	// Clear screen
-	renderer.Clear();
-
-	// Show rendered frame
-	renderer.Present();
-
-	// 5 second delay
-	SDL_Delay(5000);
-
-	// Here all resources are automatically released and library deinitialized
-	return 0;
-} catch (std::exception& e) {
-	// If case of error, print it and exit with error
-	std::cerr << e.what() << std::endl;
-	return 1;
+int main(int argc, char* argv[]) {
+    ClientConfig config = ClientConfig::load();
+    if (argc > 1) config.character_nick = argv[1];
+    if (argc > 2) config.character_raza = argv[2];
+    if (argc > 3) config.character_clase = argv[3];
+    ClientApp app(std::move(config));
+    return app.run();
 }

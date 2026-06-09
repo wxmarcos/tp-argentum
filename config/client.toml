@@ -1,0 +1,37 @@
+[server]
+host = "localhost"
+port = "8080"
+
+[window]
+width = 800
+height = 600
+fullscreen = false
+title = "Argentum Online"
+
+[render]
+tile_size = 32
+assets_path = "assets/graficos"
+
+[world]
+map_width = 100
+map_height = 100
+map_name = "ciudad"
+
+[mapas]
+1 = "bosque"
+2 = "mazmorra"
+3 = "ciudad"
+4 = "bosqueOscuro"
+
+[audio]
+music_volume = 64
+effects_volume = 96
+
+[ui]
+font_path = "assets/fonts/Cardo-Bold.ttf"
+font_size = 18
+
+[character]
+nick = "Messi"
+raza = "humano"
+clase = "mago"

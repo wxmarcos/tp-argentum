@@ -1,5 +1,3 @@
-#include "common/foo.h"
+#include <iostream>
 
-int main() {
-    return foo(4);
-}
+int main() { return 0; }

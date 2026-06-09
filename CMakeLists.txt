@@ -16,6 +16,7 @@ project(taller_tp
     LANGUAGES CXX
     )
 
+find_package(Threads REQUIRED)
 option(TALLER_TESTS "Enable / disable tests." ON)
 option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
@@ -41,6 +42,26 @@ set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 # Make this PUBLIC so any dependant linking lib will inherit this
 # location (so our dependants will not have to explicitly request this)
 target_include_directories(taller_common PUBLIC .)
+target_link_libraries(taller_common
+    PUBLIC
+    Threads::Threads
+)
+# Define target: game logic library (server-side only)
+add_library(taller_game STATIC)
+add_subdirectory(game/)
+set_project_warnings(taller_game ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+target_include_directories(taller_game PUBLIC . game/)
+
+include(FetchContent)
+FetchContent_Declare(
+    tomlplusplus
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG        v3.4.0
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(tomlplusplus)
+
+target_link_libraries(taller_game taller_common tomlplusplus::tomlplusplus)
 
 # HEY!! TODO XXX: you need to install some runtime and dev libraries *before*
 # compiling the client/editor code.
@@ -96,6 +117,8 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
 
+    set(SDL2IMAGE_VENDORED OFF CACHE BOOL "" FORCE)
+    set(SDL2IMAGE_PNG ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
@@ -118,7 +141,14 @@ if(TALLER_CLIENT)
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_client
+       taller_common
+       SDL2pp::SDL2pp
+       SDL2_image::SDL2_image
+       SDL2_mixer::SDL2_mixer
+       SDL2_ttf::SDL2_ttf
+       tomlplusplus::tomlplusplus
+   )
 endif()
 
 if(TALLER_SERVER)
@@ -126,7 +156,7 @@ if(TALLER_SERVER)
     add_executable(taller_server)
 
     # Make them depend on taller_common lib
-    add_dependencies(taller_server taller_common)
+    add_dependencies(taller_server taller_common taller_game)
 
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
@@ -135,8 +165,15 @@ if(TALLER_SERVER)
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # Link the taller_common lib target
-    target_link_libraries(taller_server taller_common)
+    target_link_libraries(taller_server
+        taller_common
+        taller_game
+        Threads::Threads
+    )
 endif()
+
+# Copiar config.toml al directorio de build
+configure_file(${CMAKE_SOURCE_DIR}/config.toml ${CMAKE_BINARY_DIR}/config.toml COPYONLY)
 
 if(TALLER_EDITOR)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
@@ -182,7 +219,7 @@ if(TALLER_TESTS)
 
     # HEY!! TODO XXX: I'm assuming that the code under testing is in taller_common
     # Change this if you have to.
-    add_dependencies(taller_tests taller_common)
+    add_dependencies(taller_tests taller_common taller_game)
 
     # Say where to find the xoz headers
     # HEY!! TODO XXX: add more subfolders here
@@ -206,6 +243,7 @@ if(TALLER_TESTS)
     # Change this if you have to.
     target_link_libraries(taller_tests
         taller_common
+        taller_game
         GTest::gtest_main
     )
 endif()

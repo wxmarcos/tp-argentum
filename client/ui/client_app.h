@@ -1,0 +1,39 @@
+#ifndef CLIENT_CLIENT_APP_H
+#define CLIENT_CLIENT_APP_H
+
+#include "config/client_config.h"
+
+namespace SDL2pp { class Renderer; }
+
+class ServerConnection;
+class InputHandler;
+class WorldRenderer;
+class HudRenderer;
+class ClientGameState;
+class Snapshot;
+
+class ClientApp {
+private:
+    ClientConfig config;
+
+    void main_loop(ServerConnection& connection, InputHandler& input,
+                   SDL2pp::Renderer& renderer, WorldRenderer& world,
+                   HudRenderer& hud, ClientGameState& state);
+
+    bool process_input(ServerConnection& connection, const InputHandler& input,
+                       ClientGameState& state);
+
+    void handle_click(ServerConnection& connection,
+                      const ClientGameState& state, int mouse_x, int mouse_y);
+                      
+    bool process_updates(ServerConnection& connection, ClientGameState& state);
+
+    int await_response(ServerConnection& connection, ClientGameState& state);
+
+public:
+    explicit ClientApp(ClientConfig config);
+
+    int run();
+};
+
+#endif
