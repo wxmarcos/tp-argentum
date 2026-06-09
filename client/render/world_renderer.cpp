@@ -6,7 +6,7 @@
  
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
- 
+
 static constexpr int ANIM_FRAMES    = 4;
 static constexpr int ANIM_MS_FRAME  = 150;
  
@@ -16,6 +16,7 @@ int body_scale_pct(const std::string& raza) {
     if (raza == "gnomo") return 82;
     return 100;
 }
+
 int head_scale_pct(const std::string& raza) {
     if (raza == "gnomo") return 85;
     return 100;
@@ -63,9 +64,14 @@ void WorldRenderer::load_map(const std::string& map_name) {
         map     = std::move(loaded.map);
         std::cout << "[WorldRenderer] Mapa cargado: " << map_name << "\n";
     } catch (const std::exception& e) {
-        std::cerr << "[WorldRenderer] Error cargando mapa: "
-                  << e.what() << "\n";
+        std::cerr << "[WorldRenderer] Error cargando mapa id="
+                  << map_name << ": " << e.what() << "\n";
     }
+}
+
+void WorldRenderer::load_map_by_id(uint16_t map_id) {
+    load_map(config.map_name_for(map_id));
+    loaded_map_id = map_id;
 }
 
 int WorldRenderer::dir_to_idx(protocol::Direction dir) {
@@ -429,7 +435,11 @@ void WorldRenderer::draw_effects(const ClientGameState& state,
 
 void WorldRenderer::render(const ClientGameState& state,
                            uint32_t delta_ms) {
+                            const uint16_t current_map_id = state.get_current_map_id();
 
+    if (current_map_id != 0 && current_map_id != loaded_map_id) {
+        load_map_by_id(current_map_id);
+    }
     const int ts = config.tile_size;
     const int screen_cx = config.window_width  / 2;
     const int screen_cy = config.window_height / 2;

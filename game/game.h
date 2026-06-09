@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-
+#include <chrono>
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
 #include "game/banco/cuentaBanco.h"
@@ -45,11 +45,16 @@ private:
     std::map<int, InfoSpawnMapa> infoSpawn;
 
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
+    std::unordered_map<std::string, std::chrono::steady_clock::time_point>
+    last_move_by_player;
 
+    bool puedeMoverAhora(const std::string& nombre);
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
     void cargarJugadoresPersistidos();
+    std::string to_lower(const std::string& str) const;
+    bool restaurarJugadorPersistido(const PersistenceTask& player);
 
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     // Helpers
@@ -73,7 +78,7 @@ private:
     struct InfoNPC {
         int mapaId, x, y;
     };
-    
+
     std::vector<InfoNPC> sacerdotes;
     std::vector<InfoNPC> comerciantes;
     std::vector<InfoNPC> banqueros;
@@ -81,10 +86,10 @@ private:
     std::map<std::string, CuentaBanco> cuentasBancarias;
 
     void cargarNPCs();
-    bool encontrarSacerdoteMasCercano(const Jugador* fantasma,
-                                    InfoNPC& destino,
-                                    float& distancia) const;
-    bool hayNPCCercano(const Jugador* jugador, const std::vector<InfoNPC>& npcs) const;
+    bool encontrarSacerdoteMasCercano(const Jugador* fantasma, InfoNPC& destino,
+                                      float& distancia) const;
+    bool hayNPCCercano(const Jugador* jugador,
+                       const std::vector<InfoNPC>& npcs) const;
     void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
 
 public:

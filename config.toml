@@ -174,6 +174,7 @@ max_clients = 100
 # Mapas
 # -----------------------------------------------------------------------------
 [mapas.1]
+archivo_tmx = "assets/mapa/bosqueOscuro.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = 3
@@ -189,6 +190,7 @@ banqueros          = []
 portales           = []
  
 [mapas.2]
+archivo_tmx = "assets/mapa/mazmorra.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = -1
@@ -204,6 +206,7 @@ banqueros          = []
 portales           = []
 
 [mapas.3]
+archivo_tmx = "assets/mapa/ciudad.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = -1
@@ -219,6 +222,7 @@ banqueros          = [{x = 45, y = 50}]
 portales           = []
 
 [mapas.4]
+archivo_tmx = "assets/mapa/mazmorra.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = 2

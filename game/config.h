@@ -78,8 +78,12 @@ public:
 
     struct ConfigMapa {
         int id, ancho, alto, vecinoNorte, vecinoSur, vecinoEste, vecinoOeste;
+
+        std::string archivoTmx;
+
         bool esZonaSegura;
         int poblacionMax;
+
         std::vector<std::string> criaturasPosibles;
         std::vector<PosicionNPC> sacerdotes;
         std::vector<PosicionNPC> comerciantes;
@@ -94,6 +98,7 @@ public:
 
     // Rutas de Persistencia
     std::string getRutaJugadores() const;
+    std::string getRutaIndiceJugadores() const;
     std::string getRutaNPCsCriaturas() const;
     ~Config();
 

@@ -308,7 +308,11 @@ int Config::getSpawnY() const {
 // ----------------- Rutas de Persistencia -----------------
 
 std::string Config::getRutaJugadores() const {
-    return impl->get<std::string>("rutas.ruta_jugadores", "data/players.toml");
+    return impl->get<std::string>("rutas.ruta_jugadores", "data/players.bin");
+}
+
+std::string Config::getRutaIndiceJugadores() const {
+    return impl->get<std::string>("rutas.ruta_index_jugadores", "data/index.bin");
 }
 
 std::string Config::getRutaNPCsCriaturas() const {
@@ -330,6 +334,13 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
         ConfigMapa cm;
         cm.id = std::stoi(std::string(clave.str()));
 
+        auto* archivoTmxNode = t->get("archivo_tmx");
+
+        if (archivoTmxNode) {
+            cm.archivoTmx = archivoTmxNode->value_or<std::string>("");
+        } else {
+            cm.archivoTmx = "";
+        }
         cm.ancho = t->get("ancho")
                        ? static_cast<int>(*t->get("ancho")->value<int64_t>())
                        : 100;
@@ -377,13 +388,21 @@ std::vector<Config::ConfigMapa> Config::getMapas() const {
             }
         }
 
-        auto leerNPCs = [&](const char* clave, std::vector<PosicionNPC>& destino) {
-            if (auto* arr = t->get(clave) ? t->get(clave)->as_array() : nullptr) {
+        auto leerNPCs = [&](const char* clave,
+                            std::vector<PosicionNPC>& destino) {
+            if (auto* arr =
+                    t->get(clave) ? t->get(clave)->as_array() : nullptr) {
                 for (auto& elem : *arr) {
                     if (auto* tbl = elem.as_table()) {
                         PosicionNPC pos;
-                        pos.x = tbl->get("x") ? (int)(*tbl->get("x")->value<int64_t>()) : 0;
-                        pos.y = tbl->get("y") ? (int)(*tbl->get("y")->value<int64_t>()) : 0;
+                        pos.x = tbl->get("x")
+                                    ? static_cast<int>(
+                                          *tbl->get("x")->value<int64_t>())
+                                    : 0;
+                        pos.y = tbl->get("y")
+                                    ? static_cast<int>(
+                                          *tbl->get("y")->value<int64_t>())
+                                    : 0;
                         destino.push_back(pos);
                     }
                 }

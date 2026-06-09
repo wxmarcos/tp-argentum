@@ -90,8 +90,6 @@ int ClientApp::run() {
 
                 AudioManager audio(config);
                 WorldRenderer world_renderer(renderer, config);
-                world_renderer.load_map(
-                    config.map_name_for(state.get_current_map_id()));
                 HudRenderer hud(renderer, config);
                 InputHandler input;
 
@@ -134,7 +132,6 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
     const Uint32 frame_delay_ms = 1000 / 60;
     bool running = true;
     Uint32 last_ticks = SDL_GetTicks();
-    uint16_t last_map_id = state.get_current_map_id();
 
     while (running) {
         const Uint32 now = SDL_GetTicks();
@@ -144,11 +141,6 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         running = process_input(connection, input, state);
         if (running) {
             running = process_updates(connection, state);
-        }
-
-        if (state.get_current_map_id() != last_map_id) {
-            last_map_id = state.get_current_map_id();
-            world.load_map(config.map_name_for(last_map_id));
         }
 
         renderer.SetDrawColor(34, 51, 34, 255);
@@ -166,7 +158,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 
 bool ClientApp::process_input(ServerConnection& connection,
                               const InputHandler& input,
-                              const ClientGameState& state) {
+                              ClientGameState& state) {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
@@ -185,6 +177,12 @@ bool ClientApp::process_input(ServerConnection& connection,
                 event.key.keysym.sym == SDLK_q) {
                 connection.send(Command::disconnect());
                 return false;
+            }
+
+            // Teclas de UI (no envian comando al servidor)
+            if (event.key.keysym.sym == SDLK_i) {
+                state.toggle_inventory();
+                continue;
             }
 
             Command cmd = Command::disconnect();

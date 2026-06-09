@@ -1,7 +1,7 @@
 #include "audio/audio_manager.h"
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
+#include <SDL_mixer.h>
 
 #include <algorithm>
 #include <iostream>
