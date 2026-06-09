@@ -117,6 +117,8 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
 
+    set(SDL2IMAGE_VENDORED OFF CACHE BOOL "" FORCE)
+    set(SDL2IMAGE_PNG ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 

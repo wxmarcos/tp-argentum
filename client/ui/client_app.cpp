@@ -24,7 +24,7 @@ using SDL2pp::SDL;
 using SDL2pp::Window;
 
 ClientApp::ClientApp(ClientConfig config):
-    config(std::move(config)), awaiting_login(true), tried_login(false) {}
+    config(std::move(config)) {}
 
 int ClientApp::run() {
     try {
@@ -50,12 +50,14 @@ int ClientApp::run() {
         MenuScreen menu(renderer, config);
 
         while (true) {
-            if (!menu.run_inicio()) return 0;
+            if (menu.run_inicio() == MenuResult::QUIT) return 0;
 
             std::string nick;
             bool volver_a_inicio = false;
             while (!volver_a_inicio) {
-                if (!menu.run_login(nick)) {
+                MenuResult rl = menu.run_login(nick);
+                if (rl == MenuResult::QUIT) return 0;
+                if (rl == MenuResult::BACK) {
                     volver_a_inicio = true;
                     break;
                 }
@@ -71,7 +73,13 @@ int ClientApp::run() {
                 if (r == 0) {
                     std::string raza = "humano";
                     std::string clase = "mago";
-                    if (!menu.run_create(raza, clase)) {
+                    MenuResult rc = menu.run_create(raza, clase);
+                    if (rc == MenuResult::QUIT) {
+                        connection.send(Command::disconnect());
+                        connection.stop();
+                        return 0;
+                    }
+                    if (rc == MenuResult::BACK) {
                         connection.send(Command::disconnect());
                         connection.stop();
                         continue;
@@ -220,26 +228,6 @@ void ClientApp::handle_click(ServerConnection& connection,
     }
 }
 
-void ClientApp::process_login_response(ServerConnection& connection,
-                                       const Snapshot& snapshot) {
-    if (!awaiting_login) {
-        return;
-    }
-
-    if (snapshot.is_player_stats() &&
-        snapshot.get_nick() == config.character_nick) {
-        awaiting_login = false;
-        return;
-    }
-
-    if (snapshot.is_error_message() && !tried_login) {
-        tried_login = true;
-        std::cout << "[Client] CREATE_CHARACTER rechazado, reintentando "
-                     "con LOGIN.\n";
-        connection.send(Command::login(config.character_nick));
-    }
-}
-
 bool ClientApp::process_updates(ServerConnection& connection,
                                 ClientGameState& state) {
     state.begin_frame();
@@ -248,9 +236,6 @@ bool ClientApp::process_updates(ServerConnection& connection,
         if (update.disconnect) {
             std::cout << "[Client] El servidor cerro la conexion.\n";
             return false;
-        }
-        if (update.snapshot.has_value()) {
-            process_login_response(connection, *update.snapshot);
         }
         state.apply_update(update);
     }

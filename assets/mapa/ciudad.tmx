@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="38">
+<map version="1.8" tiledversion="1.8.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="44">
  <tileset firstgid="1" source="cespedclaro.tsx"/>
  <tileset firstgid="1025" source="accesorioCiudad.tsx"/>
  <tileset firstgid="2049" source="Fuente.tsx"/>
@@ -468,5 +468,11 @@
   <object id="35" x="1668" y="1072"/>
   <object id="36" x="2300" y="1219" width="135" height="58"/>
   <object id="37" x="2492" y="1146"/>
+  <object id="38" x="1516" y="1564" width="240" height="168"/>
+  <object id="39" x="2260" y="1636"/>
+  <object id="40" x="952" y="2876" width="220" height="260"/>
+  <object id="41" x="32" y="2636" width="100" height="320"/>
+  <object id="42" x="88" y="2924" width="116" height="256"/>
+  <object id="43" x="1436" y="3260"/>
  </objectgroup>
 </map>
