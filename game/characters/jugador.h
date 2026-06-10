@@ -119,8 +119,8 @@ public:
     bool resurreccionCompleta() const;
 
     // Cheats
-    void activarCheatVidaInfinita();
-    void activarCheatManaInfinito();
+    bool toggleCheatVidaInfinita();
+    bool toggleCheatManaInfinito();
 
     void morir() override;
     void revivir(int vidaInicial) override;

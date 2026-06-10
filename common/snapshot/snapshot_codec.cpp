@@ -77,6 +77,16 @@ static uint16_t meditation_status_payload_size(const Snapshot& snapshot) {
     return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
                                  sizeof(uint8_t));
 }
+
+static uint16_t cheat_status_payload_size(
+    const Snapshot& snapshot) {
+
+    return static_cast<uint16_t>(
+        sizeof(uint16_t)
+        + snapshot.get_nick().size()
+        + sizeof(uint8_t)
+        + sizeof(uint8_t));
+}
 static uint16_t map_change_payload_size(const Snapshot& snapshot) {
     return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
                                  sizeof(uint16_t) +  // mapa_id
@@ -114,7 +124,8 @@ uint16_t snapshot_payload_size(const Snapshot& snapshot) {
             return inventory_update_payload_size(snapshot);
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return meditation_status_payload_size(snapshot);
-
+        case protocol::ServerOpcode::CHEAT_STATUS:
+            return cheat_status_payload_size(snapshot);
         case protocol::ServerOpcode::MAP_CHANGE:
             return map_change_payload_size(snapshot);
 
@@ -204,6 +215,16 @@ static void send_meditation_status(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_nick());
     send_u8(socket, snapshot.is_meditating() ? 1 : 0);
 }
+
+static void send_cheat_status(
+    Socket& socket,
+    const Snapshot& snapshot) {
+
+    send_string(socket, snapshot.get_nick());
+    send_u8(socket, snapshot.get_cheat_type());
+    send_u8(socket,
+            snapshot.is_cheat_enabled() ? 1 : 0);
+}
 static void send_map_change(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_nick());
     send_u16(socket, snapshot.get_mapa_id());
@@ -248,6 +269,9 @@ void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
             return;
         case protocol::ServerOpcode::MEDITATION_STATUS:
             send_meditation_status(socket, snapshot);
+            return;
+        case protocol::ServerOpcode::CHEAT_STATUS:
+            send_cheat_status(socket, snapshot);
             return;
         case protocol::ServerOpcode::MAP_CHANGE:
             send_map_change(socket, snapshot);
@@ -427,6 +451,29 @@ static Snapshot recv_meditation_status(Socket& socket, uint16_t payload_size) {
     return Snapshot::meditation_status(nick, started != 0);
 }
 
+static Snapshot recv_cheat_status(
+    Socket& socket,
+    uint16_t payload_size) {
+
+    std::string nick = recv_string(socket);
+    uint8_t cheat_type = recv_u8(socket);
+    uint8_t enabled = recv_u8(socket);
+
+    validate_payload_size(
+        payload_size,
+        static_cast<uint16_t>(
+            sizeof(uint16_t)
+            + nick.size()
+            + sizeof(uint8_t)
+            + sizeof(uint8_t)),
+        "Snapshot::recv payload_size invalido");
+
+    return Snapshot::cheat_status(
+        nick,
+        cheat_type,
+        enabled != 0);
+}
+
 static Snapshot recv_map_change(Socket& socket, uint16_t payload_size) {
     std::string nick = recv_string(socket);
     uint16_t mapa_id = recv_u16(socket);
@@ -473,6 +520,9 @@ Snapshot recv_snapshot_payload(Socket& socket, protocol::ServerOpcode opcode,
             return recv_inventory_update(socket, payload_size);
         case protocol::ServerOpcode::MEDITATION_STATUS:
             return recv_meditation_status(socket, payload_size);
+            
+        case protocol::ServerOpcode::CHEAT_STATUS:
+            return recv_cheat_status(socket, payload_size);
 
         case protocol::ServerOpcode::MAP_CHANGE:
             return recv_map_change(socket, payload_size);

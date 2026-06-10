@@ -1121,18 +1121,32 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         case protocol::ClientOpcode::CHEAT_GOD: {
             if (!jugador) break;
 
-            jugador->activarCheatVidaInfinita();
+            bool activo = jugador->toggleCheatVidaInfinita();
+
+            snapshots.push_back(Snapshot::cheat_status(
+                nombre,
+                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_GOD),
+                activo));
+
             snapshots.push_back(
                 SnapshotFactory::player_stats_from_player(*jugador));
+
             break;
         }
 
         case protocol::ClientOpcode::CHEAT_MANA: {
             if (!jugador) break;
 
-            jugador->activarCheatManaInfinito();
+            bool activo = jugador->toggleCheatManaInfinito();
+
+            snapshots.push_back(Snapshot::cheat_status(
+                nombre,
+                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_MANA),
+                activo));
+
             snapshots.push_back(
                 SnapshotFactory::player_stats_from_player(*jugador));
+
             break;
         }
 
@@ -1140,6 +1154,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             if (!jugador) break;
 
             jugador->morir();
+
+            snapshots.push_back(Snapshot::cheat_status(
+                nombre,
+                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_DIE),
+                !jugador->estaVivo()));
 
             if (!jugador->estaVivo()) {
                 snapshots.push_back(Snapshot::death_event(nombre));
@@ -1159,6 +1178,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 }
             }
 
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
+
             break;
         }
 
@@ -1166,8 +1188,15 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             if (!jugador) break;
 
             jugador->revivir(jugador->getVidaMax());
+
+            snapshots.push_back(Snapshot::cheat_status(
+                nombre,
+                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_RESURRECT),
+                jugador->estaVivo()));
+
             snapshots.push_back(
                 SnapshotFactory::player_stats_from_player(*jugador));
+
             break;
         }
 
