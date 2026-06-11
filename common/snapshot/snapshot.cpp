@@ -105,6 +105,17 @@ Snapshot Snapshot::meditation_status(const std::string& nick, bool started) {
     snapshot.meditating = started;
     return snapshot;
 }
+Snapshot Snapshot::cheat_status(const std::string& nick,uint8_t cheat_type,bool enabled) {
+
+    Snapshot snapshot(
+        protocol::ServerOpcode::CHEAT_STATUS,
+        nick);
+
+    snapshot.cheat_type = cheat_type;
+    snapshot.cheat_enabled = enabled;
+
+    return snapshot;
+}
 
 Snapshot Snapshot::player_stats(
     const std::string& nick, const std::string& raza, const std::string& clase,
@@ -248,3 +259,9 @@ uint16_t Snapshot::get_inteligencia() const { return inteligencia; }
 uint16_t Snapshot::get_fuerza() const { return fuerza; }
 
 uint16_t Snapshot::get_agilidad() const { return agilidad; }
+
+uint8_t Snapshot::get_cheat_type() const { return cheat_type;}
+
+bool Snapshot::is_cheat_enabled() const {
+    return cheat_enabled;
+}

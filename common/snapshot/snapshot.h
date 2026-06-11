@@ -27,19 +27,19 @@ private:
 
     uint16_t x = 0;
     uint16_t y = 0;
-
+    
     uint8_t direction = 0;
     uint16_t mapa_id = 0;
-
+    
     uint16_t nivel = 0;
     uint16_t vida = 0;
     uint16_t vida_max = 0;
     uint16_t mana = 0;
     uint16_t mana_max = 0;
-
+    
     uint32_t experiencia = 0;
     uint32_t oro = 0;
-
+    
     uint16_t constitucion = 0;
     uint16_t inteligencia = 0;
     uint16_t fuerza = 0;
@@ -47,6 +47,8 @@ private:
     uint16_t damage = 0;
     bool critical = false;
     bool meditating = false;
+    uint8_t cheat_type = 0;
+    bool cheat_enabled = false;
     std::vector<InventorySnapshotItem> inventory_items;
 
 public:
@@ -87,6 +89,8 @@ public:
     static Snapshot chat_message(const std::string& from, const std::string& to,
                                  const std::string& text);
     static Snapshot meditation_status(const std::string& nick, bool started);
+    static Snapshot cheat_status(const std::string& nick,uint8_t cheat_type,bool enabled);
+
     static Snapshot player_stats(
         const std::string& nick, const std::string& raza,
         const std::string& clase, uint16_t mapa_id, uint16_t x, uint16_t y,
@@ -149,6 +153,8 @@ public:
     bool is_critical() const;
     bool is_meditating() const;
     bool is_meditation_status() const;
+    uint8_t get_cheat_type() const;
+    bool is_cheat_enabled() const;
 };
 
 #endif

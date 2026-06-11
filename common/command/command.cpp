@@ -113,6 +113,22 @@ Command Command::withdraw_gold(uint32_t amount) {
     return cmd;
 }
 
+Command Command::cheat_god() {
+    return Command(0, protocol::ClientOpcode::CHEAT_GOD);
+}
+
+Command Command::cheat_mana() {
+    return Command(0, protocol::ClientOpcode::CHEAT_MANA);
+}
+
+Command Command::cheat_die() {
+    return Command(0, protocol::ClientOpcode::CHEAT_DIE);
+}
+
+Command Command::cheat_resurrect() {
+    return Command(0, protocol::ClientOpcode::CHEAT_RESURRECT);
+}
+
 Command Command::disconnect() {
     return Command(0, protocol::ClientOpcode::DISCONNECT);
 }

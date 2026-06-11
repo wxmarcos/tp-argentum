@@ -31,7 +31,32 @@ bool InputHandler::process_key(const SDL_KeyboardEvent& key,
     if (key.type != SDL_KEYDOWN) {
         return false;
     }
+    // Prueba para cheats
+    const bool ctrl = (key.keysym.mod & KMOD_CTRL) != 0;
 
+    if (ctrl) {
+        switch (key.keysym.sym) {
+            case SDLK_g:
+                out_cmd = Command::cheat_god();
+                return true;
+
+            case SDLK_m:
+                out_cmd = Command::cheat_mana();
+                return true;
+
+            case SDLK_d:
+                out_cmd = Command::cheat_die();
+                return true;
+
+            case SDLK_r:
+                out_cmd = Command::cheat_resurrect();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+    // Fin de pruebas
     auto it = bindings.find(key.keysym.sym);
     if (it == bindings.end()) {
         return false;

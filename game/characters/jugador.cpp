@@ -255,8 +255,15 @@ bool Jugador::resurreccionCompleta() const {
 }
 
 // ----------------------- Cheats -----------------------
-void Jugador::activarCheatVidaInfinita() { cheatVidaInfinita = true; }
-void Jugador::activarCheatManaInfinito() { cheatManaInfinito = true; }
+bool Jugador::toggleCheatVidaInfinita() {
+    cheatVidaInfinita = !cheatVidaInfinita;
+    return cheatVidaInfinita;
+}
+
+bool Jugador::toggleCheatManaInfinito() {
+    cheatManaInfinito = !cheatManaInfinito;
+    return cheatManaInfinito;
+}
 
 void Jugador::morir() {
     if (cheatVidaInfinita) return;
