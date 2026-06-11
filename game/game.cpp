@@ -40,7 +40,6 @@ Game::Game(Config& config):
     inicializarRazas();
     inicializarClases();
     cargarMundo();
-    // cargarJugadoresPersistidos();
 
     for (const auto& cm : config.getMapas()) {
         infoSpawn[cm.id] = {cm.poblacionMax, cm.criaturasPosibles};
@@ -92,89 +91,6 @@ void Game::inicializarClases() {
 
 // ----------------- Persistencia -----------------
 
-/*
-void Game::cargarJugadoresPersistidos() {
-    auto players = PersistenceLoader::load_players(config.getRutaJugadores());
-
-    for (const auto& p : players) {
-        bool ok = agregarJugador(p.nick, p.mapa_id, p.x, p.y, p.raza, p.clase);
-        if (!ok) continue;
-
-        Jugador* jugador = getJugador(p.nick);
-        if (!jugador) continue;
-
-        jugador->setDireccion(static_cast<Direccion>(p.direction));
-
-        jugador->restaurarEstado(
-            p.nivel, p.vida, p.vida_max, p.mana, p.mana_max, p.experiencia,
-            p.oro, p.constitucion, p.inteligencia, p.fuerza, p.agilidad);
-        auto inventario = p.inventario;
-
-        std::sort(
-            inventario.begin(), inventario.end(),
-            [](const auto& a, const auto& b) { return a.slot_id < b.slot_id; });
-        for (const auto& item_persistido : inventario) {
-            auto item = crear_item_por_nombre(item_persistido.item);
-
-            if (!item) {
-                // debug
-                std::cout << "[Game] item desconocido en persistencia: "
-                          << item_persistido.item << "\n";
-                continue;
-            }
-
-            std::optional<int> slot_agregado =
-                jugador->agarrarItem(std::move(item), item_persistido.cantidad);
-
-            if (!slot_agregado.has_value()) {
-                std::cout << "[Game] no se pudo cargar item: "
-                          << item_persistido.item << "\n";
-                continue;
-            }
-
-            if (!item_persistido.equipado) {
-                continue;
-            }
-
-            int slot = item_persistido.slot_id;
-            const auto& slots = jugador->getInventario().getSlots();
-
-            if (slot < 0 || slot >= static_cast<int>(slots.size())) {
-                continue;
-            }
-            if (!slots[slot].has_value()) {
-                continue;
-            }
-
-            switch (slots[slot]->item->getTipo()) {
-                case TipoItem::ARMA:
-                    jugador->equiparArma(slot);
-                    break;
-
-                case TipoItem::BACULO:
-                    jugador->equiparBaculo(slot);
-                    break;
-
-                case TipoItem::ARMADURA:
-                    jugador->equiparArmadura(slot);
-                    break;
-
-                case TipoItem::CASCO:
-                    jugador->equiparCasco(slot);
-                    break;
-
-                case TipoItem::ESCUDO:
-                    jugador->equiparEscudo(slot);
-                    break;
-
-                default:
-                    break;
-            }
-        }
-    }
-}
-
-*/
 std::string Game::to_lower(const std::string& str) const {
     std::string text = str;
 
@@ -243,12 +159,8 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
             jugador->agarrarItem(std::move(item), item_persistido.cantidad);
 
         if (!slot_agregado.has_value()) {
-            std::cout << "[Game] no se pudo cargar item: "
-                      << item_persistido.item << "\n";
             continue;
         }
-        std::cout << "[Game] jugador restaurado OK " << p.nick << " inventario="
-                  << jugador->getInventario().getSlots().size() << "\n";
         int slot = item_persistido.slot_id;
 
         if (!item_persistido.equipado) {
@@ -319,17 +231,73 @@ std::string Game::getNombreJugadorPorComando(const Command& cmd) const {
     return (it != player_id_to_nick.end()) ? it->second : "";
 }
 
-void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
-                                    const std::string& nickQueEntra) const {
+void Game::agregarReplayDeJugadores(
+    std::vector<Snapshot>& snapshots,
+    const std::string& nickQueEntra,
+    int mapaId) const {
+
     for (const auto& [nombre, otro] : jugadores) {
         if (nombre == nickQueEntra) {
             continue;
         }
+
+        if (otro->getMapaId() != mapaId) {
+            continue;
+        }
+
         snapshots.push_back(Snapshot::entity_created(
-            nombre, static_cast<uint16_t>(otro->getPosX()),
+            nombre,
+            static_cast<uint16_t>(otro->getPosX()),
             static_cast<uint16_t>(otro->getPosY()),
             static_cast<uint8_t>(otro->getDireccion())));
-        snapshots.push_back(SnapshotFactory::player_stats_from_player(*otro));
+    }
+}
+
+void Game::agregarReplayNpcs(std::vector<Snapshot>& snapshots,
+                             int mapaId) const {
+    int id = 0;
+
+    for (const auto& npc : sacerdotes) {
+        if (npc.mapaId != mapaId) continue;
+
+        snapshots.push_back(Snapshot::entity_created(
+            "npc_sacerdote_" + std::to_string(id++),
+            static_cast<uint16_t>(npc.x),
+            static_cast<uint16_t>(npc.y),
+            2));
+    }
+
+    for (const auto& npc : comerciantes) {
+        if (npc.mapaId != mapaId) continue;
+
+        snapshots.push_back(Snapshot::entity_created(
+            "npc_comerciante_" + std::to_string(id++),
+            static_cast<uint16_t>(npc.x),
+            static_cast<uint16_t>(npc.y),
+            2));
+    }
+
+    for (const auto& npc : banqueros) {
+        if (npc.mapaId != mapaId) continue;
+
+        snapshots.push_back(Snapshot::entity_created(
+            "npc_banquero_" + std::to_string(id++),
+            static_cast<uint16_t>(npc.x),
+            static_cast<uint16_t>(npc.y),
+            2));
+    }
+}
+
+void Game::agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
+                                  int mapaId) const {
+    for (const auto& [id, criatura] : criaturas) {
+        if (criatura->getMapaId() != mapaId) continue;
+
+        snapshots.push_back(Snapshot::entity_created(
+            id,
+            static_cast<uint16_t>(criatura->getPosX()),
+            static_cast<uint16_t>(criatura->getPosY()),
+            static_cast<uint8_t>(criatura->getDireccion())));
     }
 }
 
@@ -746,7 +714,7 @@ std::vector<Snapshot> Game::tick(float dt) {
 
     tiempoDesdeUltimoSpawn += dt;
     if (tiempoDesdeUltimoSpawn >= config.getSpawnIntervalo()) {
-        spawnCriaturas();
+        spawnCriaturas(snapshots);
         tiempoDesdeUltimoSpawn = 0.0f;
     }
 
@@ -809,7 +777,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         snapshots.push_back(
             SnapshotFactory::player_inventory_from_player(*jugador));
 
-        agregarReplayDeJugadores(snapshots, cmd.get_nick());
+        agregarReplayDeJugadores(snapshots, cmd.get_nick(), jugador->getMapaId());
+        agregarReplayNpcs(snapshots, jugador->getMapaId());
+        agregarReplayCriaturas(snapshots, jugador->getMapaId());
 
         return snapshots;
     }
@@ -846,7 +816,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         snapshots.push_back(
             SnapshotFactory::player_inventory_from_player(*jugador));
 
-        agregarReplayDeJugadores(snapshots, cmd.get_nick());
+        agregarReplayDeJugadores(snapshots, cmd.get_nick(), jugador->getMapaId());
+        agregarReplayNpcs(snapshots, jugador->getMapaId());
+        agregarReplayCriaturas(snapshots, jugador->getMapaId());
 
         return snapshots;
     }
@@ -940,6 +912,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                     static_cast<uint16_t>(jugador->getPosX()),
                     static_cast<uint16_t>(jugador->getPosY()),
                     static_cast<uint8_t>(jugador->getDireccion())));
+                agregarReplayDeJugadores(snapshots, nombre, mapaActual);
+                agregarReplayNpcs(snapshots, mapaActual);
+                agregarReplayCriaturas(snapshots, mapaActual);
             } else {
                 snapshots.push_back(Snapshot::entity_move(
                     nombre, static_cast<uint16_t>(jugador->getPosX()),
@@ -1456,13 +1431,15 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
 const Mundo& Game::getMundo() const { return mundo; }
 
-void Game::spawnCriaturas() {
+void Game::spawnCriaturas(std::vector<Snapshot>& snapshots) {
     for (auto& [mapaId, info] : infoSpawn) {
         if (info.criaturasPosibles.empty()) continue;
 
         int poblacionActual = 0;
         for (auto& [id, c] : criaturas) {
-            if (c->getMapaId() == mapaId && c->estaVivo()) poblacionActual++;
+            if (c->getMapaId() == mapaId && c->estaVivo()) {
+                poblacionActual++;
+            }
         }
 
         if (poblacionActual >= info.poblacionMax) continue;
@@ -1477,8 +1454,18 @@ void Game::spawnCriaturas() {
         for (int intento = 0; intento < 20; intento++) {
             int x = rand() % mapa->getAncho();
             int y = rand() % mapa->getAlto();
+
             if (mapa->esTransitable(x, y) && !mapa->estaOcupada(x, y)) {
-                agregarCriatura(tipo, mapaId, x, y);
+                std::string id = agregarCriatura(tipo, mapaId, x, y);
+
+                if (!id.empty()) {
+                    snapshots.push_back(Snapshot::entity_created(
+                        id,
+                        static_cast<uint16_t>(x),
+                        static_cast<uint16_t>(y),
+                        2));
+                }
+
                 break;
             }
         }
@@ -1493,6 +1480,7 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
     objetivo->recibirDanio(danio);
     return danio;
 }
+
 
 void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
     int rango = config.getCriaturaRangoDeteccion();
@@ -1533,14 +1521,13 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
         int dy = objetivo->getPosY() - criatura->getPosY();
         bool adyacente = (std::abs(dx) + std::abs(dy)) == 1;
 
-        // Atacar si está adyacente y el cooldown se cumplió
         if (adyacente && criatura->getTiempoDesdeUltimoAtaque() >= cdAtq) {
             int danio = criaturaAtacaJugador(criatura.get(), objetivo);
             criatura->resetearCooldownAtaque();
 
-            snapshots.push_back(
-                Snapshot::damage_event(id, objetivo->getNombre(),
-                                       static_cast<uint16_t>(danio), false));
+            snapshots.push_back(Snapshot::damage_event(
+                id, objetivo->getNombre(), static_cast<uint16_t>(danio),
+                false));
 
             snapshots.push_back(
                 SnapshotFactory::player_stats_from_player(*objetivo));
@@ -1552,37 +1539,73 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
                     Snapshot::entity_remove(objetivo->getNombre()));
 
                 auto items = objetivo->soltarTodosLosItems();
-                for (auto& item : items)
-                    mundo.tirarItem(objetivo->getMapaId(), objetivo->getPosX(),
-                                    objetivo->getPosY(), std::move(item));
+                for (auto& item : items) {
+                    mundo.tirarItem(objetivo->getMapaId(),
+                                    objetivo->getPosX(),
+                                    objetivo->getPosY(),
+                                    std::move(item));
+                }
 
                 int oroExceso = Formulas::calcularOroExceso(
                     objetivo->getOro(), objetivo->getOroMax());
-                if (oroExceso > 0) objetivo->gastarOro(oroExceso);
+
+                if (oroExceso > 0) {
+                    objetivo->gastarOro(oroExceso);
+                }
             }
+
             continue;
         }
 
-        // Moverse hacia el objetivo si no está adyacente y el cooldown se
-        // cumplió
         if (!adyacente && criatura->getTiempoDesdeUltimoMovimiento() >= cdMov) {
-            Direccion dir;
+            std::vector<Direccion> direcciones;
+
             if (std::abs(dx) >= std::abs(dy)) {
-                dir = (dx > 0) ? Direccion::ESTE : Direccion::OESTE;
+                if (dx != 0) {
+                    direcciones.push_back(
+                        (dx > 0) ? Direccion::ESTE : Direccion::OESTE);
+                }
+                if (dy != 0) {
+                    direcciones.push_back(
+                        (dy > 0) ? Direccion::SUR : Direccion::NORTE);
+                }
             } else {
-                dir = (dy > 0) ? Direccion::SUR : Direccion::NORTE;
+                if (dy != 0) {
+                    direcciones.push_back(
+                        (dy > 0) ? Direccion::SUR : Direccion::NORTE);
+                }
+                if (dx != 0) {
+                    direcciones.push_back(
+                        (dx > 0) ? Direccion::ESTE : Direccion::OESTE);
+                }
             }
-            mundo.moverPersonaje(criatura.get(), dir);
+
+            bool seMovio = false;
+
+            for (Direccion dir : direcciones) {
+                if (mundo.moverPersonaje(criatura.get(), dir)) {
+                    seMovio = true;
+                    break;
+                }
+            }
+
+            if (!seMovio) {
+                continue;
+            }
+
             criatura->resetearCooldownMovimiento();
 
             snapshots.push_back(Snapshot::entity_move(
-                id, static_cast<uint16_t>(criatura->getPosX()),
+                id,
+                static_cast<uint16_t>(criatura->getPosX()),
                 static_cast<uint16_t>(criatura->getPosY()),
                 static_cast<uint8_t>(criatura->getDireccion())));
         }
     }
 
-    for (const auto& id : criaturasMuertas) removerCriatura(id);
+    for (const auto& id : criaturasMuertas) {
+        removerCriatura(id);
+    }
 }
 
 bool Game::hayNPCCercano(const Jugador* jugador,

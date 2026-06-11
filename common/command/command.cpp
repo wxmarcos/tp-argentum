@@ -44,12 +44,6 @@ Command Command::recv(Socket& socket, uint16_t player_id) {
         }
     }
 
-    std::cout << "[Command] payload hex: ";
-    for (uint8_t b : payload) {
-        printf("%02X ", b);
-    }
-    std::cout << "\n";
-
     auto type = static_cast<protocol::ClientOpcode>(opcode_raw);
     return parse_command_payload(payload, type, player_id);
 }

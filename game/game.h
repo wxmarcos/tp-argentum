@@ -52,7 +52,6 @@ private:
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
-    void cargarJugadoresPersistidos();
     std::string to_lower(const std::string& str) const;
     bool restaurarJugadorPersistido(const PersistenceTask& player);
 
@@ -60,7 +59,9 @@ private:
     // Helpers
     std::string getNombreJugadorPorComando(const Command& cmd) const;
     void agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
-                                  const std::string& nickQueEntra) const;
+                                  const std::string& nickQueEntra, int mapaId) const;
+    void agregarReplayCriaturas(std::vector<Snapshot>& snapshots, int mapaId) const;
+    void agregarReplayNpcs(std::vector<Snapshot>& snapshots, int mapaId) const;
     bool handle_meditation_interruption(Jugador* jugador,
                                         std::vector<Snapshot>& snapshots,
                                         const std::string& nombre);
@@ -72,7 +73,7 @@ private:
     // IA de criaturas
     void tickCriaturas(float dt, std::vector<Snapshot>& snapshots);
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
-    void spawnCriaturas();
+    void spawnCriaturas(std::vector<Snapshot>& snapshots);
 
     // NPC y comportamiento
     struct InfoNPC {
