@@ -1003,6 +1003,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 snapshots.push_back(Snapshot::dodge_event(nombre, objetivo));
                 break;
             }
+
             snapshots.push_back(Snapshot::damage_event(
                 nombre, objetivo,
                 static_cast<uint16_t>(resultado.danioAplicado),
@@ -1593,12 +1594,33 @@ void Game::spawnCriaturas(std::vector<Snapshot>& snapshots) {
 }
 
 int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
+    if (!atacante || !objetivo) return 0;
     if (!atacante->estaVivo() || !objetivo->estaVivo()) return 0;
+
+    if (Formulas::calcularEsquive(objetivo->getAgilidad())) {
+        return 0;
+    }
+
     int danio =
         Formulas::calcularDanio(atacante->getFuerza(), atacante->getDanioMin(),
                                 atacante->getDanioMax());
-    objetivo->recibirDanio(danio);
-    return danio;
+
+    const Armadura* armadura = objetivo->getInventario().getArmaduraEquipada();
+    const Casco* casco = objetivo->getInventario().getCascoEquipado();
+    const Escudo* escudo = objetivo->getInventario().getEscudoEquipado();
+
+    int defensa = Formulas::calcularDefensa(
+        armadura ? armadura->getDefensaMin() : 0,
+        armadura ? armadura->getDefensaMax() : 0,
+        escudo ? escudo->getDefensaMin() : 0,
+        escudo ? escudo->getDefensaMax() : 0,
+        casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
+
+    int danioFinal = std::max(0, danio - defensa);
+
+    objetivo->recibirDanio(danioFinal);
+
+    return danioFinal;
 }
 
 void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
@@ -1644,9 +1666,14 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
             int danio = criaturaAtacaJugador(criatura.get(), objetivo);
             criatura->resetearCooldownAtaque();
 
-            snapshots.push_back(
-                Snapshot::damage_event(id, objetivo->getNombre(),
-                                       static_cast<uint16_t>(danio), false));
+            if (danio == 0) {
+                snapshots.push_back(
+                    Snapshot::dodge_event(id, objetivo->getNombre()));
+            } else {
+                snapshots.push_back(Snapshot::damage_event(
+                    id, objetivo->getNombre(), static_cast<uint16_t>(danio),
+                    false));
+            }
 
             snapshots.push_back(
                 SnapshotFactory::player_stats_from_player(*objetivo));
