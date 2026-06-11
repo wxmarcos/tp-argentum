@@ -27,19 +27,19 @@ private:
 
     uint16_t x = 0;
     uint16_t y = 0;
-    
+
     uint8_t direction = 0;
     uint16_t mapa_id = 0;
-    
+
     uint16_t nivel = 0;
     uint16_t vida = 0;
     uint16_t vida_max = 0;
     uint16_t mana = 0;
     uint16_t mana_max = 0;
-    
+
     uint32_t experiencia = 0;
     uint32_t oro = 0;
-    
+
     uint16_t constitucion = 0;
     uint16_t inteligencia = 0;
     uint16_t fuerza = 0;
@@ -49,6 +49,9 @@ private:
     bool meditating = false;
     uint8_t cheat_type = 0;
     bool cheat_enabled = false;
+    uint8_t item_action = 0;
+    std::string item_name;
+    uint16_t amount = 0;
     std::vector<InventorySnapshotItem> inventory_items;
 
 public:
@@ -74,6 +77,17 @@ public:
                                 const std::string& target);
 
     static Snapshot death_event(const std::string& target);
+    static Snapshot item_event(uint8_t action, const std::string& entity_name,
+                               const std::string& item_name, uint16_t x,
+                               uint16_t y, uint16_t amount);
+
+    bool is_item_event() const;
+
+    uint8_t get_item_action() const;
+
+    const std::string& get_item_name() const;
+
+    uint16_t get_amount() const;
 
     void send(Socket& socket) const;
 
@@ -89,7 +103,8 @@ public:
     static Snapshot chat_message(const std::string& from, const std::string& to,
                                  const std::string& text);
     static Snapshot meditation_status(const std::string& nick, bool started);
-    static Snapshot cheat_status(const std::string& nick,uint8_t cheat_type,bool enabled);
+    static Snapshot cheat_status(const std::string& nick, uint8_t cheat_type,
+                                 bool enabled);
 
     static Snapshot player_stats(
         const std::string& nick, const std::string& raza,
