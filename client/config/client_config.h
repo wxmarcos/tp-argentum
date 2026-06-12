@@ -8,9 +8,10 @@ struct ClientConfig {
     std::string server_host = "localhost";
     std::string server_port = "8080";
 
-    int window_width = 800;
-    int window_height = 600;
+    int window_width = 1280;
+    int window_height = 720;
     bool fullscreen = false;
+    double hud_panel_fraction = 0.28;
     std::string window_title = "Argentum Online";
 
     int tile_size = 32;
@@ -32,6 +33,11 @@ struct ClientConfig {
     std::string character_clase = "mago";
 
     std::string map_name_for(int id) const;
+
+    int hud_panel_width() const;
+
+    int game_area_width() const;
+    
     static ClientConfig load();
 
     private:

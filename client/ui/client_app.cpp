@@ -21,6 +21,7 @@
 #include "render/hud_renderer.h"
 #include "render/world_renderer.h"
 #include "ui/menu_screen.h"
+#include "ui/console.h"
 
 using SDL2pp::Renderer;
 using SDL2pp::SDL;
@@ -132,7 +133,9 @@ void ClientApp::play_session(ServerConnection& connection, Renderer& renderer,
     WorldRenderer world_renderer(renderer, config);
     HudRenderer hud(renderer, config);
     InputHandler input;
-    main_loop(connection, input, renderer, world_renderer, hud, state);
+    Console console;
+    main_loop(connection, input, renderer, world_renderer, hud, state,
+              console);
 }
 
 int ClientApp::await_response(ServerConnection& connection,
@@ -156,7 +159,8 @@ int ClientApp::await_response(ServerConnection& connection,
 
 void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
                           SDL2pp::Renderer& renderer, WorldRenderer& world,
-                          HudRenderer& hud, ClientGameState& state) {
+                          HudRenderer& hud, ClientGameState& state,
+                          Console& console) {
     const Uint32 frame_delay_ms = 1000 / TARGET_FPS;
     bool running = true;
     Uint32 last_ticks = SDL_GetTicks();
@@ -166,7 +170,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input, state);
+        running = process_input(connection, input, state, console);
         if (running) {
             running = process_updates(connection, state);
         }
@@ -174,7 +178,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         renderer.SetDrawColor(GAME_BG.r, GAME_BG.g, GAME_BG.b, GAME_BG.a);
         renderer.Clear();
         world.render(state, delta_ms);
-        hud.render(state);
+        hud.render(state, console);
         renderer.Present();
 
         const Uint32 elapsed = SDL_GetTicks() - now;
@@ -186,13 +190,17 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 
 bool ClientApp::process_input(ServerConnection& connection,
                               const InputHandler& input,
-                              ClientGameState& state) {
+                              ClientGameState& state, Console& console) {
     SDL_Event event;
-
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             connection.send(Command::disconnect());
             return false;
+        }
+
+        if (console.is_open()) {
+            handle_console_event(event, console);
+            continue;
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN &&
@@ -206,7 +214,12 @@ bool ClientApp::process_input(ServerConnection& connection,
                 connection.send(Command::disconnect());
                 return false;
             }
-
+            if (event.key.keysym.sym == SDLK_RETURN ||
+                event.key.keysym.sym == SDLK_KP_ENTER) {
+                console.open();
+                SDL_StartTextInput();
+                continue;
+            }
             if (event.key.keysym.sym == SDLK_i) {
                 state.toggle_inventory();
                 continue;
@@ -218,8 +231,28 @@ bool ClientApp::process_input(ServerConnection& connection,
             }
         }
     }
-
     return true;
+}
+
+void ClientApp::handle_console_event(const SDL_Event& event, Console& console) {
+    if (event.type == SDL_TEXTINPUT) {
+        console.append(event.text.text);
+        return;
+    }
+    if (event.type != SDL_KEYDOWN) {
+        return;
+    }
+    const SDL_Keycode key = event.key.keysym.sym;
+    if (key == SDLK_ESCAPE) {
+        console.close();
+        SDL_StopTextInput();
+    } else if (key == SDLK_BACKSPACE) {
+        console.backspace();
+    } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+        console.take();
+        console.close();
+        SDL_StopTextInput();
+    }
 }
 
 void ClientApp::handle_click(ServerConnection& connection,

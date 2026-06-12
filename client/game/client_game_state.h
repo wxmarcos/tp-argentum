@@ -54,6 +54,11 @@ struct InventorySlotView {
     bool empty() const;
 };
 
+struct ChatMessage {
+    std::string from;
+    std::string text;
+};
+
 struct FloatingEvent {
     uint16_t x = 0;
     uint16_t y = 0;
@@ -91,6 +96,8 @@ private:
 
     std::vector<InventorySlotView> inventory;
     bool inventory_open = false;
+
+    std::vector<ChatMessage> chat_messages;
 
     bool resolve_entity_pos(const std::string& nick, uint16_t& x,
                             uint16_t& y) const;
@@ -151,6 +158,8 @@ public:
 
     int get_map_width() const;
     int get_map_height() const;
+
+    const std::vector<ChatMessage>& get_chat_messages() const;
 };
 
 #endif

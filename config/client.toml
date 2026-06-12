@@ -3,10 +3,10 @@ host = "localhost"
 port = "8080"
 
 [window]
-width = 800
-height = 600
+width = 1024
+height = 640
 fullscreen = false
-title = "Argentum Online"
+hud_panel_fraction = 0.30
 
 [render]
 tile_size = 32

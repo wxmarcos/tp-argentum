@@ -56,6 +56,7 @@ void ClientConfig::apply_table(const Table& tbl) {
     read_field(tbl, "window", "height", window_height);
     read_field(tbl, "window", "fullscreen", fullscreen);
     read_field(tbl, "window", "title", window_title);
+    read_field(tbl, "window", "hud_panel_fraction", hud_panel_fraction);
 
     read_field(tbl, "render", "tile_size", tile_size);
     read_field(tbl, "render", "assets_path", assets_path);
@@ -104,4 +105,12 @@ ClientConfig ClientConfig::load() {
 std::string ClientConfig::map_name_for(int id) const {
     auto it = map_files.find(id);
     return it != map_files.end() ? it->second : map_name;
+}
+
+int ClientConfig::hud_panel_width() const {
+    return static_cast<int>(window_width * hud_panel_fraction);
+}
+
+int ClientConfig::game_area_width() const {
+    return window_width - hud_panel_width();
 }

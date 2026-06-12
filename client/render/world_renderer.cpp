@@ -111,7 +111,7 @@ void WorldRenderer::visible_tile_range(int cam_offset_x, int cam_offset_y,
     first_gx = std::max(0, floor_div(-cam_offset_x, ts));
     first_gy = std::max(0, floor_div(-cam_offset_y, ts));
     last_gx = std::min(config.map_width - 1,
-                       floor_div(config.window_width - cam_offset_x, ts));
+                       floor_div(config.game_area_width() - cam_offset_x, ts));
     last_gy = std::min(config.map_height - 1,
                        floor_div(config.window_height - cam_offset_y, ts));
 }
@@ -119,7 +119,7 @@ void WorldRenderer::visible_tile_range(int cam_offset_x, int cam_offset_y,
 void WorldRenderer::compute_camera(const ClientGameState& state,
                                    int& cam_offset_x, int& cam_offset_y) const {
     const int ts = config.tile_size;
-    const int screen_cx = config.window_width / 2;
+    const int screen_cx = config.game_area_width() / 2;
     const int screen_cy = config.window_height / 2;
 
     int cam_x;
@@ -271,7 +271,7 @@ void WorldRenderer::draw_character(int world_x, int world_y,
     const int px = cam_offset_x + world_x * ts;
     const int py = cam_offset_y + world_y * ts;
 
-    if (px + ts * CHARACTER_HEIGHT_TILES < 0 || px > config.window_width ||
+    if (px + ts * CHARACTER_HEIGHT_TILES < 0 || px > config.game_area_width() ||
         py + ts * CHARACTER_HEIGHT_TILES < 0 || py > config.window_height) {
         return;
     }
@@ -339,7 +339,7 @@ void WorldRenderer::draw_creature(int world_x, int world_y,
     const int scale = creature_scale_pct(type);
     const int body_h = (ts * CHARACTER_HEIGHT_TILES * scale) / 100;
 
-    if (px + body_h < 0 || px - body_h > config.window_width ||
+    if (px + body_h < 0 || px - body_h > config.game_area_width() ||
         py + ts < 0 || py - body_h > config.window_height) {
         return;
     }

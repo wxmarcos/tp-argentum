@@ -1,6 +1,7 @@
 #ifndef CLIENT_CLIENT_APP_H
 #define CLIENT_CLIENT_APP_H
 
+#include <SDL2/SDL.h>
 #include <string>
 
 #include "config/client_config.h"
@@ -18,6 +19,7 @@ class HudRenderer;
 class ClientGameState;
 class Snapshot;
 class MenuScreen;
+class Console;
 
 class ClientApp {
     private:
@@ -35,10 +37,12 @@ class ClientApp {
 
     void main_loop(ServerConnection& connection, InputHandler& input,
                    SDL2pp::Renderer& renderer, WorldRenderer& world,
-                   HudRenderer& hud, ClientGameState& state);
+                   HudRenderer& hud, ClientGameState& state, Console& console);
 
     bool process_input(ServerConnection& connection, const InputHandler& input,
-                       ClientGameState& state);
+                       ClientGameState& state, Console& console);
+
+    void handle_console_event(const SDL_Event& event, Console& console);
 
     void handle_click(ServerConnection& connection,
                       const ClientGameState& state, int mouse_x, int mouse_y);

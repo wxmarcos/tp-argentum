@@ -1,11 +1,14 @@
 #include "game/client_game_state.h"
 
 #include <cctype>
+#include <cstddef>
 #include <string_view>
 #include <unordered_set>
 
 #include "common/snapshot/snapshot.h"
 #include "game/entity_keys.h"
+
+static constexpr size_t MAX_CHAT_MESSAGES = 50;
 
 bool InventorySlotView::empty() const { return item.empty(); }
 
@@ -323,8 +326,15 @@ void ClientGameState::apply_meditation_status(const Snapshot&) {
     // TODO
 }
 
-void ClientGameState::apply_chat_message(const Snapshot&) {
-    // TODO
+void ClientGameState::apply_chat_message(const Snapshot& snapshot) {
+    chat_messages.push_back({snapshot.get_nick(), snapshot.get_text()});
+    if (chat_messages.size() > MAX_CHAT_MESSAGES) {
+        chat_messages.erase(chat_messages.begin());
+    }
+}
+
+const std::vector<ChatMessage>& ClientGameState::get_chat_messages() const {
+    return chat_messages;
 }
 
 void ClientGameState::apply_error_message(const Snapshot& snapshot) {

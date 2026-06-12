@@ -3,43 +3,52 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
+
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 
 #include "config/client_config.h"
 #include "game/client_game_state.h"
 #include "render/text_renderer.h"
+#include "ui/console.h"
 
 class HudRenderer {
     private:
     SDL2pp::Renderer& renderer;
     const ClientConfig& config;
     TextRenderer text;
-    SDL_Texture* tex_frame;
 
+    void draw_panel();
+    
     void draw_bar(int x, int y, int w, int h, float ratio, SDL_Color fill);
 
-    void draw_stats(const PlayerStats& s);
+    void draw_player_panel(const ClientGameState& state);
 
-    void draw_frame();
+    void draw_header(const PlayerStats& s, const std::string& name, int x,
+                     int& y);
 
-    void draw_inventory_panel(int panel_x, int panel_y, int panel_h);
+    void draw_vitals(const PlayerStats& s, int x, int w, int& y);
+    
+    void draw_resources(const PlayerStats& s, int x, int& y);
 
-    void draw_inventory_slot(const InventorySlotView& slot, size_t idx,
-                             int panel_x, int row_y, int row_h);
+    void draw_inventory_section(const ClientGameState& state, int x, int w,
+                               int y);
+
+    void draw_inventory_slot(const InventorySlotView& slot, size_t idx, int x,
+                             int w, int row_y);
+
+    void draw_console(const ClientGameState& state, const Console& console);
 
     public:
     uint32_t last_error_seq = 0;
     Uint32 error_shown_at = 0;
 
     HudRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);
-    ~HudRenderer();
 
-    void render(const ClientGameState& state);
+    void render(const ClientGameState& state, const Console& console);
 
     void draw_error_toast(const ClientGameState& state);
-    
-    void draw_inventory(const ClientGameState& state);
 };
 
 #endif
