@@ -113,3 +113,5 @@ void AudioManager::stop_music() {
     }
     Mix_HaltMusic();
 }
+
+bool AudioManager::is_initialized() const { return initialized; }

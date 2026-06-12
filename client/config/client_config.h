@@ -1,8 +1,8 @@
 #ifndef CLIENT_CONFIG_H
 #define CLIENT_CONFIG_H
 
-#include <string>
 #include <map>
+#include <string>
 
 struct ClientConfig {
     std::string server_host = "localhost";
@@ -33,6 +33,19 @@ struct ClientConfig {
 
     std::string map_name_for(int id) const;
     static ClientConfig load();
+
+    private:
+    static std::string find_config_file();
+
+    template <typename T, typename Table>
+    static void read_field(const Table& tbl, const std::string& section,
+                           const std::string& key, T& out);
+
+    template <typename Table>
+    void apply_table(const Table& tbl);
+
+    template <typename Table>
+    void read_map_files(const Table& tbl);
 };
 
 #endif
