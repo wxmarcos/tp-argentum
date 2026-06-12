@@ -14,8 +14,10 @@ static void validate_payload_size(uint16_t payload_size, uint16_t expected,
 
 static uint16_t position_payload_size(const Snapshot& snapshot) {
     return static_cast<uint16_t>(sizeof(uint16_t) + snapshot.get_nick().size() +
-                                 sizeof(uint16_t) + sizeof(uint16_t) +
-                                 sizeof(uint8_t));
+                                 sizeof(uint16_t) +  // mapa_id
+                                 sizeof(uint16_t) +  // x
+                                 sizeof(uint16_t) +  // y
+                                 sizeof(uint8_t));   // direction
 }
 
 static uint16_t damage_payload_size(const Snapshot& snapshot) {
@@ -148,6 +150,7 @@ uint16_t snapshot_payload_size(const Snapshot& snapshot) {
 
 static void send_position_snapshot(Socket& socket, const Snapshot& snapshot) {
     send_string(socket, snapshot.get_nick());
+    send_u16(socket, snapshot.get_mapa_id());
     send_u16(socket, snapshot.get_x());
     send_u16(socket, snapshot.get_y());
     send_u8(socket, snapshot.get_direction());
@@ -307,6 +310,7 @@ void send_snapshot_payload(Socket& socket, const Snapshot& snapshot) {
 static Snapshot recv_position_snapshot(Socket& socket, uint16_t payload_size,
                                        protocol::ServerOpcode opcode) {
     std::string nick = recv_string(socket);
+    uint16_t mapa_id = recv_u16(socket);
     uint16_t x = recv_u16(socket);
     uint16_t y = recv_u16(socket);
     uint8_t direction = recv_u8(socket);
@@ -314,19 +318,19 @@ static Snapshot recv_position_snapshot(Socket& socket, uint16_t payload_size,
     validate_payload_size(
         payload_size,
         static_cast<uint16_t>(sizeof(uint16_t) + nick.size() +
-                              sizeof(uint16_t) + sizeof(uint16_t) +
-                              sizeof(uint8_t)),
+                            sizeof(uint16_t) + sizeof(uint16_t) +
+                            sizeof(uint16_t) + sizeof(uint8_t)),
         "Snapshot::recv payload_size invalido");
 
     if (opcode == protocol::ServerOpcode::ENTITY_CREATED) {
-        return Snapshot::entity_created(nick, x, y, direction);
+        return Snapshot::entity_created(nick, mapa_id, x, y, direction);
     }
 
     if (opcode == protocol::ServerOpcode::ENTITY_LOGIN) {
-        return Snapshot::entity_login(nick, x, y, direction);
+        return Snapshot::entity_login(nick, mapa_id, x, y, direction);
     }
 
-    return Snapshot::entity_move(nick, x, y, direction);
+    return Snapshot::entity_move(nick, mapa_id, x, y, direction);
 }
 
 static Snapshot recv_entity_remove(Socket& socket, uint16_t payload_size) {

@@ -125,23 +125,32 @@ void ClientGameState::apply_entity_position(const Snapshot& snapshot) {
     const std::string& nick = snapshot.get_nick();
 
     if (nick == local_nick) {
+        if (snapshot.is_entity_created()) {
+            return;
+        }
+
+        if (snapshot.is_map_change()) {
+            current_map_id = snapshot.get_mapa_id();
+            others.clear();
+            creatures.clear();
+            local_moved = false;
+        }
+
         const uint16_t new_x = snapshot.get_x();
         const uint16_t new_y = snapshot.get_y();
 
-        local_moved = has_local_pos && (new_x != local_x || new_y != local_y);
+        local_moved = has_local_pos && !snapshot.is_map_change() &&
+                    (new_x != local_x || new_y != local_y);
 
         local_x = new_x;
         local_y = new_y;
         local_dir = static_cast<protocol::Direction>(snapshot.get_direction());
         has_local_pos = true;
 
-        if (snapshot.is_map_change()) {
-            current_map_id = snapshot.get_mapa_id();
+        return;
+    }
 
-            others.clear();
-            creatures.clear();
-        }
-
+    if (snapshot.get_mapa_id() != current_map_id) {
         return;
     }
 

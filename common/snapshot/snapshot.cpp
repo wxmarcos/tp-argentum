@@ -8,26 +8,34 @@
 #include "network/socket.h"
 #include "network/socket_helpers.h"
 
-Snapshot::Snapshot(protocol::ServerOpcode opcode, const std::string& nick,
+Snapshot::Snapshot(protocol::ServerOpcode opcode,
+                   const std::string& nick):
+    opcode(opcode),
+    nick(nick),
+    mapa_id(0),
+    x(0),
+    y(0),
+    direction(0) {}
+Snapshot::Snapshot(protocol::ServerOpcode opcode, const std::string& nick, uint16_t mapa_id,
                    uint16_t x, uint16_t y, uint8_t direction):
     opcode(opcode),
-    nick(nick), x(x), y(y), direction(direction) {}
+    nick(nick), mapa_id(mapa_id), x(x), y(y), direction(direction) {}
 
-Snapshot Snapshot::entity_created(const std::string& nick, uint16_t x,
+Snapshot Snapshot::entity_created(const std::string& nick, uint16_t mapa_id, uint16_t x,
                                   uint16_t y, uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_CREATED, nick, x, y,
+    return Snapshot(protocol::ServerOpcode::ENTITY_CREATED, nick, mapa_id, x, y,
                     direction);
 }
 
-Snapshot Snapshot::entity_login(const std::string& nick, uint16_t x, uint16_t y,
+Snapshot Snapshot::entity_login(const std::string& nick, uint16_t mapa_id,uint16_t x, uint16_t y,
                                 uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_LOGIN, nick, x, y,
+    return Snapshot(protocol::ServerOpcode::ENTITY_LOGIN, nick, mapa_id,x, y,
                     direction);
 }
 
-Snapshot Snapshot::entity_move(const std::string& nick, uint16_t x, uint16_t y,
+Snapshot Snapshot::entity_move(const std::string& nick, uint16_t mapa_id,uint16_t x, uint16_t y,
                                uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_MOVE, nick, x, y, direction);
+    return Snapshot(protocol::ServerOpcode::ENTITY_MOVE, nick, mapa_id,x, y, direction);
 }
 
 Snapshot Snapshot::entity_remove(const std::string& nick) {

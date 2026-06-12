@@ -25,11 +25,11 @@ private:
     std::string raza;
     std::string clase;
 
+    uint16_t mapa_id = 0;
     uint16_t x = 0;
     uint16_t y = 0;
 
     uint8_t direction = 0;
-    uint16_t mapa_id = 0;
 
     uint16_t nivel = 0;
     uint16_t vida = 0;
@@ -55,16 +55,17 @@ private:
     std::vector<InventorySnapshotItem> inventory_items;
 
 public:
-    Snapshot(protocol::ServerOpcode opcode, const std::string& nick,
+    Snapshot(protocol::ServerOpcode opcode, const std::string& nick);
+    Snapshot(protocol::ServerOpcode opcode, const std::string& nick, uint16_t mapa_id,
              uint16_t x = 0, uint16_t y = 0, uint8_t direction = 0);
 
-    static Snapshot entity_created(const std::string& nick, uint16_t x,
+    static Snapshot entity_created(const std::string& nick, uint16_t mapa_id, uint16_t x,
                                    uint16_t y, uint8_t direction);
 
-    static Snapshot entity_login(const std::string& nick, uint16_t x,
+    static Snapshot entity_login(const std::string& nick, uint16_t mapa_id,uint16_t x,
                                  uint16_t y, uint8_t direction);
 
-    static Snapshot entity_move(const std::string& nick, uint16_t x, uint16_t y,
+    static Snapshot entity_move(const std::string& nick, uint16_t mapa_id,uint16_t x, uint16_t y,
                                 uint8_t direction);
 
     static Snapshot entity_remove(const std::string& nick);

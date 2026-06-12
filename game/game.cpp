@@ -244,7 +244,7 @@ void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
         }
 
         snapshots.push_back(Snapshot::entity_created(
-            nombre, static_cast<uint16_t>(otro->getPosX()),
+            nombre, mapaId,static_cast<uint16_t>(otro->getPosX()),
             static_cast<uint16_t>(otro->getPosY()),
             static_cast<uint8_t>(otro->getDireccion())));
     }
@@ -258,7 +258,7 @@ void Game::agregarReplayNpcs(std::vector<Snapshot>& snapshots,
         if (npc.mapaId != mapaId) continue;
 
         snapshots.push_back(Snapshot::entity_created(
-            "npc_sacerdote_" + std::to_string(id++),
+            "npc_sacerdote_" + std::to_string(id++), mapaId,
             static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
     }
 
@@ -266,7 +266,7 @@ void Game::agregarReplayNpcs(std::vector<Snapshot>& snapshots,
         if (npc.mapaId != mapaId) continue;
 
         snapshots.push_back(Snapshot::entity_created(
-            "npc_comerciante_" + std::to_string(id++),
+            "npc_comerciante_" + std::to_string(id++), mapaId,
             static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
     }
 
@@ -274,7 +274,7 @@ void Game::agregarReplayNpcs(std::vector<Snapshot>& snapshots,
         if (npc.mapaId != mapaId) continue;
 
         snapshots.push_back(Snapshot::entity_created(
-            "npc_banquero_" + std::to_string(id++),
+            "npc_banquero_" + std::to_string(id++), mapaId,
             static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
     }
 }
@@ -285,7 +285,7 @@ void Game::agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
         if (criatura->getMapaId() != mapaId) continue;
 
         snapshots.push_back(Snapshot::entity_created(
-            id, static_cast<uint16_t>(criatura->getPosX()),
+            id, mapaId,static_cast<uint16_t>(criatura->getPosX()),
             static_cast<uint16_t>(criatura->getPosY()),
             static_cast<uint8_t>(criatura->getDireccion())));
     }
@@ -700,15 +700,10 @@ std::vector<Snapshot> Game::tick(float dt) {
     std::vector<Snapshot> snapshots;
 
     for (auto& [nombre, jugador] : jugadores) {
-        bool wasMeditating = jugador->estaMeditando();
-        int oldMana = jugador->getManaActual();
-
         jugador->recuperacionPasiva(dt);
         // por ahora mando todo, pero en un futuro podria optimizarse para
         // mandar solo cambios relevantes
-        if (wasMeditating && jugador->getManaActual() != oldMana)
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+        //snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
     }
 
     tickCriaturas(dt, snapshots);
@@ -763,7 +758,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_login(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()), static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
@@ -803,7 +798,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_created(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
@@ -921,7 +916,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 agregarReplayCriaturas(snapshots, mapaActual);
             } else {
                 snapshots.push_back(Snapshot::entity_move(
-                    nombre, static_cast<uint16_t>(jugador->getPosX()),
+                    nombre, static_cast<uint16_t>(jugador->getMapaId()),static_cast<uint16_t>(jugador->getPosX()),
                     static_cast<uint16_t>(jugador->getPosY()),
                     static_cast<uint8_t>(jugador->getDireccion())));
             }
@@ -1583,7 +1578,7 @@ void Game::spawnCriaturas(std::vector<Snapshot>& snapshots) {
 
                 if (!id.empty()) {
                     snapshots.push_back(
-                        Snapshot::entity_created(id, static_cast<uint16_t>(x),
+                        Snapshot::entity_created(id, mapaId, static_cast<uint16_t>(x),
                                                  static_cast<uint16_t>(y), 2));
                 }
 
@@ -1598,6 +1593,10 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
     if (!atacante->estaVivo() || !objetivo->estaVivo()) return 0;
 
     if (Formulas::calcularEsquive(objetivo->getAgilidad())) {
+        std::cout << "[ESQUIVE] "
+                << objetivo->getNombre()
+                << " agi=" << objetivo->getAgilidad()
+                << "\n";
         return 0;
     }
 
@@ -1759,7 +1758,7 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
             criatura->resetearCooldownMovimiento();
 
             snapshots.push_back(Snapshot::entity_move(
-                id, static_cast<uint16_t>(criatura->getPosX()),
+                id, criatura->getMapaId(), static_cast<uint16_t>(criatura->getPosX()),
                 static_cast<uint16_t>(criatura->getPosY()),
                 static_cast<uint8_t>(criatura->getDireccion())));
         }
@@ -1818,7 +1817,7 @@ void Game::tickResucitando(float dt, std::vector<Snapshot>& snapshots) {
             jugador->revivir(jugador->getVidaMax());
 
             snapshots.push_back(Snapshot::entity_move(
-                nombre, static_cast<uint16_t>(jugador->getPosX()),
+                nombre, static_cast<uint16_t>(jugador->getMapaId()), static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
             snapshots.push_back(
