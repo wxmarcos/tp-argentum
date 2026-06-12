@@ -107,6 +107,58 @@ Command Command::withdraw_gold(uint32_t amount) {
     return cmd;
 }
 
+Command Command::meditate() {
+    return Command(0, protocol::ClientOpcode::MEDITATE);
+}
+
+Command Command::resurrect() {
+    return Command(0, protocol::ClientOpcode::RESURRECT);
+}
+
+Command Command::heal() { return Command(0, protocol::ClientOpcode::HEAL); }
+
+Command Command::pick_item() {
+    return Command(0, protocol::ClientOpcode::PICK_ITEM);
+}
+
+Command Command::drop_item(uint16_t slot) {
+    Command cmd(0, protocol::ClientOpcode::DROP_ITEM);
+    cmd.slot = slot;
+    return cmd;
+}
+
+Command Command::equip_item(uint16_t slot) {
+    Command cmd(0, protocol::ClientOpcode::EQUIP_ITEM);
+    cmd.slot = slot;
+    return cmd;
+}
+
+Command Command::sell_item(uint16_t slot) {
+    Command cmd(0, protocol::ClientOpcode::SELL_ITEM);
+    cmd.slot = slot;
+    return cmd;
+}
+
+Command Command::deposit_item(uint16_t slot) {
+    Command cmd(0, protocol::ClientOpcode::DEPOSIT_ITEM);
+    cmd.slot = slot;
+    return cmd;
+}
+
+Command Command::withdraw_item(uint16_t item_id) {
+    Command cmd(0, protocol::ClientOpcode::WITHDRAW_ITEM);
+    cmd.item_id = item_id;
+    return cmd;
+}
+
+Command Command::private_message(const std::string& nick,
+                                 const std::string& text) {
+    Command cmd(0, protocol::ClientOpcode::PRIVATE_MESSAGE);
+    cmd.nick = nick;
+    cmd.text = text;
+    return cmd;
+}
+
 Command Command::cheat_god() {
     return Command(0, protocol::ClientOpcode::CHEAT_GOD);
 }

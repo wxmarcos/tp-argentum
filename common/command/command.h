@@ -47,11 +47,6 @@ public:
                                  size_t& offset, protocol::ClientOpcode opcode,
                                  uint16_t player_id);
 
-    friend Command parse_item_and_amount(const std::vector<uint8_t>& payload,
-                                         size_t& offset,
-                                         protocol::ClientOpcode opcode,
-                                         uint16_t player_id);
-
     friend Command parse_slot(const std::vector<uint8_t>& payload,
                               size_t& offset, protocol::ClientOpcode opcode,
                               uint16_t player_id);
@@ -100,7 +95,20 @@ public:
     static Command cheat_die();
     static Command cheat_resurrect();
     static Command disconnect();
+    static Command meditate();
+    static Command resurrect();
+    static Command heal();
 
+    static Command pick_item();
+    static Command drop_item(uint16_t slot);
+    static Command equip_item(uint16_t slot);
+
+    static Command sell_item(uint16_t slot);
+    static Command deposit_item(uint16_t slot);
+    static Command withdraw_item(uint16_t item_id);
+
+    static Command private_message(const std::string& nick,
+                                   const std::string& text);
     bool is_disconnect() const;
 
     protocol::ClientOpcode get_type() const;

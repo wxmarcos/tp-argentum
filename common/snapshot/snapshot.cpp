@@ -1,9 +1,5 @@
 #include "common/snapshot/snapshot.h"
 
-#include <stdexcept>
-#include <string>
-
-#include "common/protocol_defs.h"
 #include "common/snapshot/snapshot_codec.h"
 #include "network/socket.h"
 #include "network/socket_helpers.h"

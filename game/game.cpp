@@ -701,10 +701,18 @@ std::vector<Snapshot> Game::tick(float dt) {
     std::vector<Snapshot> snapshots;
 
     for (auto& [nombre, jugador] : jugadores) {
+        int oldVida = jugador->getVidaActual();
+        int oldMana = jugador->getManaActual();
+
         jugador->recuperacionPasiva(dt);
-        // por ahora mando todo, pero en un futuro podria optimizarse para
-        // mandar solo cambios relevantes
-        // snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+
+        int nuevaVida = jugador->getVidaActual();
+        int nuevaMana = jugador->getManaActual();
+
+        if (oldVida != nuevaVida || oldMana != nuevaMana) {
+            snapshots.push_back(
+                SnapshotFactory::player_stats_from_player(*jugador));
+        }
     }
 
     tickCriaturas(dt, snapshots);
@@ -1705,7 +1713,8 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                         objetivo->getNombre(), nombreItem,
                         static_cast<uint16_t>(objetivo->getMapaId()),
-                        objetivo->getPosX(), objetivo->getPosY(), cantidad));
+                        static_cast<uint16_t>(objetivo->getPosX()),
+                        static_cast<uint16_t>(objetivo->getPosY()), cantidad));
                 }
 
                 int oroExceso = Formulas::calcularOroExceso(
