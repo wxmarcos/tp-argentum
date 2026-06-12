@@ -4,6 +4,7 @@ target_sources(taller_client
     ui/client_app.cpp
     ui/menu_screen.cpp
     ui/console.cpp
+    ui/command_parser.cpp
     net/client_sender.cpp
     net/client_receiver.cpp
     net/server_connection.cpp
@@ -30,6 +31,7 @@ target_sources(taller_client
     ui/menu_result.h
     ui/connect_result.h
     ui/console.h
+    ui/command_parser.h
     net/client_sender.h
     net/client_receiver.h
     net/server_connection.h

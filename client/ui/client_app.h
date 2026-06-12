@@ -5,6 +5,7 @@
 #include <string>
 
 #include "config/client_config.h"
+#include "ui/command_parser.h"
 #include "ui/connect_result.h"
 
 namespace SDL2pp {
@@ -24,14 +25,19 @@ class Console;
 class ClientApp {
     private:
     ClientConfig config;
+    CommandParser parser;
 
     void setup_window_icon(SDL2pp::Window& window) const;
+
     int menu_loop(MenuScreen& menu, SDL2pp::Renderer& renderer);
+
     bool login_loop(MenuScreen& menu, SDL2pp::Renderer& renderer);
+
     ConnectResult connect_and_login(MenuScreen& menu,
                                     ServerConnection& connection,
                                     ClientGameState& state,
                                     const std::string& nick);
+
     void play_session(ServerConnection& connection, SDL2pp::Renderer& renderer,
                       ClientGameState& state);
 
@@ -42,7 +48,10 @@ class ClientApp {
     bool process_input(ServerConnection& connection, const InputHandler& input,
                        ClientGameState& state, Console& console);
 
-    void handle_console_event(const SDL_Event& event, Console& console);
+    void handle_console_event(const SDL_Event& event, Console& console,
+                              ServerConnection& connection);
+                              
+    void submit_console(Console& console, ServerConnection& connection);
 
     void handle_click(ServerConnection& connection,
                       const ClientGameState& state, int mouse_x, int mouse_y);

@@ -87,6 +87,7 @@ private:
     std::unordered_map<std::string, PlayerView> others;
     std::unordered_map<std::string, CreatureView> creatures;
     std::unordered_set<std::string> dead_entities;
+    std::unordered_set<std::string> meditating_entities;
 
     int map_width;
     int map_height;
@@ -154,6 +155,7 @@ public:
     const std::unordered_map<std::string, CreatureView>& get_creatures() const;
 
     bool is_dead(const std::string& nick) const;
+    bool is_meditating(const std::string& nick) const;
     bool entity_at(uint16_t x, uint16_t y, std::string& out_nick) const;
 
     int get_map_width() const;

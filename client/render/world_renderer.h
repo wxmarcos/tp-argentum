@@ -107,6 +107,9 @@ class WorldRenderer {
 
     void draw_name(const std::string& nick, int world_x, int world_y,
                    int cam_offset_x, int cam_offset_y);
+    
+    void draw_meditation_effect(int world_x, int world_y, int cam_offset_x,
+                                int cam_offset_y);
 
     void draw_floating_texts(const ClientGameState& state, uint32_t delta_ms,
                              int cam_offset_x, int cam_offset_y);

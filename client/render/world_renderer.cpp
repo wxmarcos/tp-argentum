@@ -370,6 +370,32 @@ void WorldRenderer::draw_name(const std::string& nick, int world_x,
     text.draw_centered(nick, center_x, top_y, colors::WHITE);
 }
 
+void WorldRenderer::draw_meditation_effect(int world_x, int world_y,
+                                           int cam_offset_x, int cam_offset_y) {
+    const EffectData& d = effect_data_map[EffectKind::Meditar];
+    SDL_Texture* tex = effect_tex[EffectKind::Meditar];
+    if (!tex || d.frames.empty() || d.ms_per_frame <= 0) {
+        return;
+    }
+
+    const int n = static_cast<int>(d.frames.size());
+    const int fi = static_cast<int>(SDL_GetTicks() / d.ms_per_frame) % n;
+    const SDL_Rect& src = d.frames[fi];
+    if (src.h <= 0) {
+        return;
+    }
+
+    const int ts = config.tile_size;
+    const float target_h = ts * EFFECT_HEIGHT_TILES;
+    const float scale = target_h / src.h;
+    const int dw = static_cast<int>(src.w * scale);
+    const int dh = static_cast<int>(target_h);
+    const int cx = cam_offset_x + world_x * ts + ts / 2;
+    const int cy = cam_offset_y + world_y * ts + ts / 2;
+    const SDL_Rect dst{cx - dw / 2, cy - dh / 2, dw, dh};
+    SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
+}
+
 void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
                                int cam_offset_x, int cam_offset_y) {
     if (!state.has_local_position()) {
@@ -391,6 +417,12 @@ void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
                 state.get_local_y(), state.get_local_dir(), local_clase,
                 local_raza, local_anim.current_frame(), cam_offset_x,
                 cam_offset_y);
+
+    if (state.is_meditating(nick)) {
+        draw_meditation_effect(state.get_local_x(), state.get_local_y(),
+                               cam_offset_x, cam_offset_y);
+    }
+
     draw_name(nick, state.get_local_x(), state.get_local_y(), cam_offset_x,
               cam_offset_y);
 }
@@ -407,6 +439,11 @@ void WorldRenderer::draw_others(const ClientGameState& state,
                     pv.clase.empty() ? std::string(keys::HUMANO) : pv.clase,
                     pv.raza.empty() ? std::string(keys::HUMANO) : pv.raza,
                     it->second.current_frame(), cam_offset_x, cam_offset_y);
+
+        if (state.is_meditating(nick)) {
+            draw_meditation_effect(pv.x, pv.y, cam_offset_x, cam_offset_y);
+        }
+
         draw_name(pv.nick, pv.x, pv.y, cam_offset_x, cam_offset_y);
     }
 

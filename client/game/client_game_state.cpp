@@ -322,8 +322,17 @@ void ClientGameState::apply_death_event(const Snapshot& snapshot) {
     dead_entities.insert(target);
 }
 
-void ClientGameState::apply_meditation_status(const Snapshot&) {
-    // TODO
+void ClientGameState::apply_meditation_status(const Snapshot& snapshot) {
+    const std::string& nick = snapshot.get_nick();
+    if (snapshot.is_meditating()) {
+        meditating_entities.insert(nick);
+    } else {
+        meditating_entities.erase(nick);
+    }
+}
+
+bool ClientGameState::is_meditating(const std::string& nick) const {
+    return meditating_entities.count(nick) > 0;
 }
 
 void ClientGameState::apply_chat_message(const Snapshot& snapshot) {

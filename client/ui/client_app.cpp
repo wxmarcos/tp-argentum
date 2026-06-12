@@ -81,25 +81,32 @@ bool ClientApp::login_loop(MenuScreen& menu, Renderer& renderer) {
         if (rl == MenuResult::QUIT) return false;
         if (rl == MenuResult::BACK) return true;
 
-        ServerConnection connection(config.server_host, config.server_port);
-        ClientGameState state(nick, config.map_width, config.map_height);
+        try {
+            ServerConnection connection(config.server_host,
+                                        config.server_port);
+            ClientGameState state(nick, config.map_width, config.map_height);
 
-        ConnectResult cr = connect_and_login(menu, connection, state, nick);
-        if (cr == ConnectResult::QUIT) {
+            ConnectResult cr = connect_and_login(menu, connection, state, nick);
+            if (cr == ConnectResult::QUIT) {
+                connection.send(Command::disconnect());
+                connection.stop();
+                return false;
+            }
+            if (cr == ConnectResult::BACK_TO_MENU) {
+                connection.send(Command::disconnect());
+                connection.stop();
+                continue;
+            }
+
+            play_session(connection, renderer, state);
             connection.send(Command::disconnect());
             connection.stop();
             return false;
-        }
-        if (cr == ConnectResult::BACK_TO_MENU) {
-            connection.send(Command::disconnect());
-            connection.stop();
+        } catch (const std::exception& e) {
+            std::cerr << "[Client] No se pudo conectar al servidor: "
+                      << e.what() << "\n";
             continue;
         }
-
-        play_session(connection, renderer, state);
-        connection.send(Command::disconnect());
-        connection.stop();
-        return false;
     }
 }
 
@@ -199,7 +206,7 @@ bool ClientApp::process_input(ServerConnection& connection,
         }
 
         if (console.is_open()) {
-            handle_console_event(event, console);
+            handle_console_event(event, console, connection);
             continue;
         }
 
@@ -234,7 +241,8 @@ bool ClientApp::process_input(ServerConnection& connection,
     return true;
 }
 
-void ClientApp::handle_console_event(const SDL_Event& event, Console& console) {
+void ClientApp::handle_console_event(const SDL_Event& event, Console& console,
+                                     ServerConnection& connection) {
     if (event.type == SDL_TEXTINPUT) {
         console.append(event.text.text);
         return;
@@ -249,9 +257,16 @@ void ClientApp::handle_console_event(const SDL_Event& event, Console& console) {
     } else if (key == SDLK_BACKSPACE) {
         console.backspace();
     } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-        console.take();
-        console.close();
+        submit_console(console, connection);
         SDL_StopTextInput();
+    }
+}
+
+void ClientApp::submit_console(Console& console, ServerConnection& connection) {
+    const std::string line = console.take();
+    console.close();
+    if (auto cmd = parser.parse(line)) {
+        connection.send(*cmd);
     }
 }
 
@@ -263,7 +278,7 @@ void ClientApp::handle_click(ServerConnection& connection,
     }
     const int ts = config.tile_size;
     const int cam_offset_x =
-        config.window_width / 2 - state.get_local_x() * ts - ts / 2;
+        config.game_area_width() / 2 - state.get_local_x() * ts - ts / 2;
     const int cam_offset_y =
         config.window_height / 2 - state.get_local_y() * ts - ts / 2;
 
