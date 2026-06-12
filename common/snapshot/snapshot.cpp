@@ -8,34 +8,29 @@
 #include "network/socket.h"
 #include "network/socket_helpers.h"
 
-Snapshot::Snapshot(protocol::ServerOpcode opcode,
-                   const std::string& nick):
-    opcode(opcode),
-    nick(nick),
-    mapa_id(0),
-    x(0),
-    y(0),
-    direction(0) {}
-Snapshot::Snapshot(protocol::ServerOpcode opcode, const std::string& nick, uint16_t mapa_id,
-                   uint16_t x, uint16_t y, uint8_t direction):
+Snapshot::Snapshot(protocol::ServerOpcode opcode, const std::string& nick):
+    opcode(opcode), nick(nick), mapa_id(0), x(0), y(0), direction(0) {}
+Snapshot::Snapshot(protocol::ServerOpcode opcode, const std::string& nick,
+                   uint16_t mapa_id, uint16_t x, uint16_t y, uint8_t direction):
     opcode(opcode),
     nick(nick), mapa_id(mapa_id), x(x), y(y), direction(direction) {}
 
-Snapshot Snapshot::entity_created(const std::string& nick, uint16_t mapa_id, uint16_t x,
-                                  uint16_t y, uint8_t direction) {
+Snapshot Snapshot::entity_created(const std::string& nick, uint16_t mapa_id,
+                                  uint16_t x, uint16_t y, uint8_t direction) {
     return Snapshot(protocol::ServerOpcode::ENTITY_CREATED, nick, mapa_id, x, y,
                     direction);
 }
 
-Snapshot Snapshot::entity_login(const std::string& nick, uint16_t mapa_id,uint16_t x, uint16_t y,
-                                uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_LOGIN, nick, mapa_id,x, y,
+Snapshot Snapshot::entity_login(const std::string& nick, uint16_t mapa_id,
+                                uint16_t x, uint16_t y, uint8_t direction) {
+    return Snapshot(protocol::ServerOpcode::ENTITY_LOGIN, nick, mapa_id, x, y,
                     direction);
 }
 
-Snapshot Snapshot::entity_move(const std::string& nick, uint16_t mapa_id,uint16_t x, uint16_t y,
-                               uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_MOVE, nick, mapa_id,x, y, direction);
+Snapshot Snapshot::entity_move(const std::string& nick, uint16_t mapa_id,
+                               uint16_t x, uint16_t y, uint8_t direction) {
+    return Snapshot(protocol::ServerOpcode::ENTITY_MOVE, nick, mapa_id, x, y,
+                    direction);
 }
 
 Snapshot Snapshot::entity_remove(const std::string& nick) {
@@ -70,11 +65,15 @@ Snapshot Snapshot::death_event(const std::string& target) {
     snapshot.target = target;
     return snapshot;
 }
-Snapshot Snapshot::item_event(uint8_t action, const std::string& entity_name,
-                              const std::string& item_name, uint16_t x,
-                              uint16_t y, uint16_t amount) {
-    Snapshot snapshot(protocol::ServerOpcode::ITEM_EVENT, entity_name, x, y, 0);
 
+Snapshot Snapshot::item_event(uint8_t action, const std::string& entity_name,
+                              const std::string& item_name, uint16_t mapa_id,
+                              uint16_t x, uint16_t y, uint16_t amount) {
+    Snapshot snapshot(protocol::ServerOpcode::ITEM_EVENT, entity_name);
+
+    snapshot.mapa_id = mapa_id;
+    snapshot.x = x;
+    snapshot.y = y;
     snapshot.item_action = action;
     snapshot.item_name = item_name;
     snapshot.amount = amount;
@@ -189,10 +188,8 @@ const std::vector<InventorySnapshotItem>& Snapshot::get_inventory_items()
 
 Snapshot Snapshot::map_change(const std::string& nick, uint16_t mapa_id,
                               uint16_t x, uint16_t y, uint8_t direction) {
-    Snapshot snapshot(protocol::ServerOpcode::MAP_CHANGE, nick, x, y,
-                      direction);
-    snapshot.mapa_id = mapa_id;
-    return snapshot;
+    return Snapshot(protocol::ServerOpcode::MAP_CHANGE, nick, mapa_id, x, y,
+                    direction);
 }
 
 bool Snapshot::is_map_change() const {

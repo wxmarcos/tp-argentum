@@ -244,7 +244,7 @@ void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
         }
 
         snapshots.push_back(Snapshot::entity_created(
-            nombre, mapaId,static_cast<uint16_t>(otro->getPosX()),
+            nombre, mapaId, static_cast<uint16_t>(otro->getPosX()),
             static_cast<uint16_t>(otro->getPosY()),
             static_cast<uint8_t>(otro->getDireccion())));
     }
@@ -285,7 +285,7 @@ void Game::agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
         if (criatura->getMapaId() != mapaId) continue;
 
         snapshots.push_back(Snapshot::entity_created(
-            id, mapaId,static_cast<uint16_t>(criatura->getPosX()),
+            id, mapaId, static_cast<uint16_t>(criatura->getPosX()),
             static_cast<uint16_t>(criatura->getPosY()),
             static_cast<uint8_t>(criatura->getDireccion())));
     }
@@ -514,8 +514,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         snapshots.push_back(Snapshot::item_event(
             static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(px), static_cast<uint16_t>(py),
-            static_cast<uint16_t>(cantidad)));
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), static_cast<uint16_t>(cantidad)));
 
         return;
     }
@@ -531,8 +531,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         snapshots.push_back(Snapshot::item_event(
             static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(px), static_cast<uint16_t>(py),
-            1));
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), 1));
 
         return;
     }
@@ -544,7 +544,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
     snapshots.push_back(Snapshot::item_event(
         static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-        nombreItem, static_cast<uint16_t>(px), static_cast<uint16_t>(py), 1));
+        nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+        static_cast<uint16_t>(py), 1));
 }
 
 ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
@@ -703,7 +704,7 @@ std::vector<Snapshot> Game::tick(float dt) {
         jugador->recuperacionPasiva(dt);
         // por ahora mando todo, pero en un futuro podria optimizarse para
         // mandar solo cambios relevantes
-        //snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+        // snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
     }
 
     tickCriaturas(dt, snapshots);
@@ -758,7 +759,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_login(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()), static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
+            static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
@@ -798,7 +800,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
         snapshots.push_back(Snapshot::entity_created(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),static_cast<uint16_t>(jugador->getPosX()),
+            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
+            static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
@@ -916,7 +919,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 agregarReplayCriaturas(snapshots, mapaActual);
             } else {
                 snapshots.push_back(Snapshot::entity_move(
-                    nombre, static_cast<uint16_t>(jugador->getMapaId()),static_cast<uint16_t>(jugador->getPosX()),
+                    nombre, static_cast<uint16_t>(jugador->getMapaId()),
+                    static_cast<uint16_t>(jugador->getPosX()),
                     static_cast<uint16_t>(jugador->getPosY()),
                     static_cast<uint8_t>(jugador->getDireccion())));
             }
@@ -936,7 +940,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
             snapshots.push_back(Snapshot::item_event(
                 static_cast<uint8_t>(protocol::ItemEventAction::PICK), nombre,
-                resultado.itemNombre, static_cast<uint16_t>(jugador->getPosX()),
+                resultado.itemNombre,
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()), resultado.cantidad));
 
             if (resultado.slotInventario == -1) {
@@ -974,6 +980,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 snapshots.push_back(Snapshot::item_event(
                     static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                     nombre, itemNombre,
+                    static_cast<uint16_t>(jugador->getMapaId()),
                     static_cast<uint16_t>(jugador->getPosX()),
                     static_cast<uint16_t>(jugador->getPosY()), cantidad));
             } else {
@@ -1035,6 +1042,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                             static_cast<uint8_t>(
                                 protocol::ItemEventAction::DROP),
                             victima->getNombre(), nombreItem,
+                            static_cast<uint16_t>(victima->getMapaId()),
                             static_cast<uint16_t>(victima->getPosX()),
                             static_cast<uint16_t>(victima->getPosY()),
                             cantidad));
@@ -1054,6 +1062,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                             static_cast<uint8_t>(
                                 protocol::ItemEventAction::DROP),
                             victima->getNombre(), item_defs::ORO,
+                            static_cast<uint16_t>(victima->getMapaId()),
                             static_cast<uint16_t>(victima->getPosX()),
                             static_cast<uint16_t>(victima->getPosY()),
                             static_cast<uint16_t>(oroExceso)));
@@ -1220,8 +1229,10 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
                     snapshots.push_back(Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                        jugador->getNombre(), nombreItem, jugador->getPosX(),
-                        jugador->getPosY(), cantidad));
+                        jugador->getNombre(), nombreItem,
+                        static_cast<uint16_t>(jugador->getMapaId()),
+                        static_cast<uint16_t>(jugador->getPosX()),
+                        static_cast<uint16_t>(jugador->getPosY()), cantidad));
                 }
                 int oroExceso = Formulas::calcularOroExceso(
                     jugador->getOro(), jugador->getOroMax());
@@ -1236,6 +1247,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                     snapshots.push_back(Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                         jugador->getNombre(), item_defs::ORO,
+                        static_cast<uint16_t>(jugador->getMapaId()),
                         static_cast<uint16_t>(jugador->getPosX()),
                         static_cast<uint16_t>(jugador->getPosY()),
                         static_cast<uint16_t>(oroExceso)));
@@ -1577,9 +1589,9 @@ void Game::spawnCriaturas(std::vector<Snapshot>& snapshots) {
                 std::string id = agregarCriatura(tipo, mapaId, x, y);
 
                 if (!id.empty()) {
-                    snapshots.push_back(
-                        Snapshot::entity_created(id, mapaId, static_cast<uint16_t>(x),
-                                                 static_cast<uint16_t>(y), 2));
+                    snapshots.push_back(Snapshot::entity_created(
+                        id, mapaId, static_cast<uint16_t>(x),
+                        static_cast<uint16_t>(y), 2));
                 }
 
                 break;
@@ -1593,10 +1605,8 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
     if (!atacante->estaVivo() || !objetivo->estaVivo()) return 0;
 
     if (Formulas::calcularEsquive(objetivo->getAgilidad())) {
-        std::cout << "[ESQUIVE] "
-                << objetivo->getNombre()
-                << " agi=" << objetivo->getAgilidad()
-                << "\n";
+        std::cout << "[ESQUIVE] " << objetivo->getNombre()
+                  << " agi=" << objetivo->getAgilidad() << "\n";
         return 0;
     }
 
@@ -1693,8 +1703,9 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
 
                     snapshots.push_back(Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                        objetivo->getNombre(), nombreItem, objetivo->getPosX(),
-                        objetivo->getPosY(), cantidad));
+                        objetivo->getNombre(), nombreItem,
+                        static_cast<uint16_t>(objetivo->getMapaId()),
+                        objetivo->getPosX(), objetivo->getPosY(), cantidad));
                 }
 
                 int oroExceso = Formulas::calcularOroExceso(
@@ -1710,6 +1721,7 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
                     snapshots.push_back(Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                         objetivo->getNombre(), item_defs::ORO,
+                        static_cast<uint16_t>(objetivo->getMapaId()),
                         static_cast<uint16_t>(objetivo->getPosX()),
                         static_cast<uint16_t>(objetivo->getPosY()),
                         static_cast<uint16_t>(oroExceso)));
@@ -1758,7 +1770,8 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
             criatura->resetearCooldownMovimiento();
 
             snapshots.push_back(Snapshot::entity_move(
-                id, criatura->getMapaId(), static_cast<uint16_t>(criatura->getPosX()),
+                id, criatura->getMapaId(),
+                static_cast<uint16_t>(criatura->getPosX()),
                 static_cast<uint16_t>(criatura->getPosY()),
                 static_cast<uint8_t>(criatura->getDireccion())));
         }
@@ -1817,7 +1830,8 @@ void Game::tickResucitando(float dt, std::vector<Snapshot>& snapshots) {
             jugador->revivir(jugador->getVidaMax());
 
             snapshots.push_back(Snapshot::entity_move(
-                nombre, static_cast<uint16_t>(jugador->getMapaId()), static_cast<uint16_t>(jugador->getPosX()),
+                nombre, static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
             snapshots.push_back(

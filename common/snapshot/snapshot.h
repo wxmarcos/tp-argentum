@@ -56,17 +56,18 @@ private:
 
 public:
     Snapshot(protocol::ServerOpcode opcode, const std::string& nick);
-    Snapshot(protocol::ServerOpcode opcode, const std::string& nick, uint16_t mapa_id,
-             uint16_t x = 0, uint16_t y = 0, uint8_t direction = 0);
+    Snapshot(protocol::ServerOpcode opcode, const std::string& nick,
+             uint16_t mapa_id, uint16_t x = 0, uint16_t y = 0,
+             uint8_t direction = 0);
 
-    static Snapshot entity_created(const std::string& nick, uint16_t mapa_id, uint16_t x,
-                                   uint16_t y, uint8_t direction);
+    static Snapshot entity_created(const std::string& nick, uint16_t mapa_id,
+                                   uint16_t x, uint16_t y, uint8_t direction);
 
-    static Snapshot entity_login(const std::string& nick, uint16_t mapa_id,uint16_t x,
-                                 uint16_t y, uint8_t direction);
+    static Snapshot entity_login(const std::string& nick, uint16_t mapa_id,
+                                 uint16_t x, uint16_t y, uint8_t direction);
 
-    static Snapshot entity_move(const std::string& nick, uint16_t mapa_id,uint16_t x, uint16_t y,
-                                uint8_t direction);
+    static Snapshot entity_move(const std::string& nick, uint16_t mapa_id,
+                                uint16_t x, uint16_t y, uint8_t direction);
 
     static Snapshot entity_remove(const std::string& nick);
 
@@ -79,8 +80,8 @@ public:
 
     static Snapshot death_event(const std::string& target);
     static Snapshot item_event(uint8_t action, const std::string& entity_name,
-                               const std::string& item_name, uint16_t x,
-                               uint16_t y, uint16_t amount);
+                               const std::string& item_name, uint16_t mapa_id,
+                               uint16_t x, uint16_t y, uint16_t amount);
 
     bool is_item_event() const;
 

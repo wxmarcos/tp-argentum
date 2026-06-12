@@ -35,19 +35,10 @@ int Formulas::calcularDanio(int fuerza, int danioMin, int danioMax) {
     int tirada = danioMin + (rand() % rango);
     return fuerza * tirada;
 }
-/*
+
 bool Formulas::calcularEsquive(int agilidad) {
     double r = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
     return std::pow(r, agilidad) < 0.001;
-}
-*/
-bool Formulas::calcularEsquive(int agilidad) {
-    double prob = agilidad * 0.0005;
-    prob = std::min(prob, 0.35);
-
-    double r = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-
-    return r < prob;
 }
 
 bool Formulas::calcularCritico(int porcentaje) {
@@ -68,7 +59,8 @@ int Formulas::calcularDefensa(int armaduraMin, int armaduraMax, int escudoMin,
 }
 
 // Experiencia
-int Formulas::calcularLimiteExp(int nivel, double coeficiente, double exponente) {
+int Formulas::calcularLimiteExp(int nivel, double coeficiente,
+                                double exponente) {
     return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
 int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio) {
