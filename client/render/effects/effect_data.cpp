@@ -1,25 +1,6 @@
-#ifndef CLIENT_RENDER_EFFECT_DATA_H
-#define CLIENT_RENDER_EFFECT_DATA_H
+#include "render/effects/effect_data.h"
 
-#include <SDL2/SDL.h>
-#include "render/effect_kind.h"
-
-#include <vector>
-
-struct ActiveEffect {
-    EffectKind kind;
-    int wx;
-    int wy;
-    uint32_t age_ms;
-};
-
-struct EffectData {
-    std::vector<SDL_Rect> frames;
-    int ms_per_frame = 80;
-    bool loop = false;
-};
-
-inline EffectData make_meditar_effect_data() {
+EffectData make_meditar_effect_data() {
     EffectData d;
     d.ms_per_frame = 100;
     d.loop = true;
@@ -33,7 +14,7 @@ inline EffectData make_meditar_effect_data() {
     return d;
 }
 
-inline EffectData make_efectoMorir_effect_data() {
+EffectData make_efectoMorir_effect_data() {
     EffectData d;
     d.ms_per_frame = 90;
     d.loop = false;
@@ -46,7 +27,7 @@ inline EffectData make_efectoMorir_effect_data() {
     return d;
 }
 
-inline EffectData make_resucitar_effect_data() {
+EffectData make_resucitar_effect_data() {
     EffectData d;
     d.ms_per_frame = 90;
     d.loop = false;
@@ -57,7 +38,7 @@ inline EffectData make_resucitar_effect_data() {
     return d;
 }
 
-inline EffectData make_explosionSuper_effect_data() {
+EffectData make_explosionSuper_effect_data() {
     EffectData d;
     d.ms_per_frame = 70;
     d.loop = false;
@@ -69,21 +50,19 @@ inline EffectData make_explosionSuper_effect_data() {
     return d;
 }
 
-inline EffectData make_ataqueBaculoComun_effect_data() {
+EffectData make_explosionComun_effect_data() {
     EffectData d;
-    d.ms_per_frame = 60;
+    d.ms_per_frame = 70;
     d.loop = false;
     d.frames = {
-        {0, 0, 132, 152},     {136, 0, 132, 152},   {274, 8, 132, 152},
-        {410, 0, 132, 152},   {0, 150, 132, 152},   {137, 149, 132, 152},
-        {277, 150, 132, 152}, {405, 150, 132, 152}, {1, 305, 132, 152},
-        {137, 304, 132, 152}, {274, 305, 132, 152}, {409, 307, 132, 152},
-        {2, 467, 132, 152},   {137, 459, 132, 152}, {273, 460, 132, 152},
+        {12, 76, 120, 82},  {158, 76, 120, 82},  {302, 76, 120, 82},
+        {13, 220, 120, 82}, {158, 219, 120, 82}, {303, 217, 120, 82},
+        {12, 352, 120, 82}, {156, 347, 120, 82}, {303, 346, 120, 82},
     };
     return d;
 }
 
-inline EffectData make_curarse_effect_data() {
+EffectData make_curarse_effect_data() {
     EffectData d;
     d.ms_per_frame = 70;
     d.loop = false;
@@ -101,19 +80,21 @@ inline EffectData make_curarse_effect_data() {
     return d;
 }
 
-inline EffectData make_explosionComun_effect_data() {
+EffectData make_ataqueBaculoComun_effect_data() {
     EffectData d;
-    d.ms_per_frame = 70;
+    d.ms_per_frame = 60;
     d.loop = false;
     d.frames = {
-        {12, 76, 120, 82},  {158, 76, 120, 82},  {302, 76, 120, 82},
-        {13, 220, 120, 82}, {158, 219, 120, 82}, {303, 217, 120, 82},
-        {12, 352, 120, 82}, {156, 347, 120, 82}, {303, 346, 120, 82},
+        {0, 0, 132, 152},     {136, 0, 132, 152},   {274, 8, 132, 152},
+        {410, 0, 132, 152},   {0, 150, 132, 152},   {137, 149, 132, 152},
+        {277, 150, 132, 152}, {405, 150, 132, 152}, {1, 305, 132, 152},
+        {137, 304, 132, 152}, {274, 305, 132, 152}, {409, 307, 132, 152},
+        {2, 467, 132, 152},   {137, 459, 132, 152}, {273, 460, 132, 152},
     };
     return d;
 }
 
-inline EffectData make_ataqueBaculoDorado_effect_data() {
+EffectData make_ataqueBaculoDorado_effect_data() {
     EffectData d;
     d.ms_per_frame = 70;
     d.loop = false;
@@ -126,7 +107,7 @@ inline EffectData make_ataqueBaculoDorado_effect_data() {
     return d;
 }
 
-inline EffectData make_ataqueComunRojo_effect_data() {
+EffectData make_ataqueComunRojo_effect_data() {
     EffectData d;
     d.ms_per_frame = 70;
     d.loop = false;
@@ -137,7 +118,7 @@ inline EffectData make_ataqueComunRojo_effect_data() {
     return d;
 }
 
-inline EffectData make_ataqueComunGris_effect_data() {
+EffectData make_ataqueComunGris_effect_data() {
     EffectData d;
     d.ms_per_frame = 70;
     d.loop = false;
@@ -148,7 +129,7 @@ inline EffectData make_ataqueComunGris_effect_data() {
     return d;
 }
 
-inline EffectData make_ataqueComunDorado_effect_data() {
+EffectData make_ataqueComunDorado_effect_data() {
     EffectData d;
     d.ms_per_frame = 70;
     d.loop = false;
@@ -159,13 +140,7 @@ inline EffectData make_ataqueComunDorado_effect_data() {
     return d;
 }
 
-struct EffectDef {
-    EffectKind kind;
-    EffectData (*make)();
-    const char* sheet;
-};
-
-inline std::vector<EffectDef> all_effect_defs() {
+std::vector<EffectDef> all_effect_defs() {
     return {
         {EffectKind::Meditar, make_meditar_effect_data, "efectos/meditar.png"},
         {EffectKind::EfectoMorir, make_efectoMorir_effect_data,
@@ -189,5 +164,3 @@ inline std::vector<EffectDef> all_effect_defs() {
          "efectos/ataqueComun.png"},
     };
 }
-
-#endif

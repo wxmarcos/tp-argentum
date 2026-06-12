@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-#include "render/tile_catalog.h"
+#include "render/map/tile_catalog.h"
 
 // MapData almacena la grilla del mapa con multiples capas.
 // Cada celda (x, y, capa) tiene un TileId.
@@ -36,9 +36,9 @@ class MapData {
     void set_collision(int x, int y, bool blocked);
     bool is_blocked(int x, int y) const;
 
-    int get_width()  const { return width; }
-    int get_height() const { return height; }
-    int get_layers() const { return layer_count; }
+    int get_width() const;
+    int get_height() const;
+    int get_layers() const;
 };
 
 #endif

@@ -1,4 +1,4 @@
-#include "render/character_animator.h"
+#include "render/sprites/character_animator.h"
 
 #include <SDL2/SDL.h>
 
@@ -29,3 +29,7 @@ void CharacterAnimator::update(uint32_t delta_ms, protocol::Direction dir,
         }
     }
 }
+
+int CharacterAnimator::current_frame() const { return anim.current_frame(); }
+
+protocol::Direction CharacterAnimator::current_dir() const { return last_dir; }

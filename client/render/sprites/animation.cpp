@@ -1,4 +1,4 @@
-#include "render/animation.h"
+#include "render/sprites/animation.h"
 
 Animation::Animation(int frame_count, int ms_per_frame):
     frame_count(frame_count), ms_per_frame(ms_per_frame), current(0),
@@ -16,3 +16,5 @@ void Animation::reset() {
     current = 0;
     elapsed_ms = 0;
 }
+
+int Animation::current_frame() const { return current; }

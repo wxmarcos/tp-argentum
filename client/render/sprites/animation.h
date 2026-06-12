@@ -17,7 +17,7 @@ public:
 
     void reset();
 
-    int current_frame() const { return current; }
+    int current_frame() const;
 };
 
 #endif

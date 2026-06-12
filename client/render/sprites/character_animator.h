@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "common/protocol_defs.h"
-#include "render/animation.h"
+#include "render/sprites/animation.h"
 
 class CharacterAnimator {
 private:
@@ -17,9 +17,9 @@ public:
 
     void update(uint32_t delta_ms, protocol::Direction dir, bool moved);
 
-    int current_frame() const { return anim.current_frame(); }
+    int current_frame() const;
 
-    protocol::Direction current_dir() const { return last_dir; }
+    protocol::Direction current_dir() const;
 };
 
 #endif

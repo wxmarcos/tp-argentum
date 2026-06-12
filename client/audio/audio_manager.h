@@ -32,7 +32,7 @@ public:
     void play_music(const std::string& path);
     void stop_music();
 
-    bool is_initialized() const { return initialized; }
+    bool is_initialized() const;
 
     AudioManager(const AudioManager&) = delete;
     AudioManager& operator=(const AudioManager&) = delete;

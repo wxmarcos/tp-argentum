@@ -5,27 +5,35 @@
 
 #include <filesystem>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
-#include "render/sprite_data.h"
+#include "render/sprites/sprite_data.h"
 #include "render/texture_manager.h"
 
 class SpriteRegistry {
-private:
+    private:
     TextureManager textures;
     std::unordered_map<std::string, SpriteData> sprite_data;
     std::unordered_map<std::string, HeadData> head_data;
 
-    void register_sprite(const std::string& key,
-                         const std::string& relative_path,
+    void register_sprite(std::string_view key, std::string_view relative_path,
                          const SpriteData& data);
 
-    void register_head(const std::string& raza,
-                       const std::string& relative_path, const HeadData& data);
+    void register_head(std::string_view raza, std::string_view relative_path,
+                       const HeadData& data);
 
     void load_all();
 
-public:
+    void load_player_bodies();
+
+    void load_class_bodies();
+
+    void load_creatures();
+
+    void load_heads();
+
+    public:
     SpriteRegistry(SDL_Renderer* renderer,
                    const std::filesystem::path& assets_root);
 
@@ -40,7 +48,7 @@ public:
     SDL_Texture* get_head_texture(const std::string& raza) const;
 
     SDL_Rect get_head_rect(const std::string& raza, int dir_idx) const;
-
+    
     bool has_head(const std::string& raza) const;
 };
 
