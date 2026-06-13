@@ -59,6 +59,7 @@ target_sources(taller_client
     render/effects/effect_spawn.h
     render/effects/effect_data.h
     audio/audio_manager.h
+    audio/audio_assets.h
     config/client_config.h
     )
 
