@@ -26,8 +26,6 @@ static void append_index_record(const std::filesystem::path& index_path,
     std::ofstream out(index_path, std::ios::binary | std::ios::app);
 
     if (!out) {
-        std::cout << "[PersistenceWorker] no se pudo abrir indice "
-                  << index_path << "\n";
         return;
     }
 
@@ -45,8 +43,6 @@ static void write_player_record_at(const std::filesystem::path& players_path,
                       std::ios::binary | std::ios::in | std::ios::out);
 
     if (!file) {
-        std::cout << "[PersistenceWorker] no se pudo abrir "
-                  << players_path << "\n";
         return;
     }
 
@@ -72,8 +68,6 @@ static uint64_t append_player_record(const std::filesystem::path& players_path,
     }
 
     if (!file) {
-        std::cout << "[PersistenceWorker] no se pudo abrir "
-                  << players_path << "\n";
         return 0;
     }
 

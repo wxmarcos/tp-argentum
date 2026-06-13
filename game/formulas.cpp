@@ -59,7 +59,8 @@ int Formulas::calcularDefensa(int armaduraMin, int armaduraMax, int escudoMin,
 }
 
 // Experiencia
-int Formulas::calcularLimiteExp(int nivel, double coeficiente, double exponente) {
+int Formulas::calcularLimiteExp(int nivel, double coeficiente,
+                                double exponente) {
     return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
 int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio) {
