@@ -1,4 +1,4 @@
-#include "render/map_data.h"
+#include "render/map/map_data.h"
 
 MapData::MapData(int width, int height, int layer_count):
         width(width),
@@ -45,3 +45,9 @@ bool MapData::is_blocked(int x, int y) const {
     if (x < 0 || x >= width || y < 0 || y >= height) return true;
     return collision[static_cast<size_t>(y * width + x)];
 }
+
+int MapData::get_width() const { return width; }
+
+int MapData::get_height() const { return height; }
+
+int MapData::get_layers() const { return layer_count; }

@@ -1,17 +1,20 @@
 #include "render/text_renderer.h"
 
-#include <cstdio>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 
-namespace {
-int ttf_refcount = 0;
+int TextRenderer::ttf_refcount = 0;
 
-std::string cache_key(const std::string& text, SDL_Color c) {
-    char prefix[9];
-    std::snprintf(prefix, sizeof(prefix), "%02x%02x%02x%02x", c.r, c.g, c.b,
-                  c.a);
-    return std::string(prefix) + text;
-}
+std::string TextRenderer::cache_key(const std::string& text, SDL_Color c) {
+    std::ostringstream key;
+    key << std::hex << std::setfill('0')
+        << std::setw(2) << static_cast<int>(c.r)
+        << std::setw(2) << static_cast<int>(c.g)
+        << std::setw(2) << static_cast<int>(c.b)
+        << std::setw(2) << static_cast<int>(c.a)
+        << text;
+    return key.str();
 }
 
 TextRenderer::TextRenderer(SDL_Renderer* renderer,
@@ -55,7 +58,9 @@ TextRenderer::~TextRenderer() {
     }
 }
 
-const TextRenderer::CachedText* TextRenderer::get_or_build(
+bool TextRenderer::ok() const { return font != nullptr; }
+
+const CachedText* TextRenderer::get_or_build(
     const std::string& text, SDL_Color color) {
     if (!font || text.empty()) {
         return nullptr;

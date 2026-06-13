@@ -3,16 +3,6 @@
 #include <exception>
 #include <utility>
 
-namespace {
-template <typename Action>
-void quiet(Action&& action) {
-    try {
-        action();
-    } catch (const std::exception&) {
-    }
-}
-}  // namespace
-
 ServerConnection::ServerConnection(const std::string& hostname,
                                    const std::string& servname):
     socket(hostname.c_str(), servname.c_str()),
@@ -42,6 +32,14 @@ bool ServerConnection::poll_update(GameUpdate& out) {
         return updates_queue.try_pop(out);
     } catch (const ClosedQueue&) {
         return false;
+    }
+}
+
+template <typename Action>
+void ServerConnection::quiet(Action&& action) {
+    try {
+        action();
+    } catch (const std::exception&) {
     }
 }
 

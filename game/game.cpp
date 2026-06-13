@@ -778,7 +778,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
-
+        
         snapshots.push_back(
             SnapshotFactory::player_stats_from_player(*jugador));
         snapshots.push_back(
@@ -922,6 +922,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                     static_cast<uint16_t>(jugador->getPosX()),
                     static_cast<uint16_t>(jugador->getPosY()),
                     static_cast<uint8_t>(jugador->getDireccion())));
+                snapshots.push_back(Snapshot::entity_remove(jugador->getNombre()));
                 agregarReplayDeJugadores(snapshots, nombre, mapaActual);
                 agregarReplayNpcs(snapshots, mapaActual);
                 agregarReplayCriaturas(snapshots, mapaActual);

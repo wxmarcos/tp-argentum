@@ -1,23 +1,6 @@
-#ifndef CLIENT_RENDER_SPRITE_DATA_H
-#define CLIENT_RENDER_SPRITE_DATA_H
+#include "render/sprites/sprite_data.h"
 
-#include <SDL2/SDL.h>
-
-static constexpr int WALK_FRAME_COUNT = 4;
-static constexpr int DEFAULT_HUMAN_HEAD_NECK = 24;
-
-static constexpr int DIR_SOUTH = 0;
-static constexpr int DIR_NORTH = 1;
-static constexpr int DIR_EAST = 2;
-static constexpr int DIR_WEST = 3;
-
-struct SpriteData {
-    SDL_Rect frame_rects[4][WALK_FRAME_COUNT];
-    int head_offset_y = 0;
-    int head_neck = DEFAULT_HUMAN_HEAD_NECK;
-};
-
-inline SpriteData make_humano_sprite_data() {
+SpriteData make_humano_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 5, 19, 38};
     d.frame_rects[DIR_SOUTH][1] = {29, 5, 19, 38};
@@ -43,7 +26,7 @@ inline SpriteData make_humano_sprite_data() {
     return d;
 }
 
-inline SpriteData make_elfo_sprite_data() {
+SpriteData make_elfo_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 15, 19, 31};
     d.frame_rects[DIR_SOUTH][1] = {30, 15, 19, 31};
@@ -69,7 +52,7 @@ inline SpriteData make_elfo_sprite_data() {
     return d;
 }
 
-inline SpriteData make_enano_sprite_data() {
+SpriteData make_enano_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {5, 15, 17, 30};
     d.frame_rects[DIR_SOUTH][1] = {32, 15, 17, 30};
@@ -95,7 +78,7 @@ inline SpriteData make_enano_sprite_data() {
     return d;
 }
 
-inline SpriteData make_gnomo_sprite_data() {
+SpriteData make_gnomo_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {5, 15, 17, 30};
     d.frame_rects[DIR_SOUTH][1] = {32, 15, 17, 30};
@@ -121,9 +104,8 @@ inline SpriteData make_gnomo_sprite_data() {
     return d;
 }
 
-inline SpriteData make_fantasma_sprite_data() {
+SpriteData make_fantasma_sprite_data() {
     SpriteData d;
-
     d.frame_rects[DIR_SOUTH][0] = {4, 268, 23, 34};
     d.frame_rects[DIR_SOUTH][1] = {36, 268, 23, 34};
     d.frame_rects[DIR_SOUTH][2] = {68, 268, 23, 34};
@@ -143,11 +125,11 @@ inline SpriteData make_fantasma_sprite_data() {
     d.frame_rects[DIR_WEST][1] = {75, 464, 40, 33};
     d.frame_rects[DIR_WEST][2] = {139, 464, 40, 33};
     d.frame_rects[DIR_WEST][3] = {203, 464, 40, 33};
-    
+
     return d;
 }
 
-inline SpriteData make_mago_sprite_data() {
+SpriteData make_mago_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {4, 13, 20, 33};
     d.frame_rects[DIR_SOUTH][1] = {30, 13, 20, 33};
@@ -173,7 +155,7 @@ inline SpriteData make_mago_sprite_data() {
     return d;
 }
 
-inline SpriteData make_clerigo_sprite_data() {
+SpriteData make_clerigo_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 6, 21, 38};
     d.frame_rects[DIR_SOUTH][1] = {30, 6, 21, 38};
@@ -199,7 +181,7 @@ inline SpriteData make_clerigo_sprite_data() {
     return d;
 }
 
-inline SpriteData make_guerrero_sprite_data() {
+SpriteData make_guerrero_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {4, 6, 19, 40};
     d.frame_rects[DIR_SOUTH][1] = {31, 6, 19, 40};
@@ -225,7 +207,7 @@ inline SpriteData make_guerrero_sprite_data() {
     return d;
 }
 
-inline SpriteData make_paladin_sprite_data() {
+SpriteData make_paladin_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 5, 23, 38};
     d.frame_rects[DIR_SOUTH][1] = {30, 5, 23, 38};
@@ -251,7 +233,7 @@ inline SpriteData make_paladin_sprite_data() {
     return d;
 }
 
-inline SpriteData make_goblin_sprite_data() {
+SpriteData make_goblin_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 6, 18, 25};
     d.frame_rects[DIR_SOUTH][1] = {28, 6, 18, 25};
@@ -276,7 +258,7 @@ inline SpriteData make_goblin_sprite_data() {
     return d;
 }
 
-inline SpriteData make_esqueleto_sprite_data() {
+SpriteData make_esqueleto_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {4, 2, 21, 45};
     d.frame_rects[DIR_SOUTH][1] = {29, 2, 21, 45};
@@ -287,7 +269,7 @@ inline SpriteData make_esqueleto_sprite_data() {
     d.frame_rects[DIR_NORTH][1] = {26, 49, 21, 45};
     d.frame_rects[DIR_NORTH][2] = {51, 49, 21, 45};
     d.frame_rects[DIR_NORTH][3] = {75, 49, 21, 45};
-    
+
     d.frame_rects[DIR_EAST][0] = {3, 96, 21, 45};
     d.frame_rects[DIR_EAST][1] = {28, 96, 21, 45};
     d.frame_rects[DIR_EAST][2] = {53, 96, 21, 45};
@@ -301,7 +283,7 @@ inline SpriteData make_esqueleto_sprite_data() {
     return d;
 }
 
-inline SpriteData make_zombie_sprite_data() {
+SpriteData make_zombie_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {6, 2, 15, 43};
     d.frame_rects[DIR_SOUTH][1] = {33, 2, 15, 43};
@@ -326,7 +308,7 @@ inline SpriteData make_zombie_sprite_data() {
     return d;
 }
 
-inline SpriteData make_orco_sprite_data() {
+SpriteData make_orco_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {4, 5, 53, 87};
     d.frame_rects[DIR_SOUTH][1] = {60, 5, 53, 87};
@@ -351,7 +333,7 @@ inline SpriteData make_orco_sprite_data() {
     return d;
 }
 
-inline SpriteData make_arana_sprite_data() {
+SpriteData make_arana_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {5, 38, 88, 57};
     d.frame_rects[DIR_SOUTH][1] = {103, 38, 88, 57};
@@ -376,7 +358,7 @@ inline SpriteData make_arana_sprite_data() {
     return d;
 }
 
-inline SpriteData make_golem_sprite_data() {
+SpriteData make_golem_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {11, 5, 73, 80};
     d.frame_rects[DIR_SOUTH][1] = {107, 5, 73, 80};
@@ -401,7 +383,7 @@ inline SpriteData make_golem_sprite_data() {
     return d;
 }
 
-inline SpriteData make_banquero_sprite_data() {
+SpriteData make_banquero_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 1, 19, 47};
     d.frame_rects[DIR_SOUTH][1] = {26, 1, 19, 47};
@@ -426,7 +408,7 @@ inline SpriteData make_banquero_sprite_data() {
     return d;
 }
 
-inline SpriteData make_comerciante_sprite_data() {
+SpriteData make_comerciante_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 1, 21, 43};
     d.frame_rects[DIR_SOUTH][1] = {31, 1, 21, 43};
@@ -451,7 +433,7 @@ inline SpriteData make_comerciante_sprite_data() {
     return d;
 }
 
-inline SpriteData make_sacerdote_sprite_data() {
+SpriteData make_sacerdote_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {4, 0, 17, 45};
     d.frame_rects[DIR_SOUTH][1] = {29, 0, 17, 45};
@@ -476,15 +458,11 @@ inline SpriteData make_sacerdote_sprite_data() {
     return d;
 }
 
-inline SpriteData make_standard_sprite_data() {
+SpriteData make_standard_sprite_data() {
     return make_humano_sprite_data();
 }
 
-struct HeadData {
-    SDL_Rect head_rects[4];
-};
-
-inline HeadData make_humano_head_data() {
+HeadData make_humano_head_data() {
     HeadData d;
     d.head_rects[DIR_SOUTH] = {6, 13, 13, 17};
     d.head_rects[DIR_NORTH] = {6, 77, 13, 16};
@@ -493,7 +471,7 @@ inline HeadData make_humano_head_data() {
     return d;
 }
 
-inline HeadData make_elfo_head_data() {
+HeadData make_elfo_head_data() {
     HeadData d;
     d.head_rects[DIR_SOUTH] = {6, 13, 15, 16};
     d.head_rects[DIR_NORTH] = {6, 77, 15, 16};
@@ -502,7 +480,7 @@ inline HeadData make_elfo_head_data() {
     return d;
 }
 
-inline HeadData make_enano_head_data() {
+HeadData make_enano_head_data() {
     HeadData d;
     d.head_rects[DIR_SOUTH] = {7, 16, 13, 22};
     d.head_rects[DIR_NORTH] = {7, 80, 13, 15};
@@ -511,7 +489,7 @@ inline HeadData make_enano_head_data() {
     return d;
 }
 
-inline HeadData make_gnomo_head_data() {
+HeadData make_gnomo_head_data() {
     HeadData d;
     d.head_rects[DIR_SOUTH] = {7, 14, 12, 18};
     d.head_rects[DIR_NORTH] = {7, 76, 12, 15};
@@ -519,5 +497,3 @@ inline HeadData make_gnomo_head_data() {
     d.head_rects[DIR_WEST] = {7, 141, 12, 18};
     return d;
 }
-
-#endif

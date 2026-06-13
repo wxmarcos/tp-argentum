@@ -22,6 +22,9 @@ private:
 
     bool running;
 
+    template <typename Action>
+    static void quiet(Action&& action);
+
 public:
     ServerConnection(const std::string& hostname, const std::string& servname);
 
