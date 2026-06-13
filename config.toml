@@ -15,7 +15,7 @@ capacidad_max = 30
 constitucion_base  = 300
 inteligencia_base  = 300
 fuerza_base        = 300
-agilidad_base      = 300
+agilidad_base      = 3
 f_raza_vida        = 1.0
 f_raza_mana        = 1.0
 f_recuperacion     = 1.0
@@ -24,7 +24,7 @@ f_recuperacion     = 1.0
 constitucion_base  = 200
 inteligencia_base  = 450
 fuerza_base        = 250
-agilidad_base      = 450
+agilidad_base      = 5
 f_raza_vida        = 0.8
 f_raza_mana        = 1.3
 f_recuperacion     = 1.2
@@ -33,7 +33,7 @@ f_recuperacion     = 1.2
 constitucion_base  = 450
 inteligencia_base  = 150
 fuerza_base        = 400
-agilidad_base      = 200
+agilidad_base      = 1
 f_raza_vida        = 1.3
 f_raza_mana        = 0.7
 f_recuperacion     = 0.8
@@ -42,7 +42,7 @@ f_recuperacion     = 0.8
 constitucion_base  = 250
 inteligencia_base  = 400
 fuerza_base        = 200
-agilidad_base      = 350
+agilidad_base      = 4
 f_raza_vida        = 0.9
 f_raza_mana        = 1.2
 f_recuperacion     = 0.9
@@ -174,7 +174,7 @@ max_clients = 100
 # Mapas
 # -----------------------------------------------------------------------------
 [mapas.1]
-archivo_tmx = "assets/mapa/bosqueOscuro.tmx"
+archivo_tmx = "assets/mapa/bosque.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = 3
@@ -222,7 +222,7 @@ banqueros          = [{x = 45, y = 50}]
 portales           = []
 
 [mapas.4]
-archivo_tmx = "assets/mapa/mazmorra.tmx"
+archivo_tmx = "assets/mapa/bosqueOscuro.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = 2

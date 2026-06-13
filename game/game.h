@@ -1,10 +1,11 @@
 #pragma once
+#include <chrono>
 #include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <chrono>
+
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
 #include "game/banco/cuentaBanco.h"
@@ -23,6 +24,13 @@ struct ResultadoAtaque {
     bool fueEsquivado;
     bool fueCritico;
     bool objetivoMurio;
+};
+
+struct ResultadoTomarItem {
+    bool exito = false;
+    int slotInventario = -2;  // -1 oro, >=0 slot, -2 error
+    std::string itemNombre;
+    uint16_t cantidad = 0;
 };
 
 class Game {
@@ -46,13 +54,12 @@ private:
 
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
     std::unordered_map<std::string, std::chrono::steady_clock::time_point>
-    last_move_by_player;
+        last_move_by_player;
 
     bool puedeMoverAhora(const std::string& nombre);
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
-    void cargarJugadoresPersistidos();
     std::string to_lower(const std::string& str) const;
     bool restaurarJugadorPersistido(const PersistenceTask& player);
 
@@ -60,19 +67,25 @@ private:
     // Helpers
     std::string getNombreJugadorPorComando(const Command& cmd) const;
     void agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
-                                  const std::string& nickQueEntra) const;
+                                  const std::string& nickQueEntra,
+                                  int mapaId) const;
+    void agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
+                                int mapaId) const;
+    void agregarReplayNpcs(std::vector<Snapshot>& snapshots, int mapaId) const;
     bool handle_meditation_interruption(Jugador* jugador,
                                         std::vector<Snapshot>& snapshots,
                                         const std::string& nombre);
     std::unique_ptr<Item> crear_item_por_nombre(const std::string& nombre);
     // Combate contra criaturas (logica separada de PvP)
     ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
-    void procesarDropCriatura(Jugador* atacante, Criatura* criatura);
+    void procesarDropCriatura(const std::string& criaturaId, Jugador* atacante,
+                              Criatura* criatura,
+                              std::vector<Snapshot>& snapshots);
 
     // IA de criaturas
     void tickCriaturas(float dt, std::vector<Snapshot>& snapshots);
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
-    void spawnCriaturas();
+    void spawnCriaturas(std::vector<Snapshot>& snapshots);
 
     // NPC y comportamiento
     struct InfoNPC {
@@ -122,5 +135,5 @@ public:
     const Mundo& getMundo() const;
 
     bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
-    std::optional<int> tomarItem(const std::string& nombre, int indice);
+    ResultadoTomarItem tomarItem(const std::string& nombre, int indice);
 };

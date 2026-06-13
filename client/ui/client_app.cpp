@@ -261,14 +261,18 @@ void ClientApp::handle_click(ServerConnection& connection,
     if (!state.has_local_position()) {
         return;
     }
+
     const int ts = config.tile_size;
+
     const int cam_offset_x =
-        config.window_width / 2 - state.get_local_x() * ts - ts / 2;
+        config.game_area_width() / 2 - state.get_local_x() * ts - ts / 2;
+
     const int cam_offset_y =
         config.window_height / 2 - state.get_local_y() * ts - ts / 2;
 
     const int tile_x = (mouse_x - cam_offset_x) / ts;
     const int tile_y = (mouse_y - cam_offset_y) / ts;
+
     if (tile_x < 0 || tile_y < 0) {
         return;
     }
