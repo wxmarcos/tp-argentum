@@ -23,13 +23,13 @@ target_sources(taller_game PRIVATE
     characters/character.cpp
     characters/jugador.cpp
 
-    # NPCs (stubs por ahora)
+    # NPCs
     characters/npcs/npc.cpp
     characters/npcs/sacerdote.cpp
     characters/npcs/comerciante.cpp
     characters/npcs/banquero.cpp
 
-    # Criaturas (stubs por ahora)
+    # Criaturas
     criaturas/criatura.cpp
     criaturas/goblin.cpp
     criaturas/esqueleto.cpp
@@ -52,12 +52,19 @@ target_sources(taller_game PRIVATE
 
     # Banco
     banco/cuentaBanco.cpp
+
     #Snapshot
     snapshot_factory.cpp
+
+    # Game
+    game/game.cpp
+    game/gameComandos.cpp
+    game/gameCombate.cpp
+    game/gameMundo.cpp
+
     # Mapa y juego
     mapa.cpp
     mundo.cpp
     clan.cpp
-    game.cpp
     tmx_loader.cpp
 )

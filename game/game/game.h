@@ -35,6 +35,7 @@ struct ResultadoTomarItem {
 
 class Game {
 private:
+    // ---- Estado general ----
     Config& config;
     Mundo mundo;
 
@@ -44,7 +45,22 @@ private:
     std::map<std::string, std::unique_ptr<Criatura>> criaturas;
     int nextCriaturaId;
 
-    // Spawn
+    std::unordered_map<uint16_t, std::string> player_id_to_nick;
+    std::unordered_map<std::string, std::chrono::steady_clock::time_point>
+        last_move_by_player;
+
+    // ---- NPCs ----
+    struct InfoNPC {
+        int mapaId, x, y;
+    };
+    
+    std::vector<InfoNPC> sacerdotes;
+    std::vector<InfoNPC> comerciantes;
+    std::vector<InfoNPC> banqueros;
+
+    std::map<std::string, CuentaBanco> cuentasBancarias;
+
+    // ---- Spawn de criaturas ----
     float tiempoDesdeUltimoSpawn;
     struct InfoSpawnMapa {
         int poblacionMax;
@@ -52,19 +68,16 @@ private:
     };
     std::map<int, InfoSpawnMapa> infoSpawn;
 
-    std::unordered_map<uint16_t, std::string> player_id_to_nick;
-    std::unordered_map<std::string, std::chrono::steady_clock::time_point>
-        last_move_by_player;
-
-    bool puedeMoverAhora(const std::string& nombre);
+    // ---- Inicialización (game.cpp) ----
     void cargarMundo();
     void inicializarRazas();
     void inicializarClases();
+    void cargarNPCs();
     std::string to_lower(const std::string& str) const;
     bool restaurarJugadorPersistido(const PersistenceTask& player);
+    bool puedeMoverAhora(const std::string& nombre);
 
-    bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
-    // Helpers
+    // ---- Helpers de replay/protocolo (game.cpp) ----
     std::string getNombreJugadorPorComando(const Command& cmd) const;
     void agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
                                   const std::string& nickQueEntra,
@@ -76,43 +89,42 @@ private:
                                         std::vector<Snapshot>& snapshots,
                                         const std::string& nombre);
     std::unique_ptr<Item> crear_item_por_nombre(const std::string& nombre);
-    // Combate contra criaturas (logica separada de PvP)
+
+    // ---- Combate (game_combat.cpp) ----
+    bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
     ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
     void procesarDropCriatura(const std::string& criaturaId, Jugador* atacante,
                               Criatura* criatura,
                               std::vector<Snapshot>& snapshots);
-
-    // IA de criaturas
-    void tickCriaturas(float dt, std::vector<Snapshot>& snapshots);
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
+
+    // ---- IA / mundo (game_world.cpp) ----
     void spawnCriaturas(std::vector<Snapshot>& snapshots);
-
-    // NPC y comportamiento
-    struct InfoNPC {
-        int mapaId, x, y;
-    };
-
-    std::vector<InfoNPC> sacerdotes;
-    std::vector<InfoNPC> comerciantes;
-    std::vector<InfoNPC> banqueros;
-
-    std::map<std::string, CuentaBanco> cuentasBancarias;
-
-    void cargarNPCs();
+    void tickCriaturas(float dt, std::vector<Snapshot>& snapshots);
     bool encontrarSacerdoteMasCercano(const Jugador* fantasma, InfoNPC& destino,
                                       float& distancia) const;
+    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
+
+    // ---- Comandos / items (game_commands.cpp) ----
     bool hayNPCCercano(const Jugador* jugador,
                        const std::vector<InfoNPC>& npcs) const;
-    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
+    bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
+    ResultadoTomarItem tomarItem(const std::string& nombre, int indice);
 
 public:
     explicit Game(Config& config);
 
-    std::vector<PersistenceTask> build_persistence_tasks_for_command(
-        const Command& cmd) const;
+    // Tick del juego (game.cpp)
+    std::vector<Snapshot> tick(float dt);
+
+    // Procesar un comando de cliente (game_commands.cpp)
     std::vector<Snapshot> process(const Command& cmd);
 
-    // Jugadores
+    // Persistencia (game.cpp)
+    std::vector<PersistenceTask> build_persistence_tasks_for_command(
+        const Command& cmd) const;
+    
+    // Jugadores (game.cpp)
     bool agregarJugador(const std::string& nombre, int mapaId, int posX,
                         int posY, const std::string& razaNombre,
                         const std::string& claseNombre);
@@ -121,19 +133,16 @@ public:
     const Jugador* getJugador(const std::string& nombre) const;
     bool moverJugador(const std::string& nombre, Direccion dir);
 
-    // Criaturas
+    // Criaturas (game.cpp)
     std::string agregarCriatura(const std::string& tipo, int mapaId, int posX,
                                 int posY);
     void removerCriatura(const std::string& id);
     Criatura* getCriatura(const std::string& id);
 
-    // Combate
+    // Combate PvP/PvE (game_combat.cpp)
     ResultadoAtaque atacar(const std::string& nombreAtacante,
                            const std::string& nombreObjetivo);
 
-    std::vector<Snapshot> tick(float dt);
+    // Mundo (game.cpp)
     const Mundo& getMundo() const;
-
-    bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
-    ResultadoTomarItem tomarItem(const std::string& nombre, int indice);
 };
