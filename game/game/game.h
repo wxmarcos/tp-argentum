@@ -10,6 +10,7 @@
 #include "common/snapshot/snapshot.h"
 #include "game/banco/cuentaBanco.h"
 #include "game/characters/jugador.h"
+#include "game/clan.h"
 #include "game/clases/charClase.h"
 #include "game/config.h"
 #include "game/criaturas/criatura.h"
@@ -43,6 +44,7 @@ private:
     std::map<std::string, std::unique_ptr<charClase>> clases;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;
     std::map<std::string, std::unique_ptr<Criatura>> criaturas;
+    std::map<std::string, Clan> clanes;
     int nextCriaturaId;
 
     std::unordered_map<uint16_t, std::string> player_id_to_nick;

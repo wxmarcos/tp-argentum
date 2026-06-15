@@ -1,4 +1,4 @@
-#include "game/game.h"
+#include "game.h"
 
 #include <algorithm>
 #include <iostream>
@@ -830,18 +830,239 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             break;
         }
 
-        // -- Clanes (pendientes) --------------------------
-        case protocol::ClientOpcode::CLAN_CREATE:
-        case protocol::ClientOpcode::CLAN_JOIN:
-        case protocol::ClientOpcode::CLAN_REVIEW:
-        case protocol::ClientOpcode::CLAN_ACCEPT:
-        case protocol::ClientOpcode::CLAN_REJECT:
-        case protocol::ClientOpcode::CLAN_BAN:
-        case protocol::ClientOpcode::CLAN_KICK:
-        case protocol::ClientOpcode::CLAN_LEAVE:
-            snapshots.push_back(Snapshot::error_message(
-                nombre, "Clanes todavia no implementados"));
+        // -- Clanes -----------------------------------------
+        case protocol::ClientOpcode::CLAN_CREATE: {
+            std::string clanNom = cmd.get_clan_name();
+            Jugador* j = getJugador(nombre);
+            if (!j) break;
+            if (clanNom.empty()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "El nombre del clan no puede ser vacio"));
+                break;
+            }
+            if (j->estaEnClan()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Ya perteneces a un clan"));
+                break;
+            }
+            if (clanes.count(clanNom)) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Ya existe un clan con ese nombre"));
+                break;
+            }
+            clanes.emplace(clanNom, Clan(clanNom, nombre));
+            j->setClanNombre(clanNom);
+            snapshots.push_back(Snapshot::chat_message(
+                "Sistema", nombre,
+                "Clan '" + clanNom + "' creado. Eres el fundador."));
             break;
+        }
+
+        case protocol::ClientOpcode::CLAN_JOIN: {
+            std::string clanNom = cmd.get_clan_name();
+            Jugador* j = getJugador(nombre);
+            if (!j) break;
+            if (j->estaEnClan()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Ya perteneces a un clan"));
+                break;
+            }
+            auto it = clanes.find(clanNom);
+            if (it == clanes.end()) {
+                snapshots.push_back(
+                    Snapshot::error_message(nombre, "El clan no existe"));
+                break;
+            }
+            Clan& clan = it->second;
+            if (clan.esMiembro(nombre)) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Ya eres miembro de ese clan"));
+                break;
+            }
+            if (clan.hayPendiente(nombre)) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Ya tienes una solicitud pendiente en ese clan"));
+                break;
+            }
+            clan.agregarSolicitud(nombre);
+            snapshots.push_back(Snapshot::chat_message(
+                "Sistema", nombre,
+                "Solicitud enviada al clan '" + clanNom + "'"));
+            // Notificar al fundador si está online
+            const std::string& fundador = clan.getFundador();
+            if (jugadores.count(fundador)) {
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", fundador,
+                    nombre + " quiere unirse a tu clan."));
+            }
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_REVIEW: {
+            Jugador* j = getJugador(nombre);
+            if (!j || !j->estaEnClan()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No perteneces a un clan"));
+                break;
+            }
+            auto it = clanes.find(j->getClanNombre());
+            if (it == clanes.end()) break;
+            Clan& clan = it->second;
+            if (clan.getFundador() != nombre) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Solo el fundador puede ver las solicitudes"));
+                break;
+            }
+            const auto& sols = clan.getSolicitudes();
+            if (sols.empty()) {
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", nombre, "No hay solicitudes pendientes."));
+            } else {
+                std::string lista = "Solicitudes pendientes: ";
+                for (size_t i = 0; i < sols.size(); ++i) {
+                    if (i > 0) lista += ", ";
+                    lista += sols[i];
+                }
+                snapshots.push_back(
+                    Snapshot::chat_message("Sistema", nombre, lista));
+            }
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_ACCEPT: {
+            std::string nickSol = cmd.get_nick();
+            Jugador* j = getJugador(nombre);
+            if (!j || !j->estaEnClan()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No perteneces a un clan"));
+                break;
+            }
+            auto it = clanes.find(j->getClanNombre());
+            if (it == clanes.end()) break;
+            Clan& clan = it->second;
+            if (clan.getFundador() != nombre) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Solo el fundador puede aceptar solicitudes"));
+                break;
+            }
+            if (!clan.hayPendiente(nickSol)) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No hay solicitud pendiente de " + nickSol));
+                break;
+            }
+            clan.aprobarSolicitud(nickSol);
+            Jugador* ingresante = getJugador(nickSol);
+            if (ingresante) {
+                ingresante->setClanNombre(j->getClanNombre());
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", nickSol,
+                    "Tu solicitud al clan '" + j->getClanNombre() +
+                        "' fue aceptada!"));
+            }
+            snapshots.push_back(Snapshot::chat_message(
+                "Sistema", nombre, nickSol + " ahora es miembro del clan."));
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_REJECT: {
+            std::string nickSol = cmd.get_nick();
+            Jugador* j = getJugador(nombre);
+            if (!j || !j->estaEnClan()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No perteneces a un clan"));
+                break;
+            }
+            auto it = clanes.find(j->getClanNombre());
+            if (it == clanes.end()) break;
+            Clan& clan = it->second;
+            if (clan.getFundador() != nombre) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Solo el fundador puede rechazar solicitudes"));
+                break;
+            }
+            if (!clan.rechazarSolicitud(nickSol)) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No hay solicitud pendiente de " + nickSol));
+                break;
+            }
+            Jugador* solicitante = getJugador(nickSol);
+            if (solicitante) {
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", nickSol,
+                    "Tu solicitud al clan '" + j->getClanNombre() +
+                        "' fue rechazada."));
+            }
+            snapshots.push_back(Snapshot::chat_message(
+                "Sistema", nombre,
+                "Solicitud de " + nickSol + " rechazada."));
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_BAN:
+        case protocol::ClientOpcode::CLAN_KICK: {
+            std::string nickTarget = cmd.get_nick();
+            Jugador* j = getJugador(nombre);
+            if (!j || !j->estaEnClan()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No perteneces a un clan"));
+                break;
+            }
+            auto it = clanes.find(j->getClanNombre());
+            if (it == clanes.end()) break;
+            Clan& clan = it->second;
+            if (clan.getFundador() != nombre) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "Solo el fundador puede expulsar miembros"));
+                break;
+            }
+            if (nickTarget == nombre) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No puedes expulsarte a ti mismo"));
+                break;
+            }
+            if (!clan.removerMiembro(nickTarget)) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, nickTarget + " no es miembro del clan"));
+                break;
+            }
+            Jugador* expulsado = getJugador(nickTarget);
+            if (expulsado) {
+                expulsado->setClanNombre("");
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", nickTarget,
+                    "Fuiste expulsado del clan '" + j->getClanNombre() +
+                        "'."));
+            }
+            snapshots.push_back(Snapshot::chat_message(
+                "Sistema", nombre, nickTarget + " fue expulsado del clan."));
+            break;
+        }
+
+        case protocol::ClientOpcode::CLAN_LEAVE: {
+            Jugador* j = getJugador(nombre);
+            if (!j || !j->estaEnClan()) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "No perteneces a un clan"));
+                break;
+            }
+            auto it = clanes.find(j->getClanNombre());
+            if (it == clanes.end()) {
+                j->setClanNombre("");
+                break;
+            }
+            Clan& clan = it->second;
+            if (clan.getFundador() == nombre) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "El fundador no puede abandonar el clan"));
+                break;
+            }
+            clan.removerMiembro(nombre);
+            std::string clanNom = j->getClanNombre();
+            j->setClanNombre("");
+            snapshots.push_back(Snapshot::chat_message(
+                "Sistema", nombre, "Abandonaste el clan '" + clanNom + "'."));
+            break;
+        }
 
         default:
             snapshots.push_back(

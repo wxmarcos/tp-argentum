@@ -30,3 +30,32 @@ bool Clan::esMiembro(const std::string& nombre) const {
 }
 
 const std::vector<std::string>& Clan::getMiembros() const { return miembros; }
+
+void Clan::agregarSolicitud(const std::string& nombre) {
+    if (!hayPendiente(nombre) && !esMiembro(nombre))
+        solicitudes.push_back(nombre);
+}
+
+bool Clan::hayPendiente(const std::string& nombre) const {
+    return std::find(solicitudes.begin(), solicitudes.end(), nombre) !=
+           solicitudes.end();
+}
+
+bool Clan::aprobarSolicitud(const std::string& nombre) {
+    auto it = std::find(solicitudes.begin(), solicitudes.end(), nombre);
+    if (it == solicitudes.end()) return false;
+    solicitudes.erase(it);
+    miembros.push_back(nombre);
+    return true;
+}
+
+bool Clan::rechazarSolicitud(const std::string& nombre) {
+    auto it = std::find(solicitudes.begin(), solicitudes.end(), nombre);
+    if (it == solicitudes.end()) return false;
+    solicitudes.erase(it);
+    return true;
+}
+
+const std::vector<std::string>& Clan::getSolicitudes() const {
+    return solicitudes;
+}

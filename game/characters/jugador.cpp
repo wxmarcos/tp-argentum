@@ -259,6 +259,11 @@ bool Jugador::resurreccionCompleta() const {
     return resucitando && tiempoResucitando <= 0.0f;
 }
 
+// ----------------------- Clan -----------------------
+const std::string& Jugador::getClanNombre() const { return clanNombre; }
+void Jugador::setClanNombre(const std::string& nombre) { clanNombre = nombre; }
+bool Jugador::estaEnClan() const { return !clanNombre.empty(); }
+
 // ----------------------- Cheats -----------------------
 bool Jugador::toggleCheatVidaInfinita() {
     cheatVidaInfinita = !cheatVidaInfinita;
