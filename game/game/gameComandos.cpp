@@ -884,6 +884,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                     nombre, "Ya tienes una solicitud pendiente en ese clan"));
                 break;
             }
+            if (static_cast<int>(clan.getMiembros().size()) >= Clan::MAX_MIEMBROS) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "El clan ya tiene el maximo de miembros"));
+                break;
+            }
             clan.agregarSolicitud(nombre);
             snapshots.push_back(Snapshot::chat_message(
                 "Sistema", nombre,
@@ -948,6 +953,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             if (!clan.hayPendiente(nickSol)) {
                 snapshots.push_back(Snapshot::error_message(
                     nombre, "No hay solicitud pendiente de " + nickSol));
+                break;
+            }
+            if (static_cast<int>(clan.getMiembros().size()) >= Clan::MAX_MIEMBROS) {
+                snapshots.push_back(Snapshot::error_message(
+                    nombre, "El clan ya tiene el maximo de miembros"));
                 break;
             }
             clan.aprobarSolicitud(nickSol);

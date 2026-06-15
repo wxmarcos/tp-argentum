@@ -28,6 +28,11 @@ bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
     Mapa* mapa = mundo.getMapa(atacante->getMapaId());
     if (mapa && mapa->esZonaSegura()) return false;
 
+    // Mismo clan
+    if (atacante->estaEnClan() &&
+        atacante->getClanNombre() == objetivo->getClanNombre())
+        return false;
+
     return true;
 }
 
