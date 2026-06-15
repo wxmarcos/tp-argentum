@@ -8,6 +8,7 @@
 
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
+#include "common/snapshot/snapshot_outgoing.h"
 #include "game/banco/cuentaBanco.h"
 #include "game/characters/jugador.h"
 #include "game/clases/charClase.h"
@@ -46,6 +47,7 @@ private:
     int nextCriaturaId;
 
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
+    std::unordered_map<std::string, uint16_t> nick_to_player_id;
     std::unordered_map<std::string, std::chrono::steady_clock::time_point>
         last_move_by_player;
 
@@ -76,17 +78,41 @@ private:
     std::string to_lower(const std::string& str) const;
     bool restaurarJugadorPersistido(const PersistenceTask& player);
     bool puedeMoverAhora(const std::string& nombre);
+    // 
+    static void push_broadcast(std::vector<OutgoingSnapshot>& out,
+                            Snapshot snapshot) {
+        out.push_back(OutgoingSnapshot::broadcast(std::move(snapshot)));
+    }
 
+    static void push_unicast(std::vector<OutgoingSnapshot>& out,
+                            Snapshot snapshot,
+                            uint16_t player_id) {
+        out.push_back(OutgoingSnapshot::unicast(std::move(snapshot), player_id));
+    }
+
+    static void push_multicast(std::vector<OutgoingSnapshot>& out,
+                            Snapshot snapshot,
+                            std::vector<uint16_t> recipients) {
+        out.push_back(
+            OutgoingSnapshot::multicast(std::move(snapshot), std::move(recipients)));
+    }
     // ---- Helpers de replay/protocolo (game.cpp) ----
     std::string getNombreJugadorPorComando(const Command& cmd) const;
-    void agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
-                                  const std::string& nickQueEntra,
-                                  int mapaId) const;
-    void agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
-                                int mapaId) const;
-    void agregarReplayNpcs(std::vector<Snapshot>& snapshots, int mapaId) const;
+    void agregarReplayDeJugadores(std::vector<OutgoingSnapshot>& snapshots,
+                              const std::string& nickQueEntra,
+                              int mapaId,
+                              uint16_t playerId) const;
+
+    void agregarReplayCriaturas(std::vector<OutgoingSnapshot>& snapshots,
+                                int mapaId,
+                                uint16_t playerId) const;
+
+    void agregarReplayNpcs(std::vector<OutgoingSnapshot>& snapshots,
+                        int mapaId,
+                        uint16_t playerId) const;
+
     bool handle_meditation_interruption(Jugador* jugador,
-                                        std::vector<Snapshot>& snapshots,
+                                        std::vector<OutgoingSnapshot>& snapshots,
                                         const std::string& nombre);
     std::unique_ptr<Item> crear_item_por_nombre(const std::string& nombre);
 
@@ -95,15 +121,15 @@ private:
     ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
     void procesarDropCriatura(const std::string& criaturaId, Jugador* atacante,
                               Criatura* criatura,
-                              std::vector<Snapshot>& snapshots);
+                              std::vector<OutgoingSnapshot>& snapshots);
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
 
     // ---- IA / mundo (game_world.cpp) ----
-    void spawnCriaturas(std::vector<Snapshot>& snapshots);
-    void tickCriaturas(float dt, std::vector<Snapshot>& snapshots);
+    void spawnCriaturas(std::vector<OutgoingSnapshot>& snapshots);
+    void tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots);
     bool encontrarSacerdoteMasCercano(const Jugador* fantasma, InfoNPC& destino,
                                       float& distancia) const;
-    void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
+    void tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots);
 
     // ---- Comandos / items (game_commands.cpp) ----
     bool hayNPCCercano(const Jugador* jugador,
@@ -115,10 +141,10 @@ public:
     explicit Game(Config& config);
 
     // Tick del juego (game.cpp)
-    std::vector<Snapshot> tick(float dt);
+    std::vector<OutgoingSnapshot> tick(float dt);
 
     // Procesar un comando de cliente (game_commands.cpp)
-    std::vector<Snapshot> process(const Command& cmd);
+    std::vector<OutgoingSnapshot> process(const Command& cmd);
 
     // Persistencia (game.cpp)
     std::vector<PersistenceTask> build_persistence_tasks_for_command(

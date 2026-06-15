@@ -81,7 +81,7 @@ static std::unique_ptr<Item> crearItemAleatorio() {
 
 void Game::procesarDropCriatura(const std::string& criaturaId,
                                 Jugador* /*atacante*/, Criatura* criatura,
-                                std::vector<Snapshot>& snapshots) {
+                                std::vector<OutgoingSnapshot>& snapshots) {
     double r = static_cast<double>(rand()) / RAND_MAX;
 
     if (r < 0.90) return;
@@ -96,12 +96,11 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         mundo.tirarItem(mx, px, py,
                         SlotInventario(ItemFactory::crearOro(cantidad)));
-
-        snapshots.push_back(Snapshot::item_event(
+            
+        push_broadcast(snapshots, Snapshot::item_event(
             static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
             nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
             static_cast<uint16_t>(py), static_cast<uint16_t>(cantidad)));
-
         return;
     }
 
@@ -114,7 +113,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(pocion)));
 
-        snapshots.push_back(Snapshot::item_event(
+        push_broadcast(snapshots, Snapshot::item_event(
             static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
             nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
             static_cast<uint16_t>(py), 1));
@@ -127,7 +126,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
     mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
 
-    snapshots.push_back(Snapshot::item_event(
+    push_broadcast(snapshots, Snapshot::item_event(
         static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
         nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
         static_cast<uint16_t>(py), 1));

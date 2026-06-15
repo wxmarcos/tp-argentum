@@ -152,7 +152,7 @@ public:
     bool is_entity_login() const;
     bool is_entity_move() const;
     bool is_entity_remove() const;
-
+    bool is_cheat_status() const;
     bool is_damage_event() const;
     bool is_dodge_event() const;
     bool is_death_event() const;

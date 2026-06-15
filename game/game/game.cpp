@@ -201,10 +201,6 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
             default:
                 break;
         }
-        std::cout << "[Game] cargando item " << item_persistido.item
-                  << " slot_persistido=" << item_persistido.slot_id
-                  << " cantidad=" << item_persistido.cantidad
-                  << " equipado=" << item_persistido.equipado << "\n";
     }
 
     return true;
@@ -231,9 +227,9 @@ std::string Game::getNombreJugadorPorComando(const Command& cmd) const {
     return (it != player_id_to_nick.end()) ? it->second : "";
 }
 
-void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
+void Game::agregarReplayDeJugadores(std::vector<OutgoingSnapshot>& snapshots,
                                     const std::string& nickQueEntra,
-                                    int mapaId) const {
+                                    int mapaId, uint16_t playerId) const {
     for (const auto& [nombre, otro] : jugadores) {
         if (nombre == nickQueEntra) {
             continue;
@@ -243,62 +239,62 @@ void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
             continue;
         }
 
-        snapshots.push_back(Snapshot::entity_created(
+         push_unicast(snapshots,Snapshot::entity_created(
             nombre, mapaId, static_cast<uint16_t>(otro->getPosX()),
             static_cast<uint16_t>(otro->getPosY()),
-            static_cast<uint8_t>(otro->getDireccion())));
+            static_cast<uint8_t>(otro->getDireccion())),playerId);
     }
 }
 
-void Game::agregarReplayNpcs(std::vector<Snapshot>& snapshots,
-                             int mapaId) const {
+void Game::agregarReplayNpcs(std::vector<OutgoingSnapshot>& snapshots,
+                             int mapaId, uint16_t playerId) const {
     int id = 0;
 
     for (const auto& npc : sacerdotes) {
         if (npc.mapaId != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
+        push_unicast(snapshots, Snapshot::entity_created(
             "npc_sacerdote_" + std::to_string(id++), mapaId,
-            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
+            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2), playerId);
     }
 
     for (const auto& npc : comerciantes) {
         if (npc.mapaId != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
+         push_unicast(snapshots, Snapshot::entity_created(
             "npc_comerciante_" + std::to_string(id++), mapaId,
-            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
+            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2), playerId);
     }
 
     for (const auto& npc : banqueros) {
         if (npc.mapaId != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
+         push_unicast(snapshots,Snapshot::entity_created(
             "npc_banquero_" + std::to_string(id++), mapaId,
-            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
+            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2),playerId);
     }
 }
 
-void Game::agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
-                                  int mapaId) const {
+void Game::agregarReplayCriaturas(std::vector<OutgoingSnapshot>& snapshots,
+                                  int mapaId, uint16_t playerId) const {
     for (const auto& [id, criatura] : criaturas) {
         if (criatura->getMapaId() != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
+        push_unicast(snapshots, Snapshot::entity_created(
             id, mapaId, static_cast<uint16_t>(criatura->getPosX()),
             static_cast<uint16_t>(criatura->getPosY()),
-            static_cast<uint8_t>(criatura->getDireccion())));
+            static_cast<uint8_t>(criatura->getDireccion())), playerId);
     }
 }
 
 bool Game::handle_meditation_interruption(Jugador* jugador,
-                                          std::vector<Snapshot>& snapshots,
+                                          std::vector<OutgoingSnapshot>& snapshots,
                                           const std::string& nombre) {
     if (!jugador || !jugador->estaMeditando()) return false;
 
     jugador->interrumpirMeditacion();
-    snapshots.push_back(Snapshot::meditation_status(nombre, false));
-    snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+    push_broadcast(snapshots, Snapshot::meditation_status(nombre, false));
+    push_broadcast(snapshots, SnapshotFactory::player_stats_from_player(*jugador));
     return true;
 }
 
@@ -434,8 +430,8 @@ Criatura* Game::getCriatura(const std::string& id) {
 
 // ----------------- Tick -----------------
 
-std::vector<Snapshot> Game::tick(float dt) {
-    std::vector<Snapshot> snapshots;
+std::vector<OutgoingSnapshot> Game::tick(float dt) {
+    std::vector<OutgoingSnapshot> snapshots;
 
     for (auto& [nombre, jugador] : jugadores) {
         int oldVida = jugador->getVidaActual();
@@ -447,8 +443,7 @@ std::vector<Snapshot> Game::tick(float dt) {
         int nuevaMana = jugador->getManaActual();
 
         if (oldVida != nuevaVida || oldMana != nuevaMana) {
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(snapshots, SnapshotFactory::player_stats_from_player(*jugador));
         }
     }
 
