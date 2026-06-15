@@ -1,1 +1,1 @@
-int main() { return 0; }
+// Archivo vacío — los tests están en protocol_test.cpp
