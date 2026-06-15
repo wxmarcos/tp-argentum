@@ -72,6 +72,7 @@ public:
     int getNivel() const;
     int getExperiencia() const;
     void ganarExperiencia(int exp);
+    void perderExperiencia(int cantidad);
 
     // Oro
     int getOro() const;

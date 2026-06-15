@@ -106,6 +106,11 @@ void Jugador::ganarExperiencia(int exp) {
     verificarSubidaNivel();
 }
 
+void Jugador::perderExperiencia(int cantidad) {
+    if (cantidad <= 0) return;
+    experiencia = std::max(0, experiencia - cantidad);
+}
+
 // ----------------------- Oro -----------------------
 int Jugador::getOro() const { return oro; }
 int Jugador::getOroMax() const { return Formulas::calcularOroMax(nivel, formulaOroCoef, formulaOroExp); }

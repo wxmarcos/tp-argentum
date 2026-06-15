@@ -75,6 +75,7 @@ f_clase_meditacion = 1.0
 # -----------------------------------------------------------------------------
 [formulas]
 critico_porcentaje      = 20      # % de probabilidad de golpe crítico
+exp_penalidad_porcentaje = 5      # % de exp actual que se pierde al morir
 exp_coeficiente         = 1000.0  # LimiteExp = coef * nivel^exp
 exp_exponente           = 1.8
 oro_max_coeficiente     = 100.0   # OroMax = coef * nivel^exp

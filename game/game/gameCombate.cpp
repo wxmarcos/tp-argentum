@@ -272,6 +272,9 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
 
     resultado.objetivoMurio = !objetivo->estaVivo();
     if (resultado.objetivoMurio) {
+        objetivo->perderExperiencia(Formulas::calcularExpPerdida(
+            objetivo->getExperiencia(),
+            config.getFormulaExpPenalidadPorcentaje()));
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
             objetivo->getVidaMax(), objetivo->getNivel(),
             atacante->getNivel()));

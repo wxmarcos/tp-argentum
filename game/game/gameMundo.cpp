@@ -112,6 +112,13 @@ void Game::tickCriaturas(float dt, std::vector<Snapshot>& snapshots) {
                 SnapshotFactory::player_stats_from_player(*objetivo));
 
             if (!objetivo->estaVivo()) {
+                objetivo->perderExperiencia(Formulas::calcularExpPerdida(
+                    objetivo->getExperiencia(),
+                    config.getFormulaExpPenalidadPorcentaje()));
+
+                snapshots.push_back(
+                    SnapshotFactory::player_stats_from_player(*objetivo));
+
                 snapshots.push_back(
                     Snapshot::death_event(objetivo->getNombre()));
                 snapshots.push_back(
