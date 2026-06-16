@@ -266,10 +266,6 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             if (resultado.fueEsquivado) {
                 snapshots.push_back(Snapshot::dodge_event(nombre, objetivo));
-                snapshots.push_back(Snapshot::chat_message(
-                    "Sistema", nombre, objetivo + " esquivo tu ataque"));
-                snapshots.push_back(Snapshot::chat_message(
-                    "Sistema", objetivo, "Esquivaste el ataque de " + nombre));
                 break;
             }
 
@@ -279,16 +275,6 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 resultado.fueCritico));
 
             {
-                std::string sufijo = resultado.fueCritico ? " (CRITICO!)" : "";
-                snapshots.push_back(Snapshot::chat_message(
-                    "Sistema", nombre,
-                    "Le hiciste " + std::to_string(resultado.danioAplicado) +
-                        " de daño a " + objetivo + sufijo));
-                snapshots.push_back(Snapshot::chat_message(
-                    "Sistema", objetivo,
-                    "Recibiste " + std::to_string(resultado.danioAplicado) +
-                        " de daño de " + nombre + sufijo));
-
                 // Notificar al clan de la victima
                 if (Jugador* victima = getJugador(objetivo)) {
                     if (victima->estaEnClan()) {
@@ -316,8 +302,6 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             if (resultado.objetivoMurio) {
                 snapshots.push_back(Snapshot::death_event(objetivo));
                 snapshots.push_back(Snapshot::entity_remove(objetivo));
-                snapshots.push_back(Snapshot::chat_message(
-                    "Sistema", nombre, "Mataste a " + objetivo));
 
                 if (Criatura* criatura = getCriatura(objetivo)) {
                     procesarDropCriatura(objetivo, jugador, criatura,
