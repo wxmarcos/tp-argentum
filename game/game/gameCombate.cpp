@@ -36,6 +36,27 @@ bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
     return true;
 }
 
+static std::unique_ptr<Item> crearArma() {
+    using Fn = std::unique_ptr<Item> (*)();
+    static const Fn items[] = {
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearEspada(); },
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearHacha(); },
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearMartillo(); },
+    };
+    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    return items[idx]();
+}
+
+static std::unique_ptr<Item> crearEscudo() {
+    using Fn = std::unique_ptr<Item> (*)();
+    static const Fn items[] = {
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeTortuga(); },
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeHierro(); },
+    };
+    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    return items[idx]();
+}
+
 static std::unique_ptr<Item> crearItemAleatorio() {
     using Fn = std::unique_ptr<Item> (*)();
     static const Fn items[] = {
@@ -89,13 +110,14 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
                                 std::vector<Snapshot>& snapshots) {
     double r = static_cast<double>(rand()) / RAND_MAX;
 
-    if (r < 0.90) return;
+    if (r < 0.80) return;
 
     int mx = criatura->getMapaId();
     int px = criatura->getPosX();
     int py = criatura->getPosY();
 
-    if (r < 0.98) {
+    // 0.80–0.87: oro (8%)
+    if (r < 0.88) {
         int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax());
         std::string nombreItem = item_defs::ORO;
 
@@ -110,7 +132,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    if (r < 0.99) {
+    // 0.88: poción (1%)
+    if (r < 0.89) {
         bool esVida = rand() % 2 == 0;
         auto pocion = esVida ? ItemFactory::crearPocionDeVida()
                              : ItemFactory::crearPocionDeMana();
@@ -127,7 +150,38 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    auto item = crearItemAleatorio();
+    // 0.89: item aleatorio (1%)
+    if (r < 0.90) {
+        auto item = crearItemAleatorio();
+        std::string nombreItem = item->getNombre();
+
+        mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
+
+        snapshots.push_back(Snapshot::item_event(
+            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), 1));
+
+        return;
+    }
+
+    // 0.90–0.94: arma (5%)
+    if (r < 0.95) {
+        auto item = crearArma();
+        std::string nombreItem = item->getNombre();
+
+        mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
+
+        snapshots.push_back(Snapshot::item_event(
+            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), 1));
+
+        return;
+    }
+
+    // 0.95–1.00: escudo (5%)
+    auto item = crearEscudo();
     std::string nombreItem = item->getNombre();
 
     mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
