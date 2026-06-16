@@ -3,6 +3,7 @@
 #include "common/protocol_defs.h"
 #include "game/items/inventario.h"
 #include "game/items/item_defs.h"
+#include "game/items/itemFactory.h"
 #include "game/snapshot_factory.h"
 
 // ----------------- BUY ITEM -----------------
@@ -202,4 +203,86 @@ void Game::handleWithdrawGold(const std::string& nombre, const Command& cmd,
 
     jugador->agregarOro(cantidad);
     snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+}
+
+// ----------------- LIST ITEMS -----------------
+
+void Game::handleListItems(const std::string& nombre,
+                           std::vector<Snapshot>& snapshots) {
+    Jugador* jugador = getJugador(nombre);
+    if (!jugador) return;
+
+    const bool comercianteCerca = hayNPCCercano(jugador, comerciantes);
+    const bool sacerdoteCerca = hayNPCCercano(jugador, sacerdotes);
+    const bool banqueroCerca = hayNPCCercano(jugador, banqueros);
+
+    if (!comercianteCerca && !sacerdoteCerca && !banqueroCerca) {
+        snapshots.push_back(Snapshot::error_message(
+            nombre,
+            "Debes estar cerca de un comerciante, sacerdote o banquero"));
+        return;
+    }
+
+    if (banqueroCerca) {
+        const auto& cuenta =
+            cuentasBancarias.try_emplace(nombre, nombre).first->second;
+        const auto& items = cuenta.getItems();
+        snapshots.push_back(Snapshot::chat_message(
+            "Banquero", nombre,
+            "Banco — Oro: " + std::to_string(cuenta.getOro())));
+        if (items.empty()) {
+            snapshots.push_back(Snapshot::chat_message(
+                "Banquero", nombre, "No tienes items guardados."));
+        } else {
+            for (size_t i = 0; i < items.size(); ++i) {
+                const auto& slot = items[i];
+                std::string linea = "[" + std::to_string(i) + "] " +
+                                    slot.item->getNombre();
+                if (slot.cantidad > 1)
+                    linea += " x" + std::to_string(slot.cantidad);
+                snapshots.push_back(
+                    Snapshot::chat_message("Banquero", nombre, linea));
+            }
+        }
+    }
+
+    // Items del comerciante (todo excepto báculos)
+    static const std::vector<std::string> itemsComerciante = {
+        "espada",        "hacha",          "martillo",
+        "arco_simple",   "arco_compuesto",
+        "armadura_de_cuero", "armadura_de_placas", "tunica_azul",
+        "capucha",       "casco_de_hierro",  "sombrero_magico",
+        "escudo_de_tortuga", "escudo_de_hierro",
+        "pocion_de_vida", "pocion_de_mana"};
+
+    // Items del sacerdote (báculos y pociones)
+    static const std::vector<std::string> itemsSacerdote = {
+        "vara_de_fresno", "flauta_elfica", "baculo_nudoso", "baculo_engarzado",
+        "pocion_de_vida",  "pocion_de_mana"};
+
+    if (comercianteCerca) {
+        snapshots.push_back(
+            Snapshot::chat_message("Comerciante", nombre, "Mis productos:"));
+        for (const auto& item : itemsComerciante) {
+            int precio = config.getPrecioItem(item);
+            if (precio > 0) {
+                snapshots.push_back(Snapshot::chat_message(
+                    "Comerciante", nombre,
+                    "  " + item + " — " + std::to_string(precio) + " oro"));
+            }
+        }
+    }
+
+    if (sacerdoteCerca) {
+        snapshots.push_back(
+            Snapshot::chat_message("Sacerdote", nombre, "Mis productos:"));
+        for (const auto& item : itemsSacerdote) {
+            int precio = config.getPrecioItem(item);
+            if (precio > 0) {
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sacerdote", nombre,
+                    "  " + item + " — " + std::to_string(precio) + " oro"));
+            }
+        }
+    }
 }

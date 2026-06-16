@@ -116,6 +116,7 @@ std::optional<Command> CommandParser::parse(const std::string& line) const {
     if (cmd == "curar") return Command::heal();
     if (cmd == "resucitar") return Command::resurrect();
     if (cmd == "tomar") return Command::pick_item();
+    if (cmd == "listar") return Command::list_items();
     if (cmd == "comprar") {
         if (rest.empty()) return std::nullopt;
         return Command::buy_item(rest);
@@ -134,6 +135,34 @@ std::optional<Command> CommandParser::parse(const std::string& line) const {
     }
     if (cmd == "depositar") return parse_deposit(rest);
     if (cmd == "retirar") return parse_withdraw(rest);
+
+    // ---- Clanes ----
+    if (cmd == "fundar-clan") {
+        if (rest.empty()) return std::nullopt;
+        return Command::clan_create(rest);
+    }
+    if (cmd == "unirse") {
+        if (rest.empty()) return std::nullopt;
+        return Command::clan_join(rest);
+    }
+    if (cmd == "revisar-clan") return Command::clan_review();
+    if (cmd == "clan-aceptar") {
+        if (rest.empty()) return std::nullopt;
+        return Command::clan_accept(rest);
+    }
+    if (cmd == "clan-rechazar") {
+        if (rest.empty()) return std::nullopt;
+        return Command::clan_reject(rest);
+    }
+    if (cmd == "clan-ban") {
+        if (rest.empty()) return std::nullopt;
+        return Command::clan_ban(rest);
+    }
+    if (cmd == "clan-kick") {
+        if (rest.empty()) return std::nullopt;
+        return Command::clan_kick(rest);
+    }
+    if (cmd == "dejar-clan") return Command::clan_leave();
 
     return std::nullopt;
 }

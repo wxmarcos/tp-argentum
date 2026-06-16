@@ -179,6 +179,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             protocol::ClientOpcode::WITHDRAW_ITEM,
             protocol::ClientOpcode::DEPOSIT_GOLD,
             protocol::ClientOpcode::WITHDRAW_GOLD,
+            protocol::ClientOpcode::LIST_ITEMS,
         };
     if (jugador && !jugador->estaVivo()) {
         for (auto op : bloqueadosParaFantasma) {
@@ -228,6 +229,9 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             break;
         case protocol::ClientOpcode::WITHDRAW_GOLD:
             handleWithdrawGold(nombre, cmd, snapshots);
+            break;
+        case protocol::ClientOpcode::LIST_ITEMS:
+            handleListItems(nombre, snapshots);
             break;
 
         // ---- Clanes ----

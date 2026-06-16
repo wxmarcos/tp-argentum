@@ -139,6 +139,8 @@ private:
                            std::vector<Snapshot>& snapshots);
     void handleWithdrawGold(const std::string& nombre, const Command& cmd,
                             std::vector<Snapshot>& snapshots);
+    void handleListItems(const std::string& nombre,
+                         std::vector<Snapshot>& snapshots);
 
     // ---- Handlers de clanes (game_commands_clan.cpp) ----
     void handleClanCreate(const std::string& nombre, const Command& cmd,
