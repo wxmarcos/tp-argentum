@@ -52,6 +52,7 @@ static uint16_t player_stats_payload_size(const Snapshot& snapshot) {
         sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint16_t) +
         sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
         sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) +
+        sizeof(uint32_t) +
         sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
         sizeof(uint16_t));
 }
@@ -204,6 +205,7 @@ static void send_player_stats(Socket& socket, const Snapshot& snapshot) {
     send_u16(socket, snapshot.get_mana());
     send_u16(socket, snapshot.get_mana_max());
     send_u32(socket, snapshot.get_experiencia());
+    send_u32(socket, snapshot.get_exp_limite());
     send_u32(socket, snapshot.get_oro());
     send_u16(socket, snapshot.get_constitucion());
     send_u16(socket, snapshot.get_inteligencia());
@@ -417,6 +419,7 @@ static Snapshot recv_player_stats(Socket& socket, uint16_t payload_size) {
     uint16_t mana = recv_u16(socket);
     uint16_t mana_max = recv_u16(socket);
     uint32_t experiencia = recv_u32(socket);
+    uint32_t exp_limite = recv_u32(socket);
     uint32_t oro = recv_u32(socket);
     uint16_t constitucion = recv_u16(socket);
     uint16_t inteligencia = recv_u16(socket);
@@ -430,13 +433,13 @@ static Snapshot recv_player_stats(Socket& socket, uint16_t payload_size) {
             sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint8_t) +
             sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
             sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint32_t) +
-            sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) +
-            sizeof(uint16_t) + sizeof(uint16_t)),
+            sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint16_t) +
+            sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t)),
         "Snapshot::recv payload_size invalido");
     return Snapshot::player_stats(nick, raza, clase, mapa_id, x, y, direction,
                                   nivel, vida, vida_max, mana, mana_max,
-                                  experiencia, oro, constitucion, inteligencia,
-                                  fuerza, agilidad);
+                                  experiencia, exp_limite, oro, constitucion,
+                                  inteligencia, fuerza, agilidad);
 }
 
 static Snapshot recv_inventory_update(Socket& socket, uint16_t payload_size) {

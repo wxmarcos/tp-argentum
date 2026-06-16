@@ -143,8 +143,9 @@ Snapshot Snapshot::player_stats(
     const std::string& nick, const std::string& raza, const std::string& clase,
     uint16_t mapa_id, uint16_t x, uint16_t y, uint8_t direction, uint16_t nivel,
     uint16_t vida, uint16_t vida_max, uint16_t mana, uint16_t mana_max,
-    uint32_t experiencia, uint32_t oro, uint16_t constitucion,
-    uint16_t inteligencia, uint16_t fuerza, uint16_t agilidad) {
+    uint32_t experiencia, uint32_t exp_limite, uint32_t oro,
+    uint16_t constitucion, uint16_t inteligencia, uint16_t fuerza,
+    uint16_t agilidad) {
     Snapshot snapshot(protocol::ServerOpcode::PLAYER_STATS, nick);
 
     snapshot.raza = raza;
@@ -159,6 +160,7 @@ Snapshot Snapshot::player_stats(
     snapshot.mana = mana;
     snapshot.mana_max = mana_max;
     snapshot.experiencia = experiencia;
+    snapshot.exp_limite = exp_limite;
     snapshot.oro = oro;
     snapshot.constitucion = constitucion;
     snapshot.inteligencia = inteligencia;
@@ -167,6 +169,8 @@ Snapshot Snapshot::player_stats(
 
     return snapshot;
 }
+
+uint32_t Snapshot::get_exp_limite() const { return exp_limite; }
 Snapshot Snapshot::inventory_update(
     const std::string& nick, const std::vector<InventorySnapshotItem>& items) {
     Snapshot snapshot(protocol::ServerOpcode::INVENTORY_UPDATE, nick);

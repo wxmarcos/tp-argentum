@@ -1,4 +1,5 @@
 #pragma once
+#include <set>
 #include <string>
 #include <vector>
 
@@ -10,7 +11,8 @@ private:
     std::string nombre;
     std::string fundador;
     std::vector<std::string> miembros;
-    std::vector<std::string> solicitudes;  // solicitudes de ingreso pendientes
+    std::vector<std::string> solicitudes;
+    std::set<std::string> baneados;
 
 public:
     Clan(const std::string& nombre, const std::string& fundador);
@@ -27,4 +29,8 @@ public:
     bool aprobarSolicitud(const std::string& nombre);
     bool rechazarSolicitud(const std::string& nombre);
     const std::vector<std::string>& getSolicitudes() const;
+
+    // Ban
+    void banear(const std::string& nombre);
+    bool esBaneado(const std::string& nombre) const;
 };

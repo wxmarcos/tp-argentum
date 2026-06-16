@@ -293,7 +293,7 @@ TEST(Snapshot, PlayerStats) {
         /*mapa*/ 1, /*x*/ 10, /*y*/ 20, /*dir*/ 2,
         /*nivel*/ 5, /*vida*/ 80, /*vida_max*/ 100,
         /*mana*/ 30, /*mana_max*/ 50,
-        /*exp*/ 1500, /*oro*/ 200,
+        /*exp*/ 1500, /*exp_limite*/ 2000, /*oro*/ 200,
         /*con*/ 10, /*int*/ 8, /*fue*/ 12, /*agi*/ 9);
 
     EXPECT_TRUE(s.is_player_stats());

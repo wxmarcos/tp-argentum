@@ -220,6 +220,7 @@ void ClientGameState::apply_player_stats(const Snapshot& snapshot) {
         local_stats.mana = snapshot.get_mana();
         local_stats.mana_max = snapshot.get_mana_max();
         local_stats.experiencia = snapshot.get_experiencia();
+        local_stats.exp_limite = snapshot.get_exp_limite();
         local_stats.oro = snapshot.get_oro();
         local_stats.constitucion = snapshot.get_constitucion();
         local_stats.inteligencia = snapshot.get_inteligencia();

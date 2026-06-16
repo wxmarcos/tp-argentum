@@ -142,7 +142,9 @@ void HudRenderer::draw_vitals(const PlayerStats& s, int x, int w, int& y) {
 }
 
 void HudRenderer::draw_resources(const PlayerStats& s, int x, int& y) {
-    text.draw("Exp  " + std::to_string(s.experiencia), x, y, colors::WHITE);
+    text.draw("Exp  " + std::to_string(s.experiencia) + " / " +
+                  std::to_string(s.exp_limite),
+              x, y, colors::WHITE);
     y += text.line_height() + LINE_GAP;
     text.draw("Oro  " + std::to_string(s.oro), x, y, colors::ITEM_EQUIPPED);
     y += text.line_height() + SECTION_GAP;
