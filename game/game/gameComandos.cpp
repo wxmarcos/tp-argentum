@@ -75,6 +75,19 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         agregarReplayNpcs(snapshots, jugador->getMapaId());
         agregarReplayCriaturas(snapshots, jugador->getMapaId());
 
+        // Notificar al clan que este miembro entró
+        if (jugador->estaEnClan()) {
+            for (auto& [nick, j] : jugadores) {
+                if (nick == cmd.get_nick()) continue;
+                if (j->getClanNombre() == jugador->getClanNombre()) {
+                    snapshots.push_back(Snapshot::chat_message(
+                        "Sistema", nick,
+                        "Tu compañero " + cmd.get_nick() +
+                            " entro a Argentum"));
+                }
+            }
+        }
+
         return snapshots;
     }
 
@@ -125,6 +138,20 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
 
         if (!nombre.empty()) {
             snapshots.push_back(Snapshot::entity_remove(nombre));
+
+            // Notificar al clan que este miembro salió
+            Jugador* jugadorSaliente = getJugador(nombre);
+            if (jugadorSaliente && jugadorSaliente->estaEnClan()) {
+                std::string clanNom = jugadorSaliente->getClanNombre();
+                for (auto& [nick, j] : jugadores) {
+                    if (nick == nombre) continue;
+                    if (j->getClanNombre() == clanNom) {
+                        snapshots.push_back(Snapshot::chat_message(
+                            "Sistema", nick,
+                            "Tu compañero " + nombre + " salio de Argentum"));
+                    }
+                }
+            }
 
             removerJugador(nombre);
             player_id_to_nick.erase(cmd.get_player_id());
@@ -298,6 +325,10 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             }
             if (resultado.fueEsquivado) {
                 snapshots.push_back(Snapshot::dodge_event(nombre, objetivo));
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", nombre, objetivo + " esquivo tu ataque"));
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", objetivo, "Esquivaste el ataque de " + nombre));
                 break;
             }
 
@@ -305,6 +336,33 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 nombre, objetivo,
                 static_cast<uint16_t>(resultado.danioAplicado),
                 resultado.fueCritico));
+
+            {
+                std::string sufijo = resultado.fueCritico ? " (CRITICO!)" : "";
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", nombre,
+                    "Le hiciste " + std::to_string(resultado.danioAplicado) +
+                        " de daño a " + objetivo + sufijo));
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", objetivo,
+                    "Recibiste " + std::to_string(resultado.danioAplicado) +
+                        " de daño de " + nombre + sufijo));
+
+                // Notificar al clan de la victima si es jugador
+                if (Jugador* victima = getJugador(objetivo)) {
+                    if (victima->estaEnClan()) {
+                        for (auto& [nick, j] : jugadores) {
+                            if (nick == objetivo) continue;
+                            if (j->getClanNombre() == victima->getClanNombre()) {
+                                snapshots.push_back(Snapshot::chat_message(
+                                    "Sistema", nick,
+                                    "Tu compañero " + objetivo +
+                                        " esta siendo atacado por " + nombre));
+                            }
+                        }
+                    }
+                }
+            }
 
             snapshots.push_back(
                 SnapshotFactory::player_stats_from_player(*jugador));
@@ -317,6 +375,8 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             if (resultado.objetivoMurio) {
                 snapshots.push_back(Snapshot::death_event(objetivo));
                 snapshots.push_back(Snapshot::entity_remove(objetivo));
+                snapshots.push_back(Snapshot::chat_message(
+                    "Sistema", nombre, "Mataste a " + objetivo));
 
                 if (Criatura* criatura = getCriatura(objetivo)) {
                     procesarDropCriatura(objetivo, jugador, criatura,
