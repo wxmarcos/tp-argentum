@@ -387,10 +387,6 @@ bool Game::agregarJugador(const std::string& nombre, int mapaId, int posX,
         config.getFormulaOroMaxExponente());
     jugador->setMapaId(mapaId);
 
-    // Items de inicio
-    jugador->agarrarItem(ItemFactory::crearEspada());
-    jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
-
     mundo.agregarPersonaje(jugador.get());
     jugadores[nombre] = std::move(jugador);
     return true;

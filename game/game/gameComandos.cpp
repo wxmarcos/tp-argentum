@@ -102,6 +102,10 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         Jugador* jugador = getJugador(cmd.get_nick());
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
+        // Items de inicio
+        jugador->agarrarItem(ItemFactory::crearEspada());
+        jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
+
         snapshots.push_back(Snapshot::entity_created(
             cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
             static_cast<uint16_t>(jugador->getPosX()),
