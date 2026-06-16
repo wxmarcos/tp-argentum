@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game/game.h"
 
 #include <algorithm>
 #include <iostream>
@@ -69,6 +69,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                                  jugador->getMapaId());
         agregarReplayNpcs(snapshots, jugador->getMapaId());
         agregarReplayCriaturas(snapshots, jugador->getMapaId());
+        agregarReplayItems(snapshots, jugador->getMapaId());
 
         // Notificar al clan
         if (jugador->estaEnClan()) {
@@ -120,6 +121,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                                  jugador->getMapaId());
         agregarReplayNpcs(snapshots, jugador->getMapaId());
         agregarReplayCriaturas(snapshots, jugador->getMapaId());
+        agregarReplayItems(snapshots, jugador->getMapaId());
 
         return snapshots;
     }

@@ -87,6 +87,8 @@ private:
     void agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
                                 int mapaId) const;
     void agregarReplayNpcs(std::vector<Snapshot>& snapshots, int mapaId) const;
+    void agregarReplayItems(std::vector<Snapshot>& snapshots,
+                            int mapaId) const;
     bool handle_meditation_interruption(Jugador* jugador,
                                         std::vector<Snapshot>& snapshots,
                                         const std::string& nombre);

@@ -140,6 +140,10 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
                              p.experiencia, p.oro, p.constitucion,
                              p.inteligencia, p.fuerza, p.agilidad);
 
+    if (!p.clan_nombre.empty()) {
+        jugador->setClanNombre(p.clan_nombre);
+    }
+
     auto inventario = p.inventario;
 
     std::sort(
@@ -291,6 +295,26 @@ void Game::agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
     }
 }
 
+void Game::agregarReplayItems(std::vector<Snapshot>& snapshots,
+                              int mapaId) const {
+    const Mapa* mapa = mundo.getMapa(mapaId);
+    if (!mapa) return;
+
+    for (const auto& [pos, slots] : mapa->getItemsEnPiso()) {
+        for (const auto& slot : slots) {
+            if (!slot.item) continue;
+            snapshots.push_back(Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                "",  // sin entidad emisora
+                slot.item->getNombre(),
+                static_cast<uint16_t>(mapaId),
+                static_cast<uint16_t>(pos.first),
+                static_cast<uint16_t>(pos.second),
+                static_cast<uint16_t>(slot.cantidad)));
+        }
+    }
+}
+
 bool Game::handle_meditation_interruption(Jugador* jugador,
                                           std::vector<Snapshot>& snapshots,
                                           const std::string& nombre) {
@@ -362,6 +386,11 @@ bool Game::agregarJugador(const std::string& nombre, int mapaId, int posX,
         config.getFormulaExpExponente(), config.getFormulaOroMaxCoeficiente(),
         config.getFormulaOroMaxExponente());
     jugador->setMapaId(mapaId);
+
+    // Items de inicio
+    jugador->agarrarItem(ItemFactory::crearEspada());
+    jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
+
     mundo.agregarPersonaje(jugador.get());
     jugadores[nombre] = std::move(jugador);
     return true;
@@ -476,6 +505,14 @@ std::vector<PersistenceTask> Game::build_persistence_tasks_for_command(
          PersistenceTaskFactory::get_affected_players(cmd, actor)) {
         const Jugador* j = getJugador(name);
         if (j) tasks.push_back(PersistenceTaskFactory::from_player(*j));
+    }
+    return tasks;
+}
+
+std::vector<PersistenceTask> Game::build_all_players_tasks() const {
+    std::vector<PersistenceTask> tasks;
+    for (const auto& [nombre, jugador] : jugadores) {
+        tasks.push_back(PersistenceTaskFactory::from_player(*jugador));
     }
     return tasks;
 }

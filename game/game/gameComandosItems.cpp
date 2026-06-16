@@ -37,6 +37,7 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
         agregarReplayDeJugadores(snapshots, nombre, mapaActual);
         agregarReplayNpcs(snapshots, mapaActual);
         agregarReplayCriaturas(snapshots, mapaActual);
+        agregarReplayItems(snapshots, mapaActual);
     } else {
         snapshots.push_back(Snapshot::entity_move(
             nombre, static_cast<uint16_t>(jugador->getMapaId()),
