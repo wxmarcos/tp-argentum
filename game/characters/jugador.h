@@ -35,6 +35,9 @@ private:
     double formulaOroCoef;
     double formulaOroExp;
 
+    // Clan
+    std::string clanNombre;
+
     // Cheats
     bool cheatVidaInfinita;
     bool cheatManaInfinito;
@@ -72,6 +75,7 @@ public:
     int getNivel() const;
     int getExperiencia() const;
     void ganarExperiencia(int exp);
+    void perderExperiencia(int cantidad);
 
     // Oro
     int getOro() const;
@@ -117,6 +121,11 @@ public:
     void tickResurreccion(float dt);
     bool estaResucitando() const;
     bool resurreccionCompleta() const;
+
+    // Clan
+    const std::string& getClanNombre() const;
+    void setClanNombre(const std::string& nombre);
+    bool estaEnClan() const;
 
     // Cheats
     bool toggleCheatVidaInfinita();

@@ -76,6 +76,10 @@ int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro,
     return static_cast<int>(r * vidaMaxOtro * factor);
 }
 
+int Formulas::calcularExpPerdida(int expActual, int porcentaje) {
+    return std::max(0, expActual * porcentaje / 100);
+}
+
 // Oro
 int Formulas::calcularOroMax(int nivel, double coeficiente, double exponente) {
     return static_cast<int>(coeficiente * std::pow(nivel, exponente));
