@@ -3,6 +3,8 @@ target_sources(taller_client
     main.cpp
     ui/client_app.cpp
     ui/menu_screen.cpp
+    ui/console.cpp
+    ui/command_parser.cpp
     net/client_sender.cpp
     net/client_receiver.cpp
     net/server_connection.cpp
@@ -10,39 +12,58 @@ target_sources(taller_client
     input/input_handler.cpp
     render/world_renderer.cpp
     render/texture_manager.cpp
-    render/animation.cpp
-    render/character_animator.cpp
-    render/sprite_registry.cpp
-    render/tile_catalog.cpp
-    render/map_data.cpp
-    render/tmx_loader.cpp
     render/text_renderer.cpp
     render/hud_renderer.cpp
+    render/map/map_data.cpp
+    render/map/tile_catalog.cpp
+    render/map/tmx_loader.cpp
+    render/sprites/animation.cpp
+    render/sprites/character_animator.cpp
+    render/sprites/sprite_registry.cpp
+    render/sprites/sprite_data.cpp
+    render/sprites/item_sprite_registry.cpp
+    render/sprites/weapon_sprite_registry.cpp
+    render/effects/effect_data.cpp
     audio/audio_manager.cpp
     config/client_config.cpp
 
     PUBLIC
     ui/client_app.h
     ui/menu_screen.h
+    ui/menu_result.h
+    ui/connect_result.h
+    ui/console.h
+    ui/command_parser.h
     net/client_sender.h
     net/client_receiver.h
     net/server_connection.h
     protocol/game_update.h
     game/client_game_state.h
+    game/floating_kind.h
+    game/entity_keys.h
     input/input_handler.h
+    input/key_action.h
     render/world_renderer.h
     render/texture_manager.h
-    render/animation.h
-    render/character_animator.h
-    render/sprite_data.h
-    render/sprite_registry.h
-    render/tile_catalog.h
-    render/map_data.h
-    render/tmx_loader.h
     render/text_renderer.h
     render/hud_renderer.h
-    render/effect_kind.h
+    render/colors.h
+    render/asset_paths.h
+    render/map/map_data.h
+    render/map/tile_catalog.h
+    render/map/tmx_loader.h
+    render/sprites/sprite_data.h
+    render/sprites/sprite_constants.h
+    render/sprites/sprite_registry.h
+    render/sprites/animation.h
+    render/sprites/character_animator.h
+    render/sprites/item_sprite_registry.h
+    render/sprites/weapon_sprite_registry.h
+    render/effects/effect_kind.h
+    render/effects/effect_spawn.h
+    render/effects/effect_data.h
     audio/audio_manager.h
+    audio/audio_assets.h
     config/client_config.h
     )
 

@@ -1,33 +1,32 @@
 #include "common/snapshot/snapshot.h"
 
-#include <stdexcept>
-#include <string>
-
-#include "common/protocol_defs.h"
 #include "common/snapshot/snapshot_codec.h"
 #include "network/socket.h"
 #include "network/socket_helpers.h"
 
+Snapshot::Snapshot(protocol::ServerOpcode opcode, const std::string& nick):
+    opcode(opcode), nick(nick), mapa_id(0), x(0), y(0), direction(0) {}
 Snapshot::Snapshot(protocol::ServerOpcode opcode, const std::string& nick,
-                   uint16_t x, uint16_t y, uint8_t direction):
+                   uint16_t mapa_id, uint16_t x, uint16_t y, uint8_t direction):
     opcode(opcode),
-    nick(nick), x(x), y(y), direction(direction) {}
+    nick(nick), mapa_id(mapa_id), x(x), y(y), direction(direction) {}
 
-Snapshot Snapshot::entity_created(const std::string& nick, uint16_t x,
-                                  uint16_t y, uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_CREATED, nick, x, y,
+Snapshot Snapshot::entity_created(const std::string& nick, uint16_t mapa_id,
+                                  uint16_t x, uint16_t y, uint8_t direction) {
+    return Snapshot(protocol::ServerOpcode::ENTITY_CREATED, nick, mapa_id, x, y,
                     direction);
 }
 
-Snapshot Snapshot::entity_login(const std::string& nick, uint16_t x, uint16_t y,
-                                uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_LOGIN, nick, x, y,
+Snapshot Snapshot::entity_login(const std::string& nick, uint16_t mapa_id,
+                                uint16_t x, uint16_t y, uint8_t direction) {
+    return Snapshot(protocol::ServerOpcode::ENTITY_LOGIN, nick, mapa_id, x, y,
                     direction);
 }
 
-Snapshot Snapshot::entity_move(const std::string& nick, uint16_t x, uint16_t y,
-                               uint8_t direction) {
-    return Snapshot(protocol::ServerOpcode::ENTITY_MOVE, nick, x, y, direction);
+Snapshot Snapshot::entity_move(const std::string& nick, uint16_t mapa_id,
+                               uint16_t x, uint16_t y, uint8_t direction) {
+    return Snapshot(protocol::ServerOpcode::ENTITY_MOVE, nick, mapa_id, x, y,
+                    direction);
 }
 
 Snapshot Snapshot::entity_remove(const std::string& nick) {
@@ -62,6 +61,31 @@ Snapshot Snapshot::death_event(const std::string& target) {
     snapshot.target = target;
     return snapshot;
 }
+
+Snapshot Snapshot::item_event(uint8_t action, const std::string& entity_name,
+                              const std::string& item_name, uint16_t mapa_id,
+                              uint16_t x, uint16_t y, uint16_t amount) {
+    Snapshot snapshot(protocol::ServerOpcode::ITEM_EVENT, entity_name);
+
+    snapshot.mapa_id = mapa_id;
+    snapshot.x = x;
+    snapshot.y = y;
+    snapshot.item_action = action;
+    snapshot.item_name = item_name;
+    snapshot.amount = amount;
+
+    return snapshot;
+}
+
+bool Snapshot::is_item_event() const {
+    return opcode == protocol::ServerOpcode::ITEM_EVENT;
+}
+
+uint8_t Snapshot::get_item_action() const { return item_action; }
+
+const std::string& Snapshot::get_item_name() const { return item_name; }
+
+uint16_t Snapshot::get_amount() const { return amount; }
 
 void Snapshot::send(Socket& socket) const {
     uint8_t raw_opcode = static_cast<uint8_t>(opcode);
@@ -105,13 +129,23 @@ Snapshot Snapshot::meditation_status(const std::string& nick, bool started) {
     snapshot.meditating = started;
     return snapshot;
 }
+Snapshot Snapshot::cheat_status(const std::string& nick, uint8_t cheat_type,
+                                bool enabled) {
+    Snapshot snapshot(protocol::ServerOpcode::CHEAT_STATUS, nick);
+
+    snapshot.cheat_type = cheat_type;
+    snapshot.cheat_enabled = enabled;
+
+    return snapshot;
+}
 
 Snapshot Snapshot::player_stats(
     const std::string& nick, const std::string& raza, const std::string& clase,
     uint16_t mapa_id, uint16_t x, uint16_t y, uint8_t direction, uint16_t nivel,
     uint16_t vida, uint16_t vida_max, uint16_t mana, uint16_t mana_max,
-    uint32_t experiencia, uint32_t oro, uint16_t constitucion,
-    uint16_t inteligencia, uint16_t fuerza, uint16_t agilidad) {
+    uint32_t experiencia, uint32_t exp_limite, uint32_t oro,
+    uint16_t constitucion, uint16_t inteligencia, uint16_t fuerza,
+    uint16_t agilidad) {
     Snapshot snapshot(protocol::ServerOpcode::PLAYER_STATS, nick);
 
     snapshot.raza = raza;
@@ -126,6 +160,7 @@ Snapshot Snapshot::player_stats(
     snapshot.mana = mana;
     snapshot.mana_max = mana_max;
     snapshot.experiencia = experiencia;
+    snapshot.exp_limite = exp_limite;
     snapshot.oro = oro;
     snapshot.constitucion = constitucion;
     snapshot.inteligencia = inteligencia;
@@ -134,6 +169,8 @@ Snapshot Snapshot::player_stats(
 
     return snapshot;
 }
+
+uint32_t Snapshot::get_exp_limite() const { return exp_limite; }
 Snapshot Snapshot::inventory_update(
     const std::string& nick, const std::vector<InventorySnapshotItem>& items) {
     Snapshot snapshot(protocol::ServerOpcode::INVENTORY_UPDATE, nick);
@@ -151,10 +188,8 @@ const std::vector<InventorySnapshotItem>& Snapshot::get_inventory_items()
 
 Snapshot Snapshot::map_change(const std::string& nick, uint16_t mapa_id,
                               uint16_t x, uint16_t y, uint8_t direction) {
-    Snapshot snapshot(protocol::ServerOpcode::MAP_CHANGE, nick, x, y,
-                      direction);
-    snapshot.mapa_id = mapa_id;
-    return snapshot;
+    return Snapshot(protocol::ServerOpcode::MAP_CHANGE, nick, mapa_id, x, y,
+                    direction);
 }
 
 bool Snapshot::is_map_change() const {
@@ -248,3 +283,7 @@ uint16_t Snapshot::get_inteligencia() const { return inteligencia; }
 uint16_t Snapshot::get_fuerza() const { return fuerza; }
 
 uint16_t Snapshot::get_agilidad() const { return agilidad; }
+
+uint8_t Snapshot::get_cheat_type() const { return cheat_type; }
+
+bool Snapshot::is_cheat_enabled() const { return cheat_enabled; }

@@ -25,14 +25,14 @@ public:
 
     void load_effect(const std::string& key, const std::string& path);
 
-    void play_effect(const std::string& key);
+    void play_effect(const std::string& key, int volume = -1);
 
     void play_effect_at(const std::string& key, int distance_in_tiles);
 
     void play_music(const std::string& path);
     void stop_music();
 
-    bool is_initialized() const { return initialized; }
+    bool is_initialized() const;
 
     AudioManager(const AudioManager&) = delete;
     AudioManager& operator=(const AudioManager&) = delete;

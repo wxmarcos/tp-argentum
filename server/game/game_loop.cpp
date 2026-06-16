@@ -75,21 +75,21 @@ void GameLoop::enqueue_persistence_tasks(const Command& cmd) {
 void GameLoop::debug_snapshot(const Snapshot& snapshot) const {
     if (snapshot.is_entity_created()) {
         std::cout << "[GameLoop] Broadcast ENTITY_CREATED "
-                  << "nick=" << snapshot.get_nick() << " x=" << snapshot.get_x()
+                  << "nick=" << snapshot.get_nick() << " mapa_id=" << snapshot.get_mapa_id()<<" x=" << snapshot.get_x()
                   << " y=" << snapshot.get_y()
                   << " dir=" << static_cast<int>(snapshot.get_direction())
                   << "\n";
 
     } else if (snapshot.is_entity_login()) {
         std::cout << "[GameLoop] Broadcast ENTITY_LOGIN "
-                  << "nick=" << snapshot.get_nick() << " x=" << snapshot.get_x()
+                  << "nick=" << snapshot.get_nick() << " mapa_id=" << snapshot.get_mapa_id()<<" x=" << snapshot.get_x()
                   << " y=" << snapshot.get_y()
                   << " dir=" << static_cast<int>(snapshot.get_direction())
                   << "\n";
 
     } else if (snapshot.is_entity_move()) {
         std::cout << "[GameLoop] Broadcast ENTITY_MOVE "
-                  << "nick=" << snapshot.get_nick() << " x=" << snapshot.get_x()
+                  << "nick=" << snapshot.get_nick() << " mapa_id=" << snapshot.get_mapa_id()<<" x=" << snapshot.get_x()
                   << " y=" << snapshot.get_y()
                   << " dir=" << static_cast<int>(snapshot.get_direction())
                   << "\n";

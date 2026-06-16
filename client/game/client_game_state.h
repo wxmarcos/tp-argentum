@@ -9,7 +9,8 @@
 
 #include "common/protocol_defs.h"
 #include "protocol/game_update.h"
-#include "render/effect_kind.h"
+#include "game/floating_kind.h"
+#include "render/effects/effect_spawn.h"
 
 struct PlayerStats {
     std::string raza;
@@ -20,6 +21,7 @@ struct PlayerStats {
     uint16_t mana = 0;
     uint16_t mana_max = 0;
     uint32_t experiencia = 0;
+    uint32_t exp_limite = 0;
     uint32_t oro = 0;
     uint16_t constitucion = 0;
     uint16_t inteligencia = 0;
@@ -37,6 +39,13 @@ struct PlayerView {
     bool moved = false;
 };
 
+struct FloorItem {
+    uint16_t x = 0;
+    uint16_t y = 0;
+    std::string name;
+    uint16_t amount = 0;
+};
+
 struct CreatureView {
     std::string key;
     std::string type;
@@ -50,10 +59,13 @@ struct InventorySlotView {
     std::string item;
     uint16_t cantidad = 0;
     bool equipado = false;
-    bool empty() const { return item.empty(); }
+    bool empty() const;
 };
 
-enum class FloatingKind { DamageDealt, DamageReceived, Crit, Dodge, Death };
+struct ChatMessage {
+    std::string from;
+    std::string text;
+};
 
 struct FloatingEvent {
     uint16_t x = 0;
@@ -83,6 +95,8 @@ private:
     std::unordered_map<std::string, PlayerView> others;
     std::unordered_map<std::string, CreatureView> creatures;
     std::unordered_set<std::string> dead_entities;
+    std::unordered_set<std::string> meditating_entities;
+    std::unordered_map<uint32_t, FloorItem> floor_items;
 
     int map_width;
     int map_height;
@@ -91,13 +105,21 @@ private:
     std::vector<EffectSpawn> effect_spawns;
 
     std::vector<InventorySlotView> inventory;
-    bool inventory_open = false;
+
+    std::vector<ChatMessage> chat_messages;
 
     bool resolve_entity_pos(const std::string& nick, uint16_t& x,
                             uint16_t& y) const;
 
+    bool classify_creature(const std::string& nick, std::string& type) const;
+    std::string to_lower(std::string s) const;
+
     void apply_snapshot(const Snapshot& snapshot);
     void apply_entity_position(const Snapshot& snapshot);
+    void apply_local_position(const Snapshot& snapshot);
+    void apply_creature_position(const Snapshot& snapshot,
+                                 const std::string& type);
+    void apply_other_player_position(const Snapshot& snapshot);
     void apply_entity_remove(const Snapshot& snapshot);
     void apply_player_stats(const Snapshot& snapshot);
     void apply_inventory_update(const Snapshot& snapshot);
@@ -105,8 +127,11 @@ private:
     void apply_dodge_event(const Snapshot& snapshot);
     void apply_death_event(const Snapshot& snapshot);
     void apply_meditation_status(const Snapshot& snapshot);
+    std::string format_chat_sender(const std::string& nick) const;
+    void push_chat(const std::string& from, const std::string& text);
     void apply_chat_message(const Snapshot& snapshot);
     void apply_error_message(const Snapshot& snapshot);
+    void apply_item_event(const Snapshot& snapshot);
 
 public:
     ClientGameState(const std::string& local_nick, int map_width,
@@ -116,49 +141,37 @@ public:
 
     void apply_update(const GameUpdate& update);
 
-    bool has_local_position() const { return has_local_pos; }
-    uint16_t get_local_x() const { return local_x; }
-    uint16_t get_local_y() const { return local_y; }
-    protocol::Direction get_local_dir() const { return local_dir; }
-    bool get_local_moved() const { return local_moved; }
-    const std::string& get_local_nick() const { return local_nick; }
+    bool has_local_position() const;
+    uint16_t get_local_x() const;
+    uint16_t get_local_y() const;
+    protocol::Direction get_local_dir() const;
+    bool get_local_moved() const;
+    const std::string& get_local_nick() const;
 
-    bool has_local_stats() const { return has_stats; }
-    const PlayerStats& get_local_stats() const { return local_stats; }
-    uint16_t get_current_map_id() const { return current_map_id; }
+    bool has_local_stats() const;
+    const PlayerStats& get_local_stats() const;
+    uint16_t get_current_map_id() const;
 
-    bool has_pending_error() const { return has_error; }
-    const std::string& get_last_error() const { return last_error; }
-    uint32_t get_error_seq() const { return error_seq; }
+    bool has_pending_error() const;
+    const std::string& get_last_error() const;
+    uint32_t get_error_seq() const;
 
-    const std::vector<InventorySlotView>& get_inventory() const { return inventory; }
-    bool is_inventory_open() const { return inventory_open; }
-    void toggle_inventory() { inventory_open = !inventory_open; }
+    const std::vector<InventorySlotView>& get_inventory() const;
 
-    const std::unordered_map<std::string, PlayerView>& get_others() const {
-        return others;
-    }
+    const std::unordered_map<std::string, PlayerView>& get_others() const;
+    const std::vector<FloatingEvent>& get_floating_events() const;
+    const std::vector<EffectSpawn>& get_effect_spawns() const;
+    const std::unordered_map<std::string, CreatureView>& get_creatures() const;
+    const std::unordered_map<uint32_t, FloorItem>& get_floor_items() const;
 
-    const std::vector<FloatingEvent>& get_floating_events() const {
-        return floating_events;
-    }
-
-    const std::vector<EffectSpawn>& get_effect_spawns() const {
-        return effect_spawns;
-    }
-
-    const std::unordered_map<std::string, CreatureView>& get_creatures() const {
-        return creatures;
-    }
-
-    bool is_dead(const std::string& nick) const {
-        return dead_entities.count(nick) > 0;
-    }
-
+    bool is_dead(const std::string& nick) const;
+    bool is_meditating(const std::string& nick) const;
     bool entity_at(uint16_t x, uint16_t y, std::string& out_nick) const;
 
-    int get_map_width() const { return map_width; }
-    int get_map_height() const { return map_height; }
+    int get_map_width() const;
+    int get_map_height() const;
+
+    const std::vector<ChatMessage>& get_chat_messages() const;
 };
 
 #endif

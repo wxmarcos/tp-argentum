@@ -41,15 +41,6 @@ Command parse_item_id(const std::vector<uint8_t>& payload, size_t& offset,
     return cmd;
 }
 
-Command parse_item_and_amount(const std::vector<uint8_t>& payload,
-                              size_t& offset, protocol::ClientOpcode opcode,
-                              uint16_t player_id) {
-    Command cmd(player_id, opcode);
-    cmd.item_id = read_u16(payload, offset);
-    cmd.amount = read_u32(payload, offset);
-    return cmd;
-}
-
 Command parse_text(const std::vector<uint8_t>& payload, size_t& offset,
                    protocol::ClientOpcode opcode, uint16_t player_id) {
     Command cmd(player_id, opcode);
@@ -137,11 +128,11 @@ Command parse_command_payload(const std::vector<uint8_t>& payload,
 
         case protocol::ClientOpcode::SELL_ITEM:
         case protocol::ClientOpcode::DEPOSIT_ITEM:
-            cmd = parse_slot_and_amount(payload, offset, type, player_id);
+            cmd = parse_slot(payload, offset, type, player_id);
             break;
 
         case protocol::ClientOpcode::WITHDRAW_ITEM:
-            cmd = parse_item_and_amount(payload, offset, type, player_id);
+            cmd = parse_item_id(payload, offset, type, player_id);
             break;
 
         case protocol::ClientOpcode::DEPOSIT_GOLD:
@@ -165,6 +156,10 @@ Command parse_command_payload(const std::vector<uint8_t>& payload,
             cmd = parse_nick_only(payload, offset, type, player_id);
             break;
 
+        case protocol::ClientOpcode::CHEAT_GOD:
+        case protocol::ClientOpcode::CHEAT_MANA:
+        case protocol::ClientOpcode::CHEAT_DIE:
+        case protocol::ClientOpcode::CHEAT_RESURRECT:
         case protocol::ClientOpcode::MEDITATE:
         case protocol::ClientOpcode::RESURRECT:
         case protocol::ClientOpcode::HEAL:
@@ -205,20 +200,9 @@ static void serialize_attack(const Command& command,
     push_string(payload, command.get_nick());
 }
 
-static void serialize_item_and_amount(const Command& command,
-                                      std::vector<uint8_t>& payload) {
-    push_u16(payload, command.get_item_id());
-    push_u32(payload, command.get_amount());
-}
 static void serialize_slot(const Command& command,
                            std::vector<uint8_t>& payload) {
     push_u16(payload, command.get_slot());
-}
-
-static void serialize_slot_and_amount(const Command& command,
-                                      std::vector<uint8_t>& payload) {
-    push_u16(payload, command.get_slot());
-    push_u32(payload, command.get_amount());
 }
 
 static void serialize_private_message(const Command& command,
@@ -268,11 +252,11 @@ std::vector<uint8_t> build_command_payload(const Command& command) {
 
         case protocol::ClientOpcode::SELL_ITEM:
         case protocol::ClientOpcode::DEPOSIT_ITEM:
-            serialize_slot_and_amount(command, payload);
+            serialize_slot(command, payload);
             break;
 
         case protocol::ClientOpcode::WITHDRAW_ITEM:
-            serialize_item_and_amount(command, payload);
+            push_u16(payload, command.get_item_id());
             break;
 
         case protocol::ClientOpcode::DEPOSIT_GOLD:
@@ -296,6 +280,10 @@ std::vector<uint8_t> build_command_payload(const Command& command) {
             serialize_nick_only(command, payload);
             break;
 
+        case protocol::ClientOpcode::CHEAT_GOD:
+        case protocol::ClientOpcode::CHEAT_MANA:
+        case protocol::ClientOpcode::CHEAT_DIE:
+        case protocol::ClientOpcode::CHEAT_RESURRECT:
         case protocol::ClientOpcode::MEDITATE:
         case protocol::ClientOpcode::RESURRECT:
         case protocol::ClientOpcode::HEAL:

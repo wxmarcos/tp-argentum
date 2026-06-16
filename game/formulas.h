@@ -30,6 +30,7 @@ public:
     static int calcularExpAtaque(int danio, int nivelOtro, int nivelPropio);
     static int calcularExpMatar(int vidaMaxOtro, int nivelOtro,
                                 int nivelPropio);
+    static int calcularExpPerdida(int expActual, int porcentaje);
 
     // Oro
     static int calcularOroMax(int nivel, double coeficiente, double exponente);

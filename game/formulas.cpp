@@ -59,7 +59,8 @@ int Formulas::calcularDefensa(int armaduraMin, int armaduraMax, int escudoMin,
 }
 
 // Experiencia
-int Formulas::calcularLimiteExp(int nivel, double coeficiente, double exponente) {
+int Formulas::calcularLimiteExp(int nivel, double coeficiente,
+                                double exponente) {
     return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
 int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio) {
@@ -73,6 +74,10 @@ int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro,
     int factor = std::max(nivelOtro - nivelPropio + 10, 0);
     double r = (static_cast<double>(rand()) / RAND_MAX) * 0.1;
     return static_cast<int>(r * vidaMaxOtro * factor);
+}
+
+int Formulas::calcularExpPerdida(int expActual, int porcentaje) {
+    return std::max(0, expActual * porcentaje / 100);
 }
 
 // Oro

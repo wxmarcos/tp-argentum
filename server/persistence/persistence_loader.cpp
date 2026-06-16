@@ -14,15 +14,12 @@ std::unordered_map<std::string, uint64_t> PersistenceLoader::load_index(
     std::unordered_map<std::string, uint64_t> index;
 
     if (!std::filesystem::exists(path)) {
-        std::cout << "[PersistenceLoader] no existe indice " << path << "\n";
         return index;
     }
 
     std::ifstream in(path, std::ios::binary);
 
     if (!in) {
-        std::cout << "[PersistenceLoader] no se pudo abrir indice " << path
-                  << "\n";
         return index;
     }
 
@@ -36,9 +33,6 @@ std::unordered_map<std::string, uint64_t> PersistenceLoader::load_index(
         }
     }
 
-    std::cout << "[PersistenceLoader] indice cargado: " << index.size()
-              << " jugadores\n";
-
     return index;
 }
 std::optional<PersistenceTask> PersistenceLoader::load_player_by_nick(
@@ -46,28 +40,15 @@ std::optional<PersistenceTask> PersistenceLoader::load_player_by_nick(
     const std::string& index_path,
     const std::string& nick) {
 
-    std::cout << "[PersistenceLoader] players_path=" << players_path << "\n";
-    std::cout << "[PersistenceLoader] index_path=" << index_path << "\n";
-    std::cout << "[PersistenceLoader] buscando nick=" << nick << "\n";
-
     auto index = load_index(index_path);
-
-    std::cout << "[PersistenceLoader] index size=" << index.size() << "\n";
-
-    for (const auto& [index_nick, offset] : index) {
-        std::cout << "[PersistenceLoader] index nick=["
-                  << index_nick << "] offset=" << offset << "\n";
-    }
 
     auto it = index.find(nick);
     if (it == index.end()) {
-        std::cout << "[PersistenceLoader] nick no encontrado en indice\n";
         return std::nullopt;
     }
 
     std::ifstream in(players_path, std::ios::binary);
     if (!in) {
-        std::cout << "[PersistenceLoader] no se pudo abrir players file\n";
         return std::nullopt;
     }
 
@@ -77,17 +58,11 @@ std::optional<PersistenceTask> PersistenceLoader::load_player_by_nick(
     in.read(reinterpret_cast<char*>(&record), sizeof(record));
 
     if (!in) {
-        std::cout << "[PersistenceLoader] no se pudo leer record en offset "
-                  << it->second << "\n";
         return std::nullopt;
     }
 
     PersistenceTask task = PersistenceRecordMapper::from_record(record);
 
-    std::cout << "[PersistenceLoader] record leido nick=["
-              << task.nick << "] raza=[" << task.raza
-              << "] clase=[" << task.clase << "] mapa="
-              << task.mapa_id << " x=" << task.x << " y=" << task.y << "\n";
 
     return task;
 }

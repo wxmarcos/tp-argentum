@@ -9,6 +9,7 @@ inline constexpr uint8_t PAYLOAD_SIZE_SIZE = 2;
 inline constexpr uint16_t MAX_PAYLOAD_SIZE = 4096;
 
 enum class Direction : uint8_t { NORTH = 0, EAST = 1, SOUTH = 2, WEST = 3 };
+enum class ItemEventAction : uint8_t { DROP = 0, PICK = 1 };
 
 enum class ClientOpcode : uint8_t {
     LOGIN = 0,
@@ -62,10 +63,12 @@ enum class ServerOpcode : uint8_t {
     INVENTORY_UPDATE = 11,
     MEDITATION_STATUS = 12,
     MAP_CHANGE = 13,
+    CHEAT_STATUS = 14,
     CHAT_MESSAGE = 30,
     DAMAGE_EVENT = 40,
     DODGE_EVENT = 41,
     DEATH_EVENT = 42,
+    ITEM_EVENT = 43,
 
     ERROR_MESSAGE = 250
 };

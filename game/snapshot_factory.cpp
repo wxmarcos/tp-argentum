@@ -14,6 +14,7 @@ Snapshot SnapshotFactory::player_stats_from_player(const Jugador& jugador) {
         static_cast<uint16_t>(jugador.getManaActual()),
         static_cast<uint16_t>(jugador.getManaMax()),
         static_cast<uint32_t>(jugador.getExperiencia()),
+        static_cast<uint32_t>(jugador.getExpParaSiguienteNivel()),
         static_cast<uint32_t>(jugador.getOro()),
         static_cast<uint16_t>(jugador.getConstitucion()),
         static_cast<uint16_t>(jugador.getInteligencia()),
