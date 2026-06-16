@@ -155,7 +155,7 @@ void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
 
     snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
     snapshots.push_back(
-        SnapshotFactory::player_inventory_slot_from_player(*jugador, slot));
+        SnapshotFactory::player_inventory_from_player(*jugador));
 }
 
 // ----------------- tirarItem / tomarItem -----------------
