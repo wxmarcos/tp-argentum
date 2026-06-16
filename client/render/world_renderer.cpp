@@ -27,8 +27,6 @@ static constexpr SDL_Color CHECKER_LIGHT{40, 58, 40, 255};
 static constexpr SDL_Color CHECKER_DARK{30, 46, 30, 255};
 
 static constexpr int WEAPON_REF_H = 48;  // alto del personaje en el sheet del arma
-static constexpr int WEAPON_OFF_X[4] = {8, -8, 10, -10};   // S, N, E, W
-static constexpr int WEAPON_OFF_Y[4] = {20, 20, 20, 20};
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
                              const ClientConfig& config):
@@ -270,12 +268,42 @@ void WorldRenderer::draw_head(const std::string& sprite_key,
     SDL_RenderCopy(renderer.Get(), head_tex, &src, &dst);
 }
 
+void WorldRenderer::draw_helmet(const std::string& helmet_key,
+                                const std::string& raza,
+                                const std::string& sprite_key, int dir_idx,
+                                int px, int body_top, int body_scale) {
+    SDL_Texture* helmet_tex = registry.get_helmet_texture(helmet_key);
+    if (!helmet_tex) {
+        return;
+    }
+    const int ts = config.tile_size;
+    const int head_scale = head_scale_pct(raza);
+    SDL_Rect src = registry.get_helmet_rect(helmet_key, dir_idx);
+
+    const int helmet_scale = registry.get_helmet_scale(helmet_key);
+    const int helmet_h = (((ts * 7) / 8) * body_scale / 100)
+                         * head_scale / 100 * helmet_scale / 100;
+    const int helmet_w = src.h > 0 ? (src.w * helmet_h) / src.h : ts / 2;
+
+    const int neck = registry.get_head_neck(sprite_key) * body_scale / 100;
+    const int head_bottom = body_top + neck;
+
+    const int off_x = registry.get_helmet_off_x(helmet_key, dir_idx);
+    const int off_y = registry.get_helmet_off_y(helmet_key, dir_idx);
+
+    SDL_Rect dst{px + (ts - helmet_w) / 2 + off_x,
+                 head_bottom - helmet_h + off_y, helmet_w, helmet_h};
+    SDL_RenderCopy(renderer.Get(), helmet_tex, &src, &dst);
+}
+
 void WorldRenderer::draw_character(int world_x, int world_y,
                                    protocol::Direction dir,
                                    const std::string& sprite_key,
                                    const std::string& raza, int frame,
                                    int cam_offset_x, int cam_offset_y,
-                                   const std::string& weapon_name) {
+                                   const std::string& weapon_name,
+                                   const std::string& helmet_key,
+                                   const std::string& shield_name) {
     const int ts = config.tile_size;
     const int px = cam_offset_x + world_x * ts;
     const int py = cam_offset_y + world_y * ts;
@@ -293,8 +321,17 @@ void WorldRenderer::draw_character(int world_x, int world_y,
     draw_body(sprite_key, dir_idx, frame, px, py, body_top, body_h);
     draw_head(sprite_key, raza, dir_idx, px, body_top, body_scale);
 
+    if (!helmet_key.empty()) {
+        draw_helmet(helmet_key, raza, sprite_key, dir_idx, px, body_top,
+                   body_scale);
+    }
+
     if (!weapon_name.empty()) {
         draw_weapon(weapon_name, dir_idx, px, body_top, body_h);
+    }
+
+    if (!shield_name.empty() && dir_idx == DIR_SOUTH) {
+        draw_weapon(shield_name, dir_idx, px, body_top, body_h);
     }
 }
 
@@ -326,7 +363,9 @@ void WorldRenderer::draw_player(const std::string& nick, bool dead,
                                 const std::string& sprite_key,
                                 const std::string& raza, int frame,
                                 int cam_offset_x, int cam_offset_y,
-                                const std::string& weapon_name) {
+                                const std::string& weapon_name,
+                                const std::string& helmet_key,
+                                const std::string& shield_name) {
     if (dead) {
         const Uint32 now = SDL_GetTicks();
         auto [it, ins] = ghost_since.try_emplace(nick, now);
@@ -339,7 +378,7 @@ void WorldRenderer::draw_player(const std::string& nick, bool dead,
         ghost_since.erase(nick);
     }
     draw_character(world_x, world_y, dir, sprite_key, raza, frame, cam_offset_x,
-                   cam_offset_y, weapon_name);
+                   cam_offset_y, weapon_name, helmet_key, shield_name);
 }
 
 void WorldRenderer::draw_creature(int world_x, int world_y,
@@ -404,12 +443,40 @@ void WorldRenderer::draw_floor_items(const ClientGameState& state,
 
 std::string WorldRenderer::local_weapon_name(
     const ClientGameState& state) const {
+    std::string shield;
     for (const auto& slot : state.get_inventory()) {
-        if (slot.equipado && weapon_sprites.find(slot.item)) {
-            return slot.item;
+        if (!slot.equipado || !weapon_sprites.find(slot.item)) {
+            continue;
+        }
+        if (is_shield(slot.item)) {
+            shield = slot.item;
+            continue;
+        }
+        return slot.item;
+    }
+    return shield;
+}
+
+std::string WorldRenderer::local_shield_name(
+    const ClientGameState& state) const {
+    std::string shield;
+    bool has_weapon = false;
+    for (const auto& slot : state.get_inventory()) {
+        if (!slot.equipado || !weapon_sprites.find(slot.item)) {
+            continue;
+        }
+        if (is_shield(slot.item)) {
+            shield = slot.item;
+        } else {
+            has_weapon = true;
         }
     }
-    return "";
+    return has_weapon ? shield : "";
+}
+
+bool WorldRenderer::is_shield(const std::string& item) const {
+    return item == std::string(items::ESCUDO_TORTUGA) ||
+           item == std::string(items::ESCUDO_HIERRO);
 }
 
 void WorldRenderer::draw_weapon(const std::string& weapon_name, int dir_idx,
@@ -422,12 +489,15 @@ void WorldRenderer::draw_weapon(const std::string& weapon_name, int dir_idx,
         return;
     }
     const SDL_Rect& src = w->rects[dir_idx];
+    const WeaponDirAdjust& adj = w->adjust[dir_idx];
     const int draw_h = src.h * body_h / WEAPON_REF_H;
     const int draw_w = src.w * body_h / WEAPON_REF_H;
     const int cx = px + config.tile_size / 2;
-    const SDL_Rect dst{cx + WEAPON_OFF_X[dir_idx] - draw_w / 2,
-                       body_top + WEAPON_OFF_Y[dir_idx], draw_w, draw_h};
-    SDL_RenderCopy(renderer.Get(), w->tex, &src, &dst);
+    const SDL_Rect dst{cx + adj.off_x - draw_w / 2,
+                       body_top + adj.off_y, draw_w, draw_h};
+    const SDL_RendererFlip flip =
+        adj.flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+    SDL_RenderCopyEx(renderer.Get(), w->tex, &src, &dst, 0.0, nullptr, flip);
 }
 
 void WorldRenderer::draw_meditation_effect(int world_x, int world_y,
@@ -477,7 +547,8 @@ void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
                 state.get_local_y(), state.get_local_dir(),
                 local_body_key(state, local_clase), local_raza,
                 local_anim.current_frame(), cam_offset_x, cam_offset_y,
-                local_weapon_name(state));
+                local_weapon_name(state), local_helmet_key(state),
+                local_shield_name(state));
 
     if (state.is_meditating(nick)) {
         draw_meditation_effect(state.get_local_x(), state.get_local_y(),
@@ -527,6 +598,15 @@ void WorldRenderer::draw_all_creatures(const ClientGameState& state,
 
         draw_creature(cv.x, cv.y, cv.direction, cv.type,
                       it->second.current_frame(), cam_offset_x, cam_offset_y);
+
+        if (cv.type == std::string(keys::SACERDOTE) ||
+            cv.type == std::string(keys::COMERCIANTE) ||
+            cv.type == std::string(keys::BANQUERO)) {
+            std::string label = cv.type;
+            label[0] = static_cast<char>(
+                std::toupper(static_cast<unsigned char>(label[0])));
+            draw_name(label, cv.x, cv.y, cam_offset_x, cam_offset_y);
+        }
     }
 
     for (auto cit = creature_anims.begin(); cit != creature_anims.end();) {
@@ -660,6 +740,26 @@ std::string WorldRenderer::local_body_key(const ClientGameState& state,
         }
     }
     return clase_key;
+}
+
+std::string WorldRenderer::local_helmet_key(
+        const ClientGameState& state) const {
+    static constexpr std::pair<std::string_view, std::string_view> helmets[] = {
+        {items::CAPUCHA, keys::CASCO_CAPUCHA},
+        {items::CASCO_HIERRO, keys::CASCO_HIERRO},
+        {items::SOMBRERO_MAGICO, keys::CASCO_SOMBRERO},
+    };
+    for (const auto& slot : state.get_inventory()) {
+        if (!slot.equipado) {
+            continue;
+        }
+        for (const auto& [item, key] : helmets) {
+            if (slot.item == item) {
+                return std::string(key);
+            }
+        }
+    }
+    return "";
 }
 
 void WorldRenderer::render(const ClientGameState& state, uint32_t delta_ms) {

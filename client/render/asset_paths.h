@@ -11,6 +11,8 @@ inline constexpr std::string_view UI_LOGIN  = "ui/login.png";
 inline constexpr std::string_view UI_CREATE = "ui/create_character.png";
 inline constexpr std::string_view UI_ICON   = "ui/icon.png";
 inline constexpr std::string_view UI_MARCO  = "ui/marco.png";
+inline constexpr std::string_view HUD_BG = "ui/hudFondo.png";
+inline constexpr std::string_view INV_SLOT_FRAME = "ui/bordeInv.png";
 
 // Cuerpos por raza
 inline constexpr std::string_view BODY_HUMANO =
@@ -56,6 +58,11 @@ inline constexpr std::string_view ARMADURA_PLACAS =
     "objetos/armaduras/armaduraPlacas.png";
 inline constexpr std::string_view TUNICA_AZUL =
     "objetos/armaduras/tunicaAzul.png";
+
+// Cascos
+inline constexpr std::string_view CASCO_CAPUCHA = "objetos/armaduras/capucha.png";
+inline constexpr std::string_view CASCO_HIERRO = "objetos/armaduras/cascoHierro.png";
+inline constexpr std::string_view CASCO_SOMBRERO_MAGICO = "objetos/armaduras/sombreroMagico.png";
 
 // Armas
 inline constexpr std::string_view ESPADA = "objetos/armas/espada.png";

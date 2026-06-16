@@ -10,9 +10,16 @@
 
 #include "config/client_config.h"
 
+struct WeaponDirAdjust {
+    int off_x = 0;
+    int off_y = 0;
+    bool flip = false;
+};
+
 struct WeaponSprite {
     SDL_Texture* tex = nullptr;
     SDL_Rect rects[4]{};
+    WeaponDirAdjust adjust[4]{};
 };
 
 class WeaponSpriteRegistry {
@@ -29,6 +36,9 @@ class WeaponSpriteRegistry {
     void register_weapon(const std::string& name, const std::string& sheet,
                          const SDL_Rect& s, const SDL_Rect& n,
                          const SDL_Rect& e, const SDL_Rect& w);
+    void set_adjust(const std::string& name, const WeaponDirAdjust& s,
+                    const WeaponDirAdjust& n, const WeaponDirAdjust& e,
+                    const WeaponDirAdjust& w);
 
     public:
     WeaponSpriteRegistry(SDL2pp::Renderer& renderer,

@@ -45,7 +45,7 @@ class MenuScreen {
     bool handle_login_event(const SDL_Event& e, std::string& nick,
                             MenuResult& result);
 
-    void draw_login(const std::string& nick);
+    void draw_login(const std::string& nick, const std::string& error_msg);
 
     bool handle_create_event(const SDL_Event& e, int& raza_idx, int& clase_idx,
                              MenuResult& result);
@@ -64,7 +64,7 @@ class MenuScreen {
 
     MenuResult run_inicio();
 
-    MenuResult run_login(std::string& nick);
+    MenuResult run_login(std::string& nick, const std::string& error_msg = "");
     
     MenuResult run_create(std::string& raza, std::string& clase);
 };

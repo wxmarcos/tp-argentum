@@ -13,6 +13,9 @@ struct SpriteData {
 
 struct HeadData {
     SDL_Rect head_rects[4];
+    int off_x[4] = {0, 0, 0, 0};
+    int off_y[4] = {0, 0, 0, 0};
+    int scale_pct = 100;
 };
 
 SpriteData make_humano_sprite_data();
@@ -43,5 +46,9 @@ HeadData make_gnomo_head_data();
 SpriteData make_armadura_cuero_sprite_data();
 SpriteData make_armadura_placas_sprite_data();
 SpriteData make_tunica_azul_sprite_data();
+
+HeadData make_casco_capucha_data();
+HeadData make_casco_hierro_data();
+HeadData make_casco_sombrero_data();
 
 #endif

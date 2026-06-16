@@ -86,8 +86,10 @@ int ClientApp::menu_loop(MenuScreen& menu, Renderer& renderer,
 bool ClientApp::login_loop(MenuScreen& menu, Renderer& renderer,
                            AudioManager& audio) {
     std::string nick;
+    std::string login_error;
     while (true) {
-        MenuResult rl = menu.run_login(nick);
+        MenuResult rl = menu.run_login(nick, login_error);
+        login_error.clear();
         if (rl == MenuResult::QUIT) return false;
         if (rl == MenuResult::BACK) return true;
 
@@ -115,6 +117,7 @@ bool ClientApp::login_loop(MenuScreen& menu, Renderer& renderer,
         } catch (const std::exception& e) {
             std::cerr << "[Client] No se pudo conectar al servidor: "
                       << e.what() << "\n";
+            login_error = "No se pudo conectar al servidor";
             continue;
         }
     }

@@ -84,6 +84,15 @@ void SpriteRegistry::load_heads() {
     register_head(keys::GNOMO, assets::HEAD_GNOMO, make_gnomo_head_data());
 }
 
+void SpriteRegistry::load_helmets() {
+    register_head(keys::CASCO_CAPUCHA, assets::CASCO_CAPUCHA,
+                  make_casco_capucha_data());
+    register_head(keys::CASCO_HIERRO, assets::CASCO_HIERRO,
+                  make_casco_hierro_data());
+    register_head(keys::CASCO_SOMBRERO, assets::CASCO_SOMBRERO_MAGICO,
+                  make_casco_sombrero_data());
+}
+
 void SpriteRegistry::load_armor_bodies() {
     register_sprite(keys::ARMADURA_CUERO, assets::ARMADURA_CUERO,
                     make_armadura_cuero_sprite_data());
@@ -99,6 +108,7 @@ void SpriteRegistry::load_all() {
     load_armor_bodies();
     load_creatures();
     load_heads();
+    load_helmets();
 }
 
 SDL_Texture* SpriteRegistry::get_texture(const std::string& key) const {
@@ -139,4 +149,40 @@ SDL_Rect SpriteRegistry::get_head_rect(const std::string& raza,
 
 bool SpriteRegistry::has_head(const std::string& raza) const {
     return head_data.count(raza) > 0;
+}
+
+SDL_Texture* SpriteRegistry::get_helmet_texture(
+        const std::string& helmet_key) const {
+    return textures.get_or_null("head_" + helmet_key);
+}
+
+SDL_Rect SpriteRegistry::get_helmet_rect(const std::string& helmet_key,
+                                        int dir_idx) const {
+    auto it = head_data.find(helmet_key);
+    if (it == head_data.end()) return SDL_Rect{0, 0, 8, 8};
+    return it->second.head_rects[dir_idx % 4];
+}
+
+bool SpriteRegistry::has_helmet(const std::string& helmet_key) const {
+    return head_data.count(helmet_key) > 0;
+}
+
+int SpriteRegistry::get_helmet_off_x(const std::string& helmet_key,
+                                     int dir_idx) const {
+    auto it = head_data.find(helmet_key);
+    if (it == head_data.end()) return 0;
+    return it->second.off_x[dir_idx % 4];
+}
+
+int SpriteRegistry::get_helmet_off_y(const std::string& helmet_key,
+                                     int dir_idx) const {
+    auto it = head_data.find(helmet_key);
+    if (it == head_data.end()) return 0;
+    return it->second.off_y[dir_idx % 4];
+}
+
+int SpriteRegistry::get_helmet_scale(const std::string& helmet_key) const {
+    auto it = head_data.find(helmet_key);
+    if (it == head_data.end()) return 100;
+    return it->second.scale_pct;
 }

@@ -13,6 +13,7 @@
 struct ItemSprite {
     SDL_Texture* tex = nullptr;
     SDL_Rect src{};
+    int extra_pad = 0;
 };
 
 class ItemSpriteRegistry {
@@ -29,7 +30,7 @@ class ItemSpriteRegistry {
     SDL_Texture* load_texture(const std::string& rel_path);
     
     void register_item(const std::string& name, const std::string& sheet,
-                       const SDL_Rect& src);
+                    const SDL_Rect& src, int extra_pad = 0);
 
     public:
     ItemSpriteRegistry(SDL2pp::Renderer& renderer, const ClientConfig& config);

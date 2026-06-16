@@ -576,3 +576,51 @@ SpriteData make_tunica_azul_sprite_data() {
     d.head_neck = 14;
     return d;
 }
+
+HeadData make_casco_capucha_data() {
+    HeadData d;
+
+    d.head_rects[DIR_SOUTH] = {6, 8, 14, 20};
+    d.head_rects[DIR_NORTH] = {6, 73, 15, 21};
+    d.head_rects[DIR_WEST] = {6, 138, 16, 18};
+    d.head_rects[DIR_EAST] = {5, 201, 18, 19};
+
+    return d;
+}
+
+HeadData make_casco_hierro_data() {
+    HeadData d;
+
+    d.head_rects[DIR_SOUTH] = {6, 3, 16, 28};
+    d.head_rects[DIR_NORTH] = {6, 65, 15, 31};
+    d.head_rects[DIR_WEST] = {6, 128, 18, 32};
+    d.head_rects[DIR_EAST] = {0, 193, 21, 30};
+
+    d.off_y[DIR_SOUTH] = -3;
+    d.off_y[DIR_NORTH] = -3;
+    d.off_y[DIR_EAST] = -3;
+    d.off_y[DIR_WEST] = -3;
+    d.off_x[DIR_EAST] = 3;
+    d.off_x[DIR_WEST] = -3;
+
+    d.scale_pct = 130;
+
+    return d;
+}
+
+HeadData make_casco_sombrero_data() {
+    HeadData d;
+    d.head_rects[DIR_SOUTH] = {1, 8, 23, 21};
+    d.head_rects[DIR_NORTH] = {3, 72, 19, 24};
+    d.head_rects[DIR_WEST] = {0, 138, 22, 21};
+    d.head_rects[DIR_EAST] = {3, 201, 20, 23};
+
+    d.off_y[DIR_SOUTH] = -15;
+    d.off_y[DIR_NORTH] = -15;
+    d.off_y[DIR_EAST] = -13;
+    d.off_y[DIR_WEST] = -13;
+    d.off_x[DIR_EAST] = 3;
+    d.off_x[DIR_WEST] = -3;
+    
+    return d;
+}

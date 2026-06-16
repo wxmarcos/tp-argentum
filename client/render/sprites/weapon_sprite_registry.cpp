@@ -6,6 +6,11 @@
 
 #include "render/asset_paths.h"
 
+static constexpr WeaponDirAdjust DEFAULT_ADJUST_S{8, 20, false};
+static constexpr WeaponDirAdjust DEFAULT_ADJUST_N{-8, 20, false};
+static constexpr WeaponDirAdjust DEFAULT_ADJUST_E{10, 20, false};
+static constexpr WeaponDirAdjust DEFAULT_ADJUST_W{-10, 20, false};
+
 WeaponSpriteRegistry::WeaponSpriteRegistry(SDL2pp::Renderer& renderer,
                                            const ClientConfig& config):
         renderer(renderer), config(config) {
@@ -50,10 +55,44 @@ void WeaponSpriteRegistry::load_defs() {
                     {5, 153, 16, 24});
     register_weapon("Escudo de tortuga", std::string(assets::ESCUDOTORTUGA),
                     {116, 11, 17, 21}, {31, 55, 17, 21}, {4, 107, 18, 21},
-                    {113, 152, 18, 20});
+                    {4, 107, 18, 21});
     register_weapon("Escudo de hierro", std::string(assets::ESCUDOHIERRO),
                     {115, 9, 17, 23}, {32, 53, 18, 24}, {3, 105, 18, 23},
-                    {6, 150, 18, 24});
+                    {3, 105, 18, 23});
+
+    set_adjust("Espada",
+               {0, 30, false}, DEFAULT_ADJUST_N,
+               {10, 16, true}, {-10, 16, true});
+    set_adjust("Hacha",
+               {0, 20, false}, DEFAULT_ADJUST_N,
+               {10, 18, true}, {-10, 18, true});
+    set_adjust("Martillo",
+               {-10, 19, false}, DEFAULT_ADJUST_N,
+               {10, 16, true}, {-10, 16, true});
+    set_adjust("Vara de fresno",
+               {0, 10, false}, DEFAULT_ADJUST_N,
+               {10, 16, true}, {-10, 16, true});
+    set_adjust("Flauta elfica",
+               {-10, 15, false}, DEFAULT_ADJUST_N,
+               {5, 10, true}, {-5, 10, true});
+    set_adjust("Baculo nudoso",
+               {-10, 15, false}, DEFAULT_ADJUST_N,
+               {5, 10, true}, {-5, 10, true});
+    set_adjust("Baculo engarzado",
+               {-10, 15, false}, DEFAULT_ADJUST_N,
+               {5, 10, true}, {-5, 10, true});
+    set_adjust("Arco simple",
+               {-10, 18, false}, DEFAULT_ADJUST_N,
+               {0, 16, true}, {0, 16, true});
+    set_adjust("Arco compuesto",
+               {-10, 18, false}, DEFAULT_ADJUST_N,
+               {0, 16, true}, {0, 16, true});
+    set_adjust("Escudo de tortuga",
+               {10, 18, false}, DEFAULT_ADJUST_N,
+               {5, 18, true}, {-5, 18, false});
+    set_adjust("Escudo de hierro",
+               {10, 18, false}, DEFAULT_ADJUST_N,
+               {5, 18, true}, {-5, 18, false});
 }
 
 SDL_Texture* WeaponSpriteRegistry::load_texture(const std::string& rel_path) {
@@ -88,8 +127,27 @@ void WeaponSpriteRegistry::register_weapon(const std::string& name,
         ws.rects[1] = n;
         ws.rects[2] = e;
         ws.rects[3] = w;
+        ws.adjust[0] = DEFAULT_ADJUST_S;
+        ws.adjust[1] = DEFAULT_ADJUST_N;
+        ws.adjust[2] = DEFAULT_ADJUST_E;
+        ws.adjust[3] = DEFAULT_ADJUST_W;
         weapons[name] = ws;
     }
+}
+
+void WeaponSpriteRegistry::set_adjust(const std::string& name,
+                                      const WeaponDirAdjust& s,
+                                      const WeaponDirAdjust& n,
+                                      const WeaponDirAdjust& e,
+                                      const WeaponDirAdjust& w) {
+    auto it = weapons.find(name);
+    if (it == weapons.end()) {
+        return;
+    }
+    it->second.adjust[0] = s;
+    it->second.adjust[1] = n;
+    it->second.adjust[2] = e;
+    it->second.adjust[3] = w;
 }
 
 const WeaponSprite* WeaponSpriteRegistry::find(const std::string& name) const {

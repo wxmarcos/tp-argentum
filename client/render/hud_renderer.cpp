@@ -4,8 +4,10 @@
 #include <cstddef>
 #include <filesystem>
 #include <string>
+#include <SDL2/SDL_image.h>
 
 #include "render/colors.h"
+#include "render/asset_paths.h"
 
 static constexpr Uint32 TOAST_MS = 4000;
 static constexpr int TOAST_PAD = 8;
@@ -36,6 +38,18 @@ static constexpr int QTY_PAD = 2;
 
 static constexpr SDL_Color BAR_TRACK{40, 40, 40, 220};
 
+SDL_Texture* HudRenderer::load_texture(const std::string& rel_path) const {
+    const auto full = (std::filesystem::current_path() /
+                       config.assets_path / rel_path)
+                          .lexically_normal();
+    SDL_Texture* tex = nullptr;
+    if (SDL_Surface* surf = IMG_Load(full.string().c_str())) {
+        tex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
+        SDL_FreeSurface(surf);
+    }
+    return tex;
+}
+
 HudRenderer::HudRenderer(SDL2pp::Renderer& renderer,
                          const ClientConfig& config):
         renderer(renderer),
@@ -48,20 +62,36 @@ HudRenderer::HudRenderer(SDL2pp::Renderer& renderer,
                   (std::filesystem::current_path() / config.font_path)
                       .lexically_normal(),
                   CHAT_FONT_SIZE),
-        item_sprites(renderer, config) {}
+        item_sprites(renderer, config) {
+    hud_bg = load_texture(std::string(assets::HUD_BG));
+    slot_frame = load_texture(std::string(assets::INV_SLOT_FRAME));
+    frame_tex = load_texture(std::string(assets::UI_MARCO));
+}
+
+void HudRenderer::draw_frame() {
+    if (!frame_tex) {
+        return;
+    }
+    const SDL_Rect dst{0, 0, config.game_area_width(), config.window_height};
+    SDL_RenderCopy(renderer.Get(), frame_tex, nullptr, &dst);
+}
 
 void HudRenderer::draw_panel() {
     const int panel_x = config.game_area_width();
     const int panel_w = config.hud_panel_width();
     const int h = config.window_height;
 
-    renderer.SetDrawColor(colors::HUD_PANEL_BG.r, colors::HUD_PANEL_BG.g,
-                          colors::HUD_PANEL_BG.b, colors::HUD_PANEL_BG.a);
-    renderer.FillRect(SDL2pp::Rect(panel_x, 0, panel_w, h));
+    if (hud_bg) {
+        const SDL_Rect dst{panel_x, 0, panel_w, h};
+        SDL_RenderCopy(renderer.Get(), hud_bg, nullptr, &dst);
+    } else {
+        renderer.SetDrawColor(colors::HUD_PANEL_BG.r, colors::HUD_PANEL_BG.g,
+                              colors::HUD_PANEL_BG.b, colors::HUD_PANEL_BG.a);
+        renderer.FillRect(SDL2pp::Rect(panel_x, 0, panel_w, h));
+    }
 
     renderer.SetDrawColor(colors::HUD_PANEL_BORDER.r, colors::HUD_PANEL_BORDER.g,
-                          colors::HUD_PANEL_BORDER.b,
-                          colors::HUD_PANEL_BORDER.a);
+                          colors::HUD_PANEL_BORDER.b, colors::HUD_PANEL_BORDER.a);
     renderer.FillRect(SDL2pp::Rect(panel_x, 0, PANEL_BORDER_W, h));
 }
 
@@ -118,24 +148,31 @@ void HudRenderer::draw_resources(const PlayerStats& s, int x, int& y) {
     y += text.line_height() + SECTION_GAP;
 }
 
-void HudRenderer::draw_inventory_slot(const InventorySlotView& slot, int cx,
-                                      int cy, int cell) {
-    renderer.SetDrawColor(SLOT_BG.r, SLOT_BG.g, SLOT_BG.b, SLOT_BG.a);
-    renderer.FillRect(SDL2pp::Rect(cx, cy, cell, cell));
+void HudRenderer::draw_inventory_slot(const InventorySlotView& slot, int index,
+                                      int cx, int cy, int cell) {
+    if (slot_frame) {
+        const SDL_Rect dst{cx, cy, cell, cell};
+        SDL_RenderCopy(renderer.Get(), slot_frame, nullptr, &dst);
+    } else {
+        renderer.SetDrawColor(SLOT_BG.r, SLOT_BG.g, SLOT_BG.b, SLOT_BG.a);
+        renderer.FillRect(SDL2pp::Rect(cx, cy, cell, cell));
+        renderer.SetDrawColor(colors::HUD_PANEL_BORDER.r,
+                              colors::HUD_PANEL_BORDER.g,
+                              colors::HUD_PANEL_BORDER.b,
+                              colors::HUD_PANEL_BORDER.a);
+        renderer.DrawRect(SDL2pp::Rect(cx, cy, cell, cell));
+    }
 
-    const SDL_Color border = (!slot.empty() && slot.equipado)
-                                 ? colors::ITEM_EQUIPPED
-                                 : colors::HUD_PANEL_BORDER;
-    renderer.SetDrawColor(border.r, border.g, border.b, border.a);
-    renderer.DrawRect(SDL2pp::Rect(cx, cy, cell, cell));
+    const std::string idx = std::to_string(index);
+    chat_text.draw(idx, cx + 2, cy + 1, colors::TEXT_GRAY);
 
     if (slot.empty()) {
         return;
     }
 
     if (const ItemSprite* spr = item_sprites.find(slot.item)) {
-        const SDL_Rect dst{cx + INV_ICON_PAD, cy + INV_ICON_PAD,
-                           cell - 2 * INV_ICON_PAD, cell - 2 * INV_ICON_PAD};
+        const int pad = INV_ICON_PAD + spr->extra_pad;
+        const SDL_Rect dst{cx + pad, cy + pad, cell - 2 * pad, cell - 2 * pad};
         SDL_RenderCopy(renderer.Get(), spr->tex, &spr->src, &dst);
     }
 
@@ -144,6 +181,12 @@ void HudRenderer::draw_inventory_slot(const InventorySlotView& slot, int cx,
         int tw = 0, th = 0;
         text.size_text(n, tw, th);
         text.draw(n, cx + cell - tw - QTY_PAD, cy + cell - th, colors::WHITE);
+    }
+
+    if (slot.equipado) {
+        renderer.SetDrawColor(colors::ITEM_EQUIPPED.r, colors::ITEM_EQUIPPED.g,
+                              colors::ITEM_EQUIPPED.b, colors::ITEM_EQUIPPED.a);
+        renderer.DrawRect(SDL2pp::Rect(cx, cy, cell, cell));
     }
 }
 
@@ -158,8 +201,8 @@ void HudRenderer::draw_inventory_section(const ClientGameState& state, int x,
     for (size_t i = 0; i < slots.size(); ++i) {
         const int col = static_cast<int>(i) % cols;
         const int row = static_cast<int>(i) / cols;
-        draw_inventory_slot(slots[i], x + col * step, y + row * step,
-                            INV_CELL);
+        draw_inventory_slot(slots[i], static_cast<int>(i),
+                            x + col * step, y + row * step, INV_CELL);
     }
 }
 
@@ -263,6 +306,7 @@ void HudRenderer::draw_error_toast(const ClientGameState& state) {
 }
 
 void HudRenderer::render(const ClientGameState& state, const Console& console) {
+    draw_frame();
     draw_panel();
     draw_chat_panel(state, console);
     draw_error_toast(state);
@@ -273,4 +317,10 @@ void HudRenderer::render(const ClientGameState& state, const Console& console) {
     renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
     draw_player_panel(state);
     renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+}
+
+HudRenderer::~HudRenderer() {
+    if (hud_bg) SDL_DestroyTexture(hud_bg);
+    if (slot_frame) SDL_DestroyTexture(slot_frame);
+    if (frame_tex) SDL_DestroyTexture(frame_tex);   
 }
