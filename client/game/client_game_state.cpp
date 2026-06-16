@@ -37,6 +37,10 @@ bool ClientGameState::classify_creature(const std::string& nick,
         }
     }
     std::string prefix = to_lower(nick.substr(0, sep));
+    const std::string npc_pref = "npc_";
+    if (prefix.rfind(npc_pref, 0) == 0) {
+        prefix = prefix.substr(npc_pref.size());
+    }
     if (KNOWN_TYPES.find(prefix) == KNOWN_TYPES.end()) {
         return false;
     }
@@ -197,6 +201,15 @@ void ClientGameState::apply_entity_remove(const Snapshot& snapshot) {
 
 void ClientGameState::apply_player_stats(const Snapshot& snapshot) {
     const std::string& nick = snapshot.get_nick();
+
+    if (snapshot.get_vida() > 0 && dead_entities.count(nick) > 0) {
+        dead_entities.erase(nick);
+        uint16_t x = 0;
+        uint16_t y = 0;
+        if (resolve_entity_pos(nick, x, y)) {
+            effect_spawns.push_back({x, y, EffectKind::Resucitar});
+        }
+    }
 
     if (nick == local_nick) {
         local_stats.raza = to_lower(snapshot.get_raza());

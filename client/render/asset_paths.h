@@ -59,6 +59,11 @@ inline constexpr std::string_view ARMADURA_PLACAS =
 inline constexpr std::string_view TUNICA_AZUL =
     "objetos/armaduras/tunicaAzul.png";
 
+// Cascos
+inline constexpr std::string_view CASCO_CAPUCHA = "objetos/armaduras/capucha.png";
+inline constexpr std::string_view CASCO_HIERRO = "objetos/armaduras/cascoHierro.png";
+inline constexpr std::string_view CASCO_SOMBRERO_MAGICO = "objetos/armaduras/sombreroMagico.png";
+
 // Armas
 inline constexpr std::string_view ESPADA = "objetos/armas/espada.png";
 inline constexpr std::string_view HACHA = "objetos/armas/hacha.png";

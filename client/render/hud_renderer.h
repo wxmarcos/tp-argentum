@@ -19,6 +19,7 @@ class HudRenderer {
     SDL2pp::Renderer& renderer;
     SDL_Texture* hud_bg = nullptr;
     SDL_Texture* slot_frame = nullptr;
+    SDL_Texture* frame_tex = nullptr;
     const ClientConfig& config;
     TextRenderer text;
     TextRenderer chat_text;
@@ -46,6 +47,8 @@ class HudRenderer {
                          int cy, int cell);
 
     void draw_chat_panel(const ClientGameState& state, const Console& console);
+
+    void draw_frame();
 
     public:
     uint32_t last_error_seq = 0;

@@ -47,11 +47,18 @@ void ItemSpriteRegistry::load_defs() {
                   arma_icono);
 
     register_item("Armadura de cuero",
-                  "objetos/armaduras/armaduraCuero.png", {4, 204, 36, 36});
+              "objetos/armaduras/armaduraCuero.png", {8, 225, 24, 31}, 5);
     register_item("Armadura de placas",
-                  "objetos/armaduras/armaduraPlacas.png", {4, 204, 36, 36});
+                "objetos/armaduras/armaduraPlacas.png", {0, 224, 24, 32}, 5);
     register_item("Tunica azul",
-                  "objetos/armaduras/tunicaAzul.png", {4, 204, 36, 36});
+                "objetos/armaduras/tunicaAzul.png", {0, 224, 31, 32}, 5);
+
+    register_item("Capucha",
+                  "objetos/armaduras/capucha.png", {6, 8, 14, 20}, 5);
+    register_item("Casco de hierro",
+                  "objetos/armaduras/cascoHierro.png", {6, 3, 16, 28}, 5);
+    register_item("Sombrero magico",
+                  "objetos/armaduras/sombreroMagico.png", {1, 8, 23, 21}, 5);
 }
 
 SDL_Texture* ItemSpriteRegistry::load_texture(const std::string& rel_path) {
@@ -76,9 +83,9 @@ SDL_Texture* ItemSpriteRegistry::load_texture(const std::string& rel_path) {
 
 void ItemSpriteRegistry::register_item(const std::string& name,
                                        const std::string& sheet,
-                                       const SDL_Rect& src) {
+                                       const SDL_Rect& src, int extra_pad) {
     if (SDL_Texture* tex = load_texture(sheet)) {
-        sprites[name] = {tex, src};
+        sprites[name] = {tex, src, extra_pad};
     }
 }
 

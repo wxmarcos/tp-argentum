@@ -89,22 +89,30 @@ class WorldRenderer {
     void draw_character(int world_x, int world_y, protocol::Direction dir,
                         const std::string& sprite_key, const std::string& raza,
                         int frame, int cam_offset_x, int cam_offset_y,
-                        const std::string& weapon_name = "");
+                        const std::string& weapon_name = "",
+                        const std::string& helmet_key = "",
+                        const std::string& shield_name = "");
 
     void draw_body(const std::string& sprite_key, int dir_idx, int frame,
                    int px, int py, int body_top, int body_h);
 
     void draw_head(const std::string& sprite_key, const std::string& raza,
                    int dir_idx, int px, int body_top, int body_scale);
+    
+    void draw_helmet(const std::string& helmet_key, const std::string& raza,
+                    const std::string& sprite_key, int dir_idx, int px,
+                    int body_top, int body_scale);
 
     void draw_ghost(int world_x, int world_y, protocol::Direction dir,
                     int frame, int cam_offset_x, int cam_offset_y);
 
     void draw_player(const std::string& nick, bool dead, int world_x,
-                     int world_y, protocol::Direction dir,
-                     const std::string& sprite_key, const std::string& raza,
-                     int frame, int cam_offset_x, int cam_offset_y,
-                     const std::string& weapon_name = "");
+                    int world_y, protocol::Direction dir,
+                    const std::string& sprite_key, const std::string& raza,
+                    int frame, int cam_offset_x, int cam_offset_y,
+                    const std::string& weapon_name = "",
+                    const std::string& helmet_key = "",
+                    const std::string& shield_name = "");
 
     void draw_creature(int world_x, int world_y, protocol::Direction dir,
                        const std::string& type, int frame, int cam_offset_x,
@@ -142,6 +150,12 @@ class WorldRenderer {
 
     std::string local_body_key(const ClientGameState& state,
                                const std::string& clase_key) const;
+
+    std::string local_helmet_key(const ClientGameState& state) const;
+
+    std::string local_shield_name(const ClientGameState& state) const;
+    
+    bool is_shield(const std::string& item) const;
 
     public:
     WorldRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);

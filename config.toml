@@ -216,9 +216,9 @@ vecino_oeste       = -1
 es_zona_segura     = true
 poblacion_max      = 0
 criaturas_posibles = []
-sacerdotes         = [{x = 50, y = 50}]
-comerciantes       = [{x = 55, y = 50}]
-banqueros          = [{x = 45, y = 50}]
+sacerdotes         = [{x = 80, y = 41}]
+comerciantes       = [{x = 13, y = 20}]
+banqueros          = [{x = 6, y = 44}]
 portales           = []
 
 [mapas.4]

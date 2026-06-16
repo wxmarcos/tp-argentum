@@ -65,6 +65,15 @@ HudRenderer::HudRenderer(SDL2pp::Renderer& renderer,
         item_sprites(renderer, config) {
     hud_bg = load_texture(std::string(assets::HUD_BG));
     slot_frame = load_texture(std::string(assets::INV_SLOT_FRAME));
+    frame_tex = load_texture(std::string(assets::UI_MARCO));
+}
+
+void HudRenderer::draw_frame() {
+    if (!frame_tex) {
+        return;
+    }
+    const SDL_Rect dst{0, 0, config.game_area_width(), config.window_height};
+    SDL_RenderCopy(renderer.Get(), frame_tex, nullptr, &dst);
 }
 
 void HudRenderer::draw_panel() {
@@ -162,8 +171,8 @@ void HudRenderer::draw_inventory_slot(const InventorySlotView& slot, int index,
     }
 
     if (const ItemSprite* spr = item_sprites.find(slot.item)) {
-        const SDL_Rect dst{cx + INV_ICON_PAD, cy + INV_ICON_PAD,
-                           cell - 2 * INV_ICON_PAD, cell - 2 * INV_ICON_PAD};
+        const int pad = INV_ICON_PAD + spr->extra_pad;
+        const SDL_Rect dst{cx + pad, cy + pad, cell - 2 * pad, cell - 2 * pad};
         SDL_RenderCopy(renderer.Get(), spr->tex, &spr->src, &dst);
     }
 
@@ -297,6 +306,7 @@ void HudRenderer::draw_error_toast(const ClientGameState& state) {
 }
 
 void HudRenderer::render(const ClientGameState& state, const Console& console) {
+    draw_frame();
     draw_panel();
     draw_chat_panel(state, console);
     draw_error_toast(state);
@@ -312,4 +322,5 @@ void HudRenderer::render(const ClientGameState& state, const Console& console) {
 HudRenderer::~HudRenderer() {
     if (hud_bg) SDL_DestroyTexture(hud_bg);
     if (slot_frame) SDL_DestroyTexture(slot_frame);
+    if (frame_tex) SDL_DestroyTexture(frame_tex);   
 }
