@@ -21,6 +21,7 @@ struct PlayerStats {
     uint16_t mana = 0;
     uint16_t mana_max = 0;
     uint32_t experiencia = 0;
+    uint32_t exp_limite = 0;
     uint32_t oro = 0;
     uint16_t constitucion = 0;
     uint16_t inteligencia = 0;

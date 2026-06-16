@@ -86,6 +86,10 @@ void Jugador::recuperarMana(int cantidad) {
 int Jugador::getNivel() const { return nivel; }
 int Jugador::getExperiencia() const { return experiencia; }
 
+int Jugador::getExpParaSiguienteNivel() const {
+    return expParaSiguienteNivel();
+}
+
 int Jugador::expParaSiguienteNivel() const {
     return Formulas::calcularLimiteExp(nivel, formulaExpCoef, formulaExpExp);
 }

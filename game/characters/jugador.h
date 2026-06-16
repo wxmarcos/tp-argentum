@@ -74,6 +74,7 @@ public:
     // Nivel y Experiencia
     int getNivel() const;
     int getExperiencia() const;
+    int getExpParaSiguienteNivel() const;
     void ganarExperiencia(int exp);
     void perderExperiencia(int cantidad);
 
@@ -134,3 +135,4 @@ public:
     void morir() override;
     void revivir(int vidaInicial) override;
 };
+    
