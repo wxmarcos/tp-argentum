@@ -55,8 +55,8 @@ class ClientApp {
                    AudioManager& audio);
 
     bool process_input(ServerConnection& connection, const InputHandler& input,
-                       ClientGameState& state, Console& console,
-                       AudioManager& audio);
+                   HudRenderer& hud, ClientGameState& state, Console& console,
+                   AudioManager& audio);
 
     void handle_console_event(const SDL_Event& event, Console& console,
                               ServerConnection& connection, AudioManager& audio);

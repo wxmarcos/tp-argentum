@@ -194,7 +194,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input, state, console, audio);
+        running = process_input(connection, input, hud, state, console, audio);
         if (running) {
             running = process_updates(connection, state);
         }
@@ -216,7 +216,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 }
 
 bool ClientApp::process_input(ServerConnection& connection,
-                              const InputHandler& input,
+                              const InputHandler& input, HudRenderer& hud,
                               ClientGameState& state, Console& console,
                               AudioManager& audio) {
     SDL_Event event;
@@ -234,6 +234,13 @@ bool ClientApp::process_input(ServerConnection& connection,
         if (event.type == SDL_MOUSEBUTTONDOWN &&
             event.button.button == SDL_BUTTON_LEFT) {
             handle_click(connection, state, event.button.x, event.button.y);
+        }
+
+        if (event.type == SDL_MOUSEWHEEL) {
+            hud.scroll_chat(event.wheel.y,
+                            static_cast<int>(
+                                state.get_chat_messages().size()));
+            continue;
         }
 
         if (event.type == SDL_KEYDOWN) {
