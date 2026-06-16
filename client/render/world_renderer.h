@@ -18,6 +18,8 @@
 #include "render/map/tmx_loader.h"
 #include "render/sprites/character_animator.h"
 #include "render/sprites/sprite_registry.h"
+#include "render/sprites/item_sprite_registry.h"
+#include "render/sprites/weapon_sprite_registry.h"
 #include "render/text_renderer.h"
 
 struct FloatingText {
@@ -35,6 +37,8 @@ class WorldRenderer {
 
     SpriteRegistry registry;
     TextRenderer text;
+    ItemSpriteRegistry item_sprites;
+    WeaponSpriteRegistry weapon_sprites;
 
     std::vector<FloatingText> floating_texts;
 
@@ -83,9 +87,9 @@ class WorldRenderer {
                             int cam_offset_x, int cam_offset_y);
 
     void draw_character(int world_x, int world_y, protocol::Direction dir,
-                        const std::string& sprite_key,
-                        const std::string& raza, int frame, int cam_offset_x,
-                        int cam_offset_y);
+                        const std::string& sprite_key, const std::string& raza,
+                        int frame, int cam_offset_x, int cam_offset_y,
+                        const std::string& weapon_name = "");
 
     void draw_body(const std::string& sprite_key, int dir_idx, int frame,
                    int px, int py, int body_top, int body_h);
@@ -99,7 +103,8 @@ class WorldRenderer {
     void draw_player(const std::string& nick, bool dead, int world_x,
                      int world_y, protocol::Direction dir,
                      const std::string& sprite_key, const std::string& raza,
-                     int frame, int cam_offset_x, int cam_offset_y);
+                     int frame, int cam_offset_x, int cam_offset_y,
+                     const std::string& weapon_name = "");
 
     void draw_creature(int world_x, int world_y, protocol::Direction dir,
                        const std::string& type, int frame, int cam_offset_x,
@@ -107,6 +112,17 @@ class WorldRenderer {
 
     void draw_name(const std::string& nick, int world_x, int world_y,
                    int cam_offset_x, int cam_offset_y);
+    
+    void draw_floor_items(const ClientGameState& state, int cam_offset_x,
+                          int cam_offset_y);
+
+    void draw_weapon(const std::string& weapon_name, int dir_idx, int px,
+                     int body_top, int body_h);
+
+    std::string local_weapon_name(const ClientGameState& state) const;
+
+    void draw_meditation_effect(int world_x, int world_y, int cam_offset_x,
+                                int cam_offset_y);
 
     void draw_floating_texts(const ClientGameState& state, uint32_t delta_ms,
                              int cam_offset_x, int cam_offset_y);
@@ -123,6 +139,9 @@ class WorldRenderer {
     int creature_scale_pct(const std::string& type) const;
 
     static int dir_to_idx(protocol::Direction dir);
+
+    std::string local_body_key(const ClientGameState& state,
+                               const std::string& clase_key) const;
 
     public:
     WorldRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);

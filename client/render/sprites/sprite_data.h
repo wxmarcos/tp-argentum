@@ -40,4 +40,8 @@ HeadData make_elfo_head_data();
 HeadData make_enano_head_data();
 HeadData make_gnomo_head_data();
 
+SpriteData make_armadura_cuero_sprite_data();
+SpriteData make_armadura_placas_sprite_data();
+SpriteData make_tunica_azul_sprite_data();
+
 #endif

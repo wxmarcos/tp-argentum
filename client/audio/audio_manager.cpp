@@ -56,7 +56,7 @@ void AudioManager::load_effect(const std::string& key,
     effects[key] = chunk;
 }
 
-void AudioManager::play_effect(const std::string& key) {
+void AudioManager::play_effect(const std::string& key, int volume) {
     if (!initialized) {
         return;
     }
@@ -64,7 +64,7 @@ void AudioManager::play_effect(const std::string& key) {
     if (it == effects.end() || !it->second) {
         return;
     }
-    Mix_VolumeChunk(it->second, config.effects_volume);
+    Mix_VolumeChunk(it->second, volume < 0 ? config.effects_volume : volume);
     Mix_PlayChannel(-1, it->second, 0);
 }
 

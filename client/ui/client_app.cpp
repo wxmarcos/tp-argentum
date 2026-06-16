@@ -1,5 +1,8 @@
 #include "ui/client_app.h"
 
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
 #include <SDL2/SDL_image.h>
@@ -10,6 +13,7 @@
 #include <utility>
 
 #include "audio/audio_manager.h"
+#include "audio/audio_assets.h"
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
 #include "game/client_game_state.h"
@@ -50,7 +54,11 @@ int ClientApp::run() {
                           SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         MenuScreen menu(renderer, config);
 
-        return menu_loop(menu, renderer);
+        AudioManager audio(config);
+        load_audio(audio);
+        audio.play_music(audio_assets::MUSIC);
+
+        return menu_loop(menu, renderer, audio);
     } catch (const std::exception& e) {
         std::cerr << "[Client] Error fatal: " << e.what() << std::endl;
         return 1;
@@ -67,39 +75,48 @@ void ClientApp::setup_window_icon(Window& window) const {
     }
 }
 
-int ClientApp::menu_loop(MenuScreen& menu, Renderer& renderer) {
+int ClientApp::menu_loop(MenuScreen& menu, Renderer& renderer,
+                         AudioManager& audio) {
     while (true) {
         if (menu.run_inicio() == MenuResult::QUIT) return 0;
-        if (!login_loop(menu, renderer)) return 0;
+        if (!login_loop(menu, renderer, audio)) return 0;
     }
 }
 
-bool ClientApp::login_loop(MenuScreen& menu, Renderer& renderer) {
+bool ClientApp::login_loop(MenuScreen& menu, Renderer& renderer,
+                           AudioManager& audio) {
     std::string nick;
     while (true) {
         MenuResult rl = menu.run_login(nick);
         if (rl == MenuResult::QUIT) return false;
         if (rl == MenuResult::BACK) return true;
 
-        ServerConnection connection(config.server_host, config.server_port);
-        ClientGameState state(nick, config.map_width, config.map_height);
+        try {
+            ServerConnection connection(config.server_host,
+                                        config.server_port);
+            ClientGameState state(nick, config.map_width, config.map_height);
 
-        ConnectResult cr = connect_and_login(menu, connection, state, nick);
-        if (cr == ConnectResult::QUIT) {
+            ConnectResult cr = connect_and_login(menu, connection, state, nick);
+            if (cr == ConnectResult::QUIT) {
+                connection.send(Command::disconnect());
+                connection.stop();
+                return false;
+            }
+            if (cr == ConnectResult::BACK_TO_MENU) {
+                connection.send(Command::disconnect());
+                connection.stop();
+                continue;
+            }
+
+            play_session(connection, renderer, state, audio);
             connection.send(Command::disconnect());
             connection.stop();
             return false;
-        }
-        if (cr == ConnectResult::BACK_TO_MENU) {
-            connection.send(Command::disconnect());
-            connection.stop();
+        } catch (const std::exception& e) {
+            std::cerr << "[Client] No se pudo conectar al servidor: "
+                      << e.what() << "\n";
             continue;
         }
-
-        play_session(connection, renderer, state);
-        connection.send(Command::disconnect());
-        connection.stop();
-        return false;
     }
 }
 
@@ -128,14 +145,18 @@ ConnectResult ClientApp::connect_and_login(MenuScreen& menu,
 }
 
 void ClientApp::play_session(ServerConnection& connection, Renderer& renderer,
-                             ClientGameState& state) {
-    AudioManager audio(config);
+                             ClientGameState& state, AudioManager& audio) {
+    was_meditating = false;
+    prev_x = -1;
+    prev_y = -1;
+    prev_level = -1;
+
     WorldRenderer world_renderer(renderer, config);
     HudRenderer hud(renderer, config);
     InputHandler input;
     Console console;
-    main_loop(connection, input, renderer, world_renderer, hud, state,
-              console);
+    main_loop(connection, input, renderer, world_renderer, hud, state, console,
+              audio);
 }
 
 int ClientApp::await_response(ServerConnection& connection,
@@ -160,7 +181,7 @@ int ClientApp::await_response(ServerConnection& connection,
 void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
                           SDL2pp::Renderer& renderer, WorldRenderer& world,
                           HudRenderer& hud, ClientGameState& state,
-                          Console& console) {
+                          Console& console, AudioManager& audio) {
     const Uint32 frame_delay_ms = 1000 / TARGET_FPS;
     bool running = true;
     Uint32 last_ticks = SDL_GetTicks();
@@ -170,9 +191,12 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input, state, console);
+        running = process_input(connection, input, state, console, audio);
         if (running) {
             running = process_updates(connection, state);
+        }
+        if (running) {
+            update_audio(audio, state);
         }
 
         renderer.SetDrawColor(GAME_BG.r, GAME_BG.g, GAME_BG.b, GAME_BG.a);
@@ -190,7 +214,8 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 
 bool ClientApp::process_input(ServerConnection& connection,
                               const InputHandler& input,
-                              ClientGameState& state, Console& console) {
+                              ClientGameState& state, Console& console,
+                              AudioManager& audio) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -199,7 +224,7 @@ bool ClientApp::process_input(ServerConnection& connection,
         }
 
         if (console.is_open()) {
-            handle_console_event(event, console);
+            handle_console_event(event, console, connection, audio);
             continue;
         }
 
@@ -220,10 +245,6 @@ bool ClientApp::process_input(ServerConnection& connection,
                 SDL_StartTextInput();
                 continue;
             }
-            if (event.key.keysym.sym == SDLK_i) {
-                state.toggle_inventory();
-                continue;
-            }
 
             Command cmd = Command::disconnect();
             if (input.process_key(event.key, cmd)) {
@@ -234,7 +255,9 @@ bool ClientApp::process_input(ServerConnection& connection,
     return true;
 }
 
-void ClientApp::handle_console_event(const SDL_Event& event, Console& console) {
+void ClientApp::handle_console_event(const SDL_Event& event, Console& console,
+                                     ServerConnection& connection,
+                                     AudioManager& audio) {
     if (event.type == SDL_TEXTINPUT) {
         console.append(event.text.text);
         return;
@@ -249,9 +272,35 @@ void ClientApp::handle_console_event(const SDL_Event& event, Console& console) {
     } else if (key == SDLK_BACKSPACE) {
         console.backspace();
     } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-        console.take();
-        console.close();
+        submit_console(console, connection, audio);
         SDL_StopTextInput();
+    }
+}
+
+void ClientApp::submit_console(Console& console, ServerConnection& connection,
+                               AudioManager& audio) {
+    const std::string line = console.take();
+    console.close();
+    auto cmd = parser.parse(line);
+    if (!cmd) {
+        return;
+    }
+    connection.send(*cmd);
+
+    const size_t start = line.find_first_not_of(" \t");
+    if (start == std::string::npos) {
+        return;
+    }
+    const size_t end = line.find_first_of(" \t", start);
+    std::string head = line.substr(start, end - start);
+    std::transform(head.begin(), head.end(), head.begin(),
+                   [](unsigned char c) {
+                       return static_cast<char>(std::tolower(c));
+                   });
+    if (head == "/equipar") {
+        audio.play_effect(audio_assets::KEY_EQUIP);
+    } else if (head == "/tirar") {
+        audio.play_effect(audio_assets::KEY_DROP);
     }
 }
 
@@ -266,7 +315,6 @@ void ClientApp::handle_click(ServerConnection& connection,
 
     const int cam_offset_x =
         config.game_area_width() / 2 - state.get_local_x() * ts - ts / 2;
-
     const int cam_offset_y =
         config.window_height / 2 - state.get_local_y() * ts - ts / 2;
 
@@ -296,4 +344,94 @@ bool ClientApp::process_updates(ServerConnection& connection,
         state.apply_update(update);
     }
     return true;
+}
+
+void ClientApp::load_audio(AudioManager& audio) {
+    audio.load_effect(audio_assets::KEY_ATTACK, audio_assets::PATH_ATTACK);
+    audio.load_effect(audio_assets::KEY_DEATH, audio_assets::PATH_DEATH);
+    audio.load_effect(audio_assets::KEY_MEDITATE, audio_assets::PATH_MEDITATE);
+    audio.load_effect(audio_assets::KEY_HIT, audio_assets::PATH_HIT);
+    audio.load_effect(audio_assets::KEY_STEP, audio_assets::PATH_STEP);
+    audio.load_effect(audio_assets::KEY_LEVELUP, audio_assets::PATH_LEVELUP);
+    audio.load_effect(audio_assets::KEY_EQUIP, audio_assets::PATH_EQUIP);
+    audio.load_effect(audio_assets::KEY_DROP, audio_assets::PATH_DROP);
+    audio.load_effect(audio_assets::KEY_HEAL,   audio_assets::PATH_HEAL);
+    audio.load_effect(audio_assets::KEY_REVIVE, audio_assets::PATH_REVIVE);
+    audio.load_effect(audio_assets::KEY_STAFF,  audio_assets::PATH_STAFF);
+}
+
+void ClientApp::play_event_sounds(AudioManager& audio,
+                                  const ClientGameState& state) {
+    if (!state.has_local_position()) {
+        return;
+    }
+    const int lx = state.get_local_x();
+    const int ly = state.get_local_y();
+    int played = 0;
+    for (const EffectSpawn& spawn : state.get_effect_spawns()) {
+        if (played >= audio_assets::MAX_SOUNDS_PER_FRAME) {
+            break;
+        }
+        const bool on_me = (static_cast<int>(spawn.x) == lx &&
+                            static_cast<int>(spawn.y) == ly);
+        const char* key = nullptr;
+        switch (spawn.kind) {
+            case EffectKind::AtaqueComunRojo:
+            case EffectKind::AtaqueComunGris:
+            case EffectKind::AtaqueComunDorado:
+            case EffectKind::AtaqueBaculoComun:
+            case EffectKind::AtaqueBaculoDorado:
+                key = on_me ? audio_assets::KEY_HIT : audio_assets::KEY_ATTACK;
+                break;
+            case EffectKind::EfectoMorir:
+                key = audio_assets::KEY_DEATH;
+                break;
+            case EffectKind::Curarse:
+                key = audio_assets::KEY_HEAL;
+                break;
+            case EffectKind::Resucitar:
+                key = audio_assets::KEY_REVIVE;
+                break;
+            default:
+                break;
+        }
+        if (key == nullptr) {
+            continue;
+        }
+        const int dist = std::max(std::abs(lx - static_cast<int>(spawn.x)),
+                                  std::abs(ly - static_cast<int>(spawn.y)));
+        audio.play_effect_at(key, dist);
+        ++played;
+    }
+}
+
+void ClientApp::update_audio(AudioManager& audio,
+                             const ClientGameState& state) {
+    play_event_sounds(audio, state);
+
+    const bool meditating_now =
+        state.has_local_position() &&
+        state.is_meditating(state.get_local_nick());
+    if (meditating_now && !was_meditating) {
+        audio.play_effect(audio_assets::KEY_MEDITATE);
+    }
+    was_meditating = meditating_now;
+
+    if (state.has_local_position()) {
+        const int x = state.get_local_x();
+        const int y = state.get_local_y();
+        if (prev_x >= 0 && (x != prev_x || y != prev_y)) {
+            audio.play_effect(audio_assets::KEY_STEP, audio_assets::STEP_VOLUME);
+        }
+        prev_x = x;
+        prev_y = y;
+    }
+
+    if (state.has_local_stats()) {
+        const int level = state.get_local_stats().nivel;
+        if (prev_level >= 0 && level > prev_level) {
+            audio.play_effect(audio_assets::KEY_LEVELUP);
+        }
+        prev_level = level;
+    }
 }

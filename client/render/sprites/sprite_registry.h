@@ -33,6 +33,8 @@ class SpriteRegistry {
 
     void load_heads();
 
+    void load_armor_bodies();
+
     public:
     SpriteRegistry(SDL_Renderer* renderer,
                    const std::filesystem::path& assets_root);

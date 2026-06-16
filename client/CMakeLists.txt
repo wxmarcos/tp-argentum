@@ -4,6 +4,7 @@ target_sources(taller_client
     ui/client_app.cpp
     ui/menu_screen.cpp
     ui/console.cpp
+    ui/command_parser.cpp
     net/client_sender.cpp
     net/client_receiver.cpp
     net/server_connection.cpp
@@ -20,6 +21,8 @@ target_sources(taller_client
     render/sprites/character_animator.cpp
     render/sprites/sprite_registry.cpp
     render/sprites/sprite_data.cpp
+    render/sprites/item_sprite_registry.cpp
+    render/sprites/weapon_sprite_registry.cpp
     render/effects/effect_data.cpp
     audio/audio_manager.cpp
     config/client_config.cpp
@@ -30,6 +33,7 @@ target_sources(taller_client
     ui/menu_result.h
     ui/connect_result.h
     ui/console.h
+    ui/command_parser.h
     net/client_sender.h
     net/client_receiver.h
     net/server_connection.h
@@ -53,10 +57,13 @@ target_sources(taller_client
     render/sprites/sprite_registry.h
     render/sprites/animation.h
     render/sprites/character_animator.h
+    render/sprites/item_sprite_registry.h
+    render/sprites/weapon_sprite_registry.h
     render/effects/effect_kind.h
     render/effects/effect_spawn.h
     render/effects/effect_data.h
     audio/audio_manager.h
+    audio/audio_assets.h
     config/client_config.h
     )
 
