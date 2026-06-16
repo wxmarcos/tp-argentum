@@ -20,6 +20,11 @@ class HudRenderer {
     SDL_Texture* hud_bg = nullptr;
     SDL_Texture* slot_frame = nullptr;
     SDL_Texture* frame_tex = nullptr;
+    int chat_scroll = 0;
+    int inv_origin_x = 0;
+    int inv_origin_y = 0;
+    int inv_cols = 1;
+    int inv_count = 0;
     const ClientConfig& config;
     TextRenderer text;
     TextRenderer chat_text;
@@ -57,9 +62,13 @@ class HudRenderer {
     HudRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);
     ~HudRenderer();
 
-    void render(const ClientGameState& state, const Console& console);
-
     void draw_error_toast(const ClientGameState& state);
+
+    void scroll_chat(int delta, int total_msgs);
+
+    int slot_at(int mouse_x, int mouse_y) const;
+
+    void render(const ClientGameState& state, const Console& console);
 };
 
 #endif

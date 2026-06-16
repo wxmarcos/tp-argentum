@@ -200,12 +200,40 @@ void HudRenderer::draw_inventory_section(const ClientGameState& state, int x,
     const auto& slots = state.get_inventory();
     const int step = INV_CELL + INV_CELL_GAP;
     const int cols = std::max(1, (w + INV_CELL_GAP) / step);
+
+    inv_origin_x = x;
+    inv_origin_y = y;
+    inv_cols = cols;
+    inv_count = static_cast<int>(slots.size());
+
     for (size_t i = 0; i < slots.size(); ++i) {
         const int col = static_cast<int>(i) % cols;
         const int row = static_cast<int>(i) / cols;
         draw_inventory_slot(slots[i], static_cast<int>(i),
                             x + col * step, y + row * step, INV_CELL);
     }
+}
+
+int HudRenderer::slot_at(int mouse_x, int mouse_y) const {
+    const int step = INV_CELL + INV_CELL_GAP;
+    const int rel_x = mouse_x - inv_origin_x;
+    const int rel_y = mouse_y - inv_origin_y;
+    if (rel_x < 0 || rel_y < 0) {
+        return -1;
+    }
+    const int col = rel_x / step;
+    const int row = rel_y / step;
+    if (col >= inv_cols) {
+        return -1;
+    }
+    if (rel_x % step >= INV_CELL || rel_y % step >= INV_CELL) {
+        return -1;
+    }
+    const int idx = row * inv_cols + col;
+    if (idx < 0 || idx >= inv_count) {
+        return -1;
+    }
+    return idx;
 }
 
 void HudRenderer::draw_player_panel(const ClientGameState& state) {
@@ -248,10 +276,16 @@ void HudRenderer::draw_chat_panel(const ClientGameState& state,
     renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
 
     int ly = box_y + CHAT_PAD;
-    const int start = static_cast<int>(msgs.size()) - shown;
+    const int total = static_cast<int>(msgs.size());
+    const int max_scroll = std::max(0, total - CHAT_MAX_LINES);
+    if (chat_scroll > max_scroll) {
+        chat_scroll = max_scroll;
+    }
+    const int end = total - chat_scroll;
+    const int start = std::max(0, end - shown);
     const int max_text_w = panel_w - CHAT_PAD * 2;
-    
-    for (int i = start; i < static_cast<int>(msgs.size()); ++i) {
+
+    for (int i = start; i < end; ++i) {
         std::string line = msgs[i].from + ": " + msgs[i].text;
         int tw = 0, th = 0;
         chat_text.size_text(line, tw, th);
@@ -305,6 +339,13 @@ void HudRenderer::draw_error_toast(const ClientGameState& state) {
     renderer.DrawRect(SDL2pp::Rect(box_x, box_y, box_w, box_h));
     text.draw_centered(msg, cx, box_y + TOAST_PAD, colors::ERROR_TEXT);
     renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
+}
+
+void HudRenderer::scroll_chat(int delta, int total_msgs) {
+    const int max_scroll = std::max(0, total_msgs - CHAT_MAX_LINES);
+    chat_scroll += delta;
+    if (chat_scroll < 0) chat_scroll = 0;
+    if (chat_scroll > max_scroll) chat_scroll = max_scroll;
 }
 
 void HudRenderer::render(const ClientGameState& state, const Console& console) {
