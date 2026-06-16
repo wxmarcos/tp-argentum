@@ -176,6 +176,10 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
+    // Bonus grupal de clan del atacante
+    int compAtacante = contarCompañerosClanEnMapa(atacante);
+    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
+
     int danioFinal = danio;
     resultado.danioAplicado = danioFinal;
     objetivo->recibirDanio(danioFinal);
@@ -248,6 +252,10 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
+    // Bonus grupal de clan del atacante
+    int compAtacante = contarCompañerosClanEnMapa(atacante);
+    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
+
     if (!resultado.fueCritico)
         resultado.fueEsquivado =
             Formulas::calcularEsquive(objetivo->getAgilidad());
@@ -267,6 +275,10 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         escudo ? escudo->getDefensaMin() : 0,
         escudo ? escudo->getDefensaMax() : 0,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
+
+    // Bonus grupal de clan del defensor
+    int compDefensor = contarCompañerosClanEnMapa(objetivo);
+    defensa = static_cast<int>(defensa * (1.0 + compDefensor * 0.05));
 
     int danioFinal = std::max(0, danio - defensa);
     resultado.danioAplicado = danioFinal;
@@ -315,9 +327,28 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
         escudo ? escudo->getDefensaMax() : 0,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
+    // Bonus grupal de clan del defensor
+    int comp = contarCompañerosClanEnMapa(objetivo);
+    defensa = static_cast<int>(defensa * (1.0 + comp * 0.05));
+
     int danioFinal = std::max(0, danio - defensa);
 
     objetivo->recibirDanio(danioFinal);
 
     return danioFinal;
+}
+
+// ----------------- Bonus grupal de clan -----------------
+
+int Game::contarCompañerosClanEnMapa(const Jugador* jugador) const {
+    if (!jugador->estaEnClan()) return 0;
+    int count = 0;
+    for (const auto& [nick, j] : jugadores) {
+        if (nick == jugador->getNombre()) continue;
+        if (!j->estaVivo()) continue;
+        if (j->getClanNombre() != jugador->getClanNombre()) continue;
+        if (j->getMapaId() != jugador->getMapaId()) continue;
+        ++count;
+    }
+    return count;
 }

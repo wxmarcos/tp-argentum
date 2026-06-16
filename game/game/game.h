@@ -55,7 +55,7 @@ private:
     struct InfoNPC {
         int mapaId, x, y;
     };
-    
+
     std::vector<InfoNPC> sacerdotes;
     std::vector<InfoNPC> comerciantes;
     std::vector<InfoNPC> banqueros;
@@ -99,6 +99,7 @@ private:
                               Criatura* criatura,
                               std::vector<Snapshot>& snapshots);
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
+    int contarCompañerosClanEnMapa(const Jugador* jugador) const;
 
     // ---- IA / mundo (game_world.cpp) ----
     void spawnCriaturas(std::vector<Snapshot>& snapshots);
@@ -125,7 +126,8 @@ public:
     // Persistencia (game.cpp)
     std::vector<PersistenceTask> build_persistence_tasks_for_command(
         const Command& cmd) const;
-    
+    std::vector<PersistenceTask> build_all_players_tasks() const;
+
     // Jugadores (game.cpp)
     bool agregarJugador(const std::string& nombre, int mapaId, int posX,
                         int posY, const std::string& razaNombre,
