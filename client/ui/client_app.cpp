@@ -233,7 +233,8 @@ bool ClientApp::process_input(ServerConnection& connection,
 
         if (event.type == SDL_MOUSEBUTTONDOWN &&
             event.button.button == SDL_BUTTON_LEFT) {
-            handle_click(connection, state, event.button.x, event.button.y);
+            handle_click(connection, hud, audio, state, event.button.x,
+                         event.button.y);
         }
 
         if (event.type == SDL_MOUSEWHEEL) {
@@ -314,10 +315,22 @@ void ClientApp::submit_console(Console& console, ServerConnection& connection,
     }
 }
 
-void ClientApp::handle_click(ServerConnection& connection,
-                             const ClientGameState& state, int mouse_x,
-                             int mouse_y) {
+void ClientApp::handle_click(ServerConnection& connection, HudRenderer& hud,
+                             AudioManager& audio, const ClientGameState& state,
+                             int mouse_x, int mouse_y) {
     if (!state.has_local_position()) {
+        return;
+    }
+
+    if (mouse_x >= config.game_area_width()) {
+        const int slot = hud.slot_at(mouse_x, mouse_y);
+        if (slot >= 0) {
+            connection.send(Command::equip_item(static_cast<uint16_t>(slot)));
+            const auto& inv = state.get_inventory();
+            if (slot < static_cast<int>(inv.size()) && !inv[slot].empty()) {
+                audio.play_effect(audio_assets::KEY_EQUIP);
+            }
+        }
         return;
     }
 

@@ -64,8 +64,9 @@ class ClientApp {
     void submit_console(Console& console, ServerConnection& connection,
                         AudioManager& audio);
 
-    void handle_click(ServerConnection& connection,
-                      const ClientGameState& state, int mouse_x, int mouse_y);
+    void handle_click(ServerConnection& connection, HudRenderer& hud,
+                  AudioManager& audio, const ClientGameState& state,
+                  int mouse_x, int mouse_y);
 
     bool process_updates(ServerConnection& connection, ClientGameState& state);
 
