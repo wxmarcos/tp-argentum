@@ -11,6 +11,8 @@ inline constexpr std::string_view UI_LOGIN  = "ui/login.png";
 inline constexpr std::string_view UI_CREATE = "ui/create_character.png";
 inline constexpr std::string_view UI_ICON   = "ui/icon.png";
 inline constexpr std::string_view UI_MARCO  = "ui/marco.png";
+inline constexpr std::string_view HUD_BG = "ui/hudFondo.png";
+inline constexpr std::string_view INV_SLOT_FRAME = "ui/bordeInv.png";
 
 // Cuerpos por raza
 inline constexpr std::string_view BODY_HUMANO =

@@ -17,11 +17,15 @@
 class HudRenderer {
     private:
     SDL2pp::Renderer& renderer;
+    SDL_Texture* hud_bg = nullptr;
+    SDL_Texture* slot_frame = nullptr;
     const ClientConfig& config;
     TextRenderer text;
     TextRenderer chat_text;
     ItemSpriteRegistry item_sprites;
 
+    SDL_Texture* load_texture(const std::string& rel_path) const;
+    
     void draw_panel();
 
     void draw_bar(int x, int y, int w, int h, float ratio, SDL_Color fill);
@@ -38,8 +42,8 @@ class HudRenderer {
     void draw_inventory_section(const ClientGameState& state, int x, int w,
                                 int y);
 
-    void draw_inventory_slot(const InventorySlotView& slot, int cx, int cy,
-                             int cell);
+    void draw_inventory_slot(const InventorySlotView& slot, int index, int cx,
+                         int cy, int cell);
 
     void draw_chat_panel(const ClientGameState& state, const Console& console);
 
@@ -48,6 +52,7 @@ class HudRenderer {
     Uint32 error_shown_at = 0;
 
     HudRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);
+    ~HudRenderer();
 
     void render(const ClientGameState& state, const Console& console);
 

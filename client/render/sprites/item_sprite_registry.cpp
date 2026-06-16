@@ -45,6 +45,13 @@ void ItemSpriteRegistry::load_defs() {
                   arma_icono);
     register_item("Escudo de hierro", "objetos/armas/escudoHierro.png",
                   arma_icono);
+
+    register_item("Armadura de cuero",
+                  "objetos/armaduras/armaduraCuero.png", {4, 204, 36, 36});
+    register_item("Armadura de placas",
+                  "objetos/armaduras/armaduraPlacas.png", {4, 204, 36, 36});
+    register_item("Tunica azul",
+                  "objetos/armaduras/tunicaAzul.png", {4, 204, 36, 36});
 }
 
 SDL_Texture* ItemSpriteRegistry::load_texture(const std::string& rel_path) {

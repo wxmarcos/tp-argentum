@@ -27,8 +27,6 @@ static constexpr SDL_Color CHECKER_LIGHT{40, 58, 40, 255};
 static constexpr SDL_Color CHECKER_DARK{30, 46, 30, 255};
 
 static constexpr int WEAPON_REF_H = 48;  // alto del personaje en el sheet del arma
-static constexpr int WEAPON_OFF_X[4] = {8, -8, 10, -10};   // S, N, E, W
-static constexpr int WEAPON_OFF_Y[4] = {20, 20, 20, 20};
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
                              const ClientConfig& config):
@@ -422,12 +420,15 @@ void WorldRenderer::draw_weapon(const std::string& weapon_name, int dir_idx,
         return;
     }
     const SDL_Rect& src = w->rects[dir_idx];
+    const WeaponDirAdjust& adj = w->adjust[dir_idx];
     const int draw_h = src.h * body_h / WEAPON_REF_H;
     const int draw_w = src.w * body_h / WEAPON_REF_H;
     const int cx = px + config.tile_size / 2;
-    const SDL_Rect dst{cx + WEAPON_OFF_X[dir_idx] - draw_w / 2,
-                       body_top + WEAPON_OFF_Y[dir_idx], draw_w, draw_h};
-    SDL_RenderCopy(renderer.Get(), w->tex, &src, &dst);
+    const SDL_Rect dst{cx + adj.off_x - draw_w / 2,
+                       body_top + adj.off_y, draw_w, draw_h};
+    const SDL_RendererFlip flip =
+        adj.flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+    SDL_RenderCopyEx(renderer.Get(), w->tex, &src, &dst, 0.0, nullptr, flip);
 }
 
 void WorldRenderer::draw_meditation_effect(int world_x, int world_y,
