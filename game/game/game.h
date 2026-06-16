@@ -108,11 +108,51 @@ private:
                                       float& distancia) const;
     void tickResucitando(float dt, std::vector<Snapshot>& snapshots);
 
-    // ---- Comandos / items (game_commands.cpp) ----
+    // ---- Helpers de comandos (game_commands.cpp) ----
     bool hayNPCCercano(const Jugador* jugador,
                        const std::vector<InfoNPC>& npcs) const;
     bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
     ResultadoTomarItem tomarItem(const std::string& nombre, int indice);
+
+    // ---- Handlers de items (game_commands_items.cpp) ----
+    void handleMover(const std::string& nombre, const Command& cmd,
+                     std::vector<Snapshot>& snapshots);
+    void handlePickItem(const std::string& nombre, const Command& cmd,
+                        std::vector<Snapshot>& snapshots);
+    void handleDropItem(const std::string& nombre, const Command& cmd,
+                        std::vector<Snapshot>& snapshots);
+    void handleEquipItem(const std::string& nombre, const Command& cmd,
+                         std::vector<Snapshot>& snapshots);
+
+    // ---- Handlers de comercio (game_commands_commerce.cpp) ----
+    void handleBuyItem(const std::string& nombre, const Command& cmd,
+                       std::vector<Snapshot>& snapshots);
+    void handleSellItem(const std::string& nombre, const Command& cmd,
+                        std::vector<Snapshot>& snapshots);
+    void handleDepositItem(const std::string& nombre, const Command& cmd,
+                           std::vector<Snapshot>& snapshots);
+    void handleWithdrawItem(const std::string& nombre, const Command& cmd,
+                            std::vector<Snapshot>& snapshots);
+    void handleDepositGold(const std::string& nombre, const Command& cmd,
+                           std::vector<Snapshot>& snapshots);
+    void handleWithdrawGold(const std::string& nombre, const Command& cmd,
+                            std::vector<Snapshot>& snapshots);
+
+    // ---- Handlers de clanes (game_commands_clan.cpp) ----
+    void handleClanCreate(const std::string& nombre, const Command& cmd,
+                          std::vector<Snapshot>& snapshots);
+    void handleClanJoin(const std::string& nombre, const Command& cmd,
+                        std::vector<Snapshot>& snapshots);
+    void handleClanReview(const std::string& nombre,
+                          std::vector<Snapshot>& snapshots);
+    void handleClanAccept(const std::string& nombre, const Command& cmd,
+                          std::vector<Snapshot>& snapshots);
+    void handleClanReject(const std::string& nombre, const Command& cmd,
+                          std::vector<Snapshot>& snapshots);
+    void handleClanBanKick(const std::string& nombre, const Command& cmd,
+                           std::vector<Snapshot>& snapshots);
+    void handleClanLeave(const std::string& nombre,
+                         std::vector<Snapshot>& snapshots);
 
 public:
     explicit Game(Config& config);
