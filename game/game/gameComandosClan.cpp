@@ -26,6 +26,11 @@ void Game::handleClanCreate(const std::string& nombre, const Command& cmd,
             nombre, "Ya existe un clan con ese nombre"));
         return;
     }
+    if (j->getNivel() < 6) {
+        snapshots.push_back(Snapshot::error_message(
+            nombre, "Debes ser nivel 6 o superior para fundar un clan"));
+        return;
+    }
 
     clanes.emplace(clanNom, Clan(clanNom, nombre));
     j->setClanNombre(clanNom);
@@ -54,6 +59,11 @@ void Game::handleClanJoin(const std::string& nombre, const Command& cmd,
         return;
     }
     Clan& clan = it->second;
+    if (clan.esBaneado(nombre)) {
+        snapshots.push_back(Snapshot::error_message(
+            nombre, "Fuiste expulsado de ese clan y no puedes reingresar"));
+        return;
+    }
     if (clan.esMiembro(nombre)) {
         snapshots.push_back(Snapshot::error_message(
             nombre, "Ya eres miembro de ese clan"));
@@ -225,15 +235,22 @@ void Game::handleClanBanKick(const std::string& nombre, const Command& cmd,
         return;
     }
 
+    const bool esBan = (cmd.get_type() == protocol::ClientOpcode::CLAN_BAN);
+    if (esBan) {
+        clan.banear(nickTarget);
+    }
+
     Jugador* expulsado = getJugador(nickTarget);
     if (expulsado) {
         expulsado->setClanNombre("");
+        const std::string razon = esBan ? "expulsado con ban" : "expulsado";
         snapshots.push_back(Snapshot::chat_message(
             "Sistema", nickTarget,
-            "Fuiste expulsado del clan '" + j->getClanNombre() + "'."));
+            "Fuiste " + razon + " del clan '" + j->getClanNombre() + "'."));
     }
+    const std::string accion = esBan ? "baneado" : "expulsado";
     snapshots.push_back(Snapshot::chat_message(
-        "Sistema", nombre, nickTarget + " fue expulsado del clan."));
+        "Sistema", nombre, nickTarget + " fue " + accion + " del clan."));
 }
 
 // ----------------- CLAN LEAVE -----------------
