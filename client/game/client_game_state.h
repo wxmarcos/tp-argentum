@@ -38,6 +38,13 @@ struct PlayerView {
     bool moved = false;
 };
 
+struct FloorItem {
+    uint16_t x = 0;
+    uint16_t y = 0;
+    std::string name;
+    uint16_t amount = 0;
+};
+
 struct CreatureView {
     std::string key;
     std::string type;
@@ -88,6 +95,7 @@ private:
     std::unordered_map<std::string, CreatureView> creatures;
     std::unordered_set<std::string> dead_entities;
     std::unordered_set<std::string> meditating_entities;
+    std::unordered_map<uint32_t, FloorItem> floor_items;
 
     int map_width;
     int map_height;
@@ -96,7 +104,6 @@ private:
     std::vector<EffectSpawn> effect_spawns;
 
     std::vector<InventorySlotView> inventory;
-    bool inventory_open = false;
 
     std::vector<ChatMessage> chat_messages;
 
@@ -119,8 +126,11 @@ private:
     void apply_dodge_event(const Snapshot& snapshot);
     void apply_death_event(const Snapshot& snapshot);
     void apply_meditation_status(const Snapshot& snapshot);
+    std::string format_chat_sender(const std::string& nick) const;
+    void push_chat(const std::string& from, const std::string& text);
     void apply_chat_message(const Snapshot& snapshot);
     void apply_error_message(const Snapshot& snapshot);
+    void apply_item_event(const Snapshot& snapshot);
 
 public:
     ClientGameState(const std::string& local_nick, int map_width,
@@ -146,13 +156,12 @@ public:
     uint32_t get_error_seq() const;
 
     const std::vector<InventorySlotView>& get_inventory() const;
-    bool is_inventory_open() const;
-    void toggle_inventory();
 
     const std::unordered_map<std::string, PlayerView>& get_others() const;
     const std::vector<FloatingEvent>& get_floating_events() const;
     const std::vector<EffectSpawn>& get_effect_spawns() const;
     const std::unordered_map<std::string, CreatureView>& get_creatures() const;
+    const std::unordered_map<uint32_t, FloorItem>& get_floor_items() const;
 
     bool is_dead(const std::string& nick) const;
     bool is_meditating(const std::string& nick) const;

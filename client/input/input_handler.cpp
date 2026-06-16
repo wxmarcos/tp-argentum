@@ -31,7 +31,7 @@ bool InputHandler::process_key(const SDL_KeyboardEvent& key,
     if (key.type != SDL_KEYDOWN) {
         return false;
     }
-    // Prueba para cheats
+
     const bool ctrl = (key.keysym.mod & KMOD_CTRL) != 0;
 
     if (ctrl) {
@@ -56,7 +56,7 @@ bool InputHandler::process_key(const SDL_KeyboardEvent& key,
                 return false;
         }
     }
-    // Fin de pruebas
+
     auto it = bindings.find(key.keysym.sym);
     if (it == bindings.end()) {
         return false;

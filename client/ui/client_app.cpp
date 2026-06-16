@@ -1,6 +1,7 @@
 #include "ui/client_app.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2pp/SDL2pp.hh>
@@ -190,7 +191,7 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input, state, console);
+        running = process_input(connection, input, state, console, audio);
         if (running) {
             running = process_updates(connection, state);
         }
@@ -213,7 +214,8 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 
 bool ClientApp::process_input(ServerConnection& connection,
                               const InputHandler& input,
-                              ClientGameState& state, Console& console) {
+                              ClientGameState& state, Console& console,
+                              AudioManager& audio) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -222,7 +224,7 @@ bool ClientApp::process_input(ServerConnection& connection,
         }
 
         if (console.is_open()) {
-            handle_console_event(event, console, connection);
+            handle_console_event(event, console, connection, audio);
             continue;
         }
 
@@ -243,10 +245,6 @@ bool ClientApp::process_input(ServerConnection& connection,
                 SDL_StartTextInput();
                 continue;
             }
-            if (event.key.keysym.sym == SDLK_i) {
-                state.toggle_inventory();
-                continue;
-            }
 
             Command cmd = Command::disconnect();
             if (input.process_key(event.key, cmd)) {
@@ -258,7 +256,8 @@ bool ClientApp::process_input(ServerConnection& connection,
 }
 
 void ClientApp::handle_console_event(const SDL_Event& event, Console& console,
-                                     ServerConnection& connection) {
+                                     ServerConnection& connection,
+                                     AudioManager& audio) {
     if (event.type == SDL_TEXTINPUT) {
         console.append(event.text.text);
         return;
@@ -273,16 +272,35 @@ void ClientApp::handle_console_event(const SDL_Event& event, Console& console,
     } else if (key == SDLK_BACKSPACE) {
         console.backspace();
     } else if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-        submit_console(console, connection);
+        submit_console(console, connection, audio);
         SDL_StopTextInput();
     }
 }
 
-void ClientApp::submit_console(Console& console, ServerConnection& connection) {
+void ClientApp::submit_console(Console& console, ServerConnection& connection,
+                               AudioManager& audio) {
     const std::string line = console.take();
     console.close();
-    if (auto cmd = parser.parse(line)) {
-        connection.send(*cmd);
+    auto cmd = parser.parse(line);
+    if (!cmd) {
+        return;
+    }
+    connection.send(*cmd);
+
+    const size_t start = line.find_first_not_of(" \t");
+    if (start == std::string::npos) {
+        return;
+    }
+    const size_t end = line.find_first_of(" \t", start);
+    std::string head = line.substr(start, end - start);
+    std::transform(head.begin(), head.end(), head.begin(),
+                   [](unsigned char c) {
+                       return static_cast<char>(std::tolower(c));
+                   });
+    if (head == "/equipar") {
+        audio.play_effect(audio_assets::KEY_EQUIP);
+    } else if (head == "/tirar") {
+        audio.play_effect(audio_assets::KEY_DROP);
     }
 }
 
@@ -335,6 +353,11 @@ void ClientApp::load_audio(AudioManager& audio) {
     audio.load_effect(audio_assets::KEY_HIT, audio_assets::PATH_HIT);
     audio.load_effect(audio_assets::KEY_STEP, audio_assets::PATH_STEP);
     audio.load_effect(audio_assets::KEY_LEVELUP, audio_assets::PATH_LEVELUP);
+    audio.load_effect(audio_assets::KEY_EQUIP, audio_assets::PATH_EQUIP);
+    audio.load_effect(audio_assets::KEY_DROP, audio_assets::PATH_DROP);
+    audio.load_effect(audio_assets::KEY_HEAL,   audio_assets::PATH_HEAL);
+    audio.load_effect(audio_assets::KEY_REVIVE, audio_assets::PATH_REVIVE);
+    audio.load_effect(audio_assets::KEY_STAFF,  audio_assets::PATH_STAFF);
 }
 
 void ClientApp::play_event_sounds(AudioManager& audio,
@@ -362,6 +385,12 @@ void ClientApp::play_event_sounds(AudioManager& audio,
                 break;
             case EffectKind::EfectoMorir:
                 key = audio_assets::KEY_DEATH;
+                break;
+            case EffectKind::Curarse:
+                key = audio_assets::KEY_HEAL;
+                break;
+            case EffectKind::Resucitar:
+                key = audio_assets::KEY_REVIVE;
                 break;
             default:
                 break;

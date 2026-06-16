@@ -4,8 +4,7 @@
 #include <cctype>
 #include <cstdint>
 #include <exception>
-
-#include "common/protocol_defs.h"
+#include <sstream>
 
 std::string CommandParser::trim(const std::string& s) const {
     const auto begin = s.find_first_not_of(" \t\r\n");
@@ -34,35 +33,107 @@ void CommandParser::split_first(const std::string& s, std::string& head,
     tail = trim(s.substr(pos + 1));
 }
 
-std::optional<Command> CommandParser::parse_gold(const std::string& arg,
-                                                 bool deposit) const {
+std::vector<std::string> CommandParser::tokenize(const std::string& s) const {
+    std::vector<std::string> tokens;
+    std::istringstream ss(s);
+    std::string tok;
+    while (ss >> tok) {
+        tokens.push_back(tok);
+    }
+    return tokens;
+}
+
+std::optional<uint16_t> CommandParser::to_u16(const std::string& s) const {
     try {
-        const uint32_t n = static_cast<uint32_t>(std::stoul(arg));
-        return deposit ? Command::deposit_gold(n) : Command::withdraw_gold(n);
+        return static_cast<uint16_t>(std::stoul(s));
     } catch (const std::exception&) {
         return std::nullopt;
     }
 }
 
+std::optional<uint32_t> CommandParser::to_u32(const std::string& s) const {
+    try {
+        return static_cast<uint32_t>(std::stoul(s));
+    } catch (const std::exception&) {
+        return std::nullopt;
+    }
+}
+
+std::optional<Command> CommandParser::parse_at(const std::string& rest) const {
+    std::string nick;
+    std::string msg;
+    split_first(trim(rest), nick, msg);
+    if (nick.empty() || msg.empty()) {
+        return std::nullopt;
+    }
+    return Command::private_message(nick, msg);
+}
+
+std::optional<Command> CommandParser::parse_deposit(
+    const std::string& rest) const {
+    const auto args = tokenize(rest);
+    if (args.size() == 2 && to_lower(args[0]) == "oro") {
+        if (auto n = to_u32(args[1])) return Command::deposit_gold(*n);
+        return std::nullopt;
+    }
+    if (args.size() == 1) {
+        if (auto s = to_u16(args[0])) return Command::deposit_item(*s);
+    }
+    return std::nullopt;
+}
+
+std::optional<Command> CommandParser::parse_withdraw(
+    const std::string& rest) const {
+    const auto args = tokenize(rest);
+    if (args.size() == 2 && to_lower(args[0]) == "oro") {
+        if (auto n = to_u32(args[1])) return Command::withdraw_gold(*n);
+        return std::nullopt;
+    }
+    if (args.size() == 1) {
+        if (auto id = to_u16(args[0])) return Command::withdraw_item(*id);
+    }
+    return std::nullopt;
+}
+
 std::optional<Command> CommandParser::parse(const std::string& line) const {
     const std::string clean = trim(line);
-    if (clean.empty() || clean[0] != '/') {
+    if (clean.empty()) {
+        return std::nullopt;
+    }
+    if (clean[0] == '@') {
+        return parse_at(clean.substr(1));
+    }
+    if (clean[0] != '/') {
         return std::nullopt;
     }
 
     std::string cmd;
-    std::string arg;
-    split_first(clean.substr(1), cmd, arg);
+    std::string rest;
+    split_first(clean.substr(1), cmd, rest);
     cmd = to_lower(cmd);
 
-    if (cmd == "meditar") return Command(0, protocol::ClientOpcode::MEDITATE);
-    if (cmd == "curar") return Command(0, protocol::ClientOpcode::HEAL);
-    if (cmd == "resucitar")
-        return Command(0, protocol::ClientOpcode::RESURRECT);
-    if (cmd == "tomar") return Command(0, protocol::ClientOpcode::PICK_ITEM);
-    if (cmd == "comprar" && !arg.empty()) return Command::buy_item(arg);
-    if (cmd == "depositar") return parse_gold(arg, true);
-    if (cmd == "retirar") return parse_gold(arg, false);
+    if (cmd == "meditar") return Command::meditate();
+    if (cmd == "curar") return Command::heal();
+    if (cmd == "resucitar") return Command::resurrect();
+    if (cmd == "tomar") return Command::pick_item();
+    if (cmd == "comprar") {
+        if (rest.empty()) return std::nullopt;
+        return Command::buy_item(rest);
+    }
+    if (cmd == "equipar") {
+        if (auto s = to_u16(rest)) return Command::equip_item(*s);
+        return std::nullopt;
+    }
+    if (cmd == "tirar") {
+        if (auto s = to_u16(rest)) return Command::drop_item(*s);
+        return std::nullopt;
+    }
+    if (cmd == "vender") {
+        if (auto s = to_u16(rest)) return Command::sell_item(*s);
+        return std::nullopt;
+    }
+    if (cmd == "depositar") return parse_deposit(rest);
+    if (cmd == "retirar") return parse_withdraw(rest);
 
     return std::nullopt;
 }
