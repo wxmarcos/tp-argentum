@@ -208,7 +208,8 @@ void Game::handleWithdrawGold(const std::string& nombre, const Command& cmd,
 // ----------------- LIST ITEMS -----------------
 
 void Game::handleListItems(const std::string& nombre,
-                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId) {
+                           std::vector<OutgoingSnapshot>& snapshots,
+                           uint16_t playerId) {
     Jugador* jugador = getJugador(nombre);
     if (!jugador) return;
 
@@ -217,9 +218,12 @@ void Game::handleListItems(const std::string& nombre,
     const bool banqueroCerca = hayNPCCercano(jugador, banqueros);
 
     if (!comercianteCerca && !sacerdoteCerca && !banqueroCerca) {
-        push_unicast(snapshots, Snapshot::error_message(
-            nombre,
-            "Debes estar cerca de un comerciante, sacerdote o banquero"), playerId);
+        push_unicast(
+            snapshots,
+            Snapshot::error_message(
+                nombre,
+                "Debes estar cerca de un comerciante, sacerdote o banquero"),
+            playerId);
         return;
     }
 
@@ -227,61 +231,109 @@ void Game::handleListItems(const std::string& nombre,
         const auto& cuenta =
             cuentasBancarias.try_emplace(nombre, nombre).first->second;
         const auto& items = cuenta.getItems();
-        push_broadcast(snapshots, Snapshot::chat_message(
-            "Banquero", nombre,
-            "Banco — Oro: " + std::to_string(cuenta.getOro())));
+
+        push_unicast(
+            snapshots,
+            Snapshot::chat_message(
+                "Banquero",
+                nombre,
+                "Banco — Oro: " + std::to_string(cuenta.getOro())),
+            playerId);
+
         if (items.empty()) {
-            push_broadcast(snapshots, Snapshot::chat_message(
-                "Banquero", nombre, "No tienes items guardados."));
+            push_unicast(
+                snapshots,
+                Snapshot::chat_message(
+                    "Banquero",
+                    nombre,
+                    "No tienes items guardados."),
+                playerId);
         } else {
             for (size_t i = 0; i < items.size(); ++i) {
                 const auto& slot = items[i];
-                std::string linea = "[" + std::to_string(i) + "] " +
-                                    slot.item->getNombre();
-                if (slot.cantidad > 1)
+
+                std::string linea =
+                    "[" + std::to_string(i) + "] " + slot.item->getNombre();
+
+                if (slot.cantidad > 1) {
                     linea += " x" + std::to_string(slot.cantidad);
-                push_broadcast(snapshots, 
-                    Snapshot::chat_message("Banquero", nombre, linea));
+                }
+
+                push_unicast(
+                    snapshots,
+                    Snapshot::chat_message("Banquero", nombre, linea),
+                    playerId);
             }
         }
     }
 
-    // Items del comerciante (todo excepto báculos)
     static const std::vector<std::string> itemsComerciante = {
-        "espada",        "hacha",          "martillo",
-        "arco_simple",   "arco_compuesto",
-        "armadura_de_cuero", "armadura_de_placas", "tunica_azul",
-        "capucha",       "casco_de_hierro",  "sombrero_magico",
-        "escudo_de_tortuga", "escudo_de_hierro",
-        "pocion_de_vida", "pocion_de_mana"};
+        item_defs::ESPADA,
+        item_defs::HACHA,
+        item_defs::MARTILLO,
+        item_defs::ARCO_SIMPLE,
+        item_defs::ARCO_COMPUESTO,
+        item_defs::ARMADURA_DE_CUERO,
+        item_defs::ARMADURA_DE_PLACAS,
+        item_defs::TUNICA_AZUL,
+        item_defs::CAPUCHA,
+        item_defs::CASCO_DE_HIERRO,
+        item_defs::SOMBRERO_MAGICO,
+        item_defs::ESCUDO_DE_TORTUGA,
+        item_defs::ESCUDO_DE_HIERRO,
+        item_defs::POCION_DE_VIDA,
+        item_defs::POCION_DE_MANA,
+    };
 
-    // Items del sacerdote (báculos y pociones)
     static const std::vector<std::string> itemsSacerdote = {
-        "vara_de_fresno", "flauta_elfica", "baculo_nudoso", "baculo_engarzado",
-        "pocion_de_vida",  "pocion_de_mana"};
+        item_defs::VARA_DE_FRESNO,
+        item_defs::FLAUTA_ELFICA,
+        item_defs::BACULO_NUDOSO,
+        item_defs::BACULO_ENGARZADO,
+        item_defs::POCION_DE_VIDA,
+        item_defs::POCION_DE_MANA,
+    };
 
     if (comercianteCerca) {
-        push_broadcast(snapshots, 
-            Snapshot::chat_message("Comerciante", nombre, "Mis productos:"));
+        push_unicast(
+            snapshots,
+            Snapshot::chat_message("Comerciante", nombre, "Mis productos:"),
+            playerId);
+
         for (const auto& item : itemsComerciante) {
             int precio = config.getPrecioItem(item);
+
             if (precio > 0) {
-                push_broadcast(snapshots, Snapshot::chat_message(
-                    "Comerciante", nombre,
-                    "  " + item + " — " + std::to_string(precio) + " oro"));
+                push_unicast(
+                    snapshots,
+                    Snapshot::chat_message(
+                        "Comerciante",
+                        nombre,
+                        "  " + item + " — " + std::to_string(precio) +
+                            " oro"),
+                    playerId);
             }
         }
     }
 
     if (sacerdoteCerca) {
-        push_broadcast(snapshots, 
-            Snapshot::chat_message("Sacerdote", nombre, "Mis productos:"));
+        push_unicast(
+            snapshots,
+            Snapshot::chat_message("Sacerdote", nombre, "Mis productos:"),
+            playerId);
+
         for (const auto& item : itemsSacerdote) {
             int precio = config.getPrecioItem(item);
+
             if (precio > 0) {
-                push_broadcast(snapshots, Snapshot::chat_message(
-                    "Sacerdote", nombre,
-                    "  " + item + " — " + std::to_string(precio) + " oro"));
+                push_unicast(
+                    snapshots,
+                    Snapshot::chat_message(
+                        "Sacerdote",
+                        nombre,
+                        "  " + item + " — " + std::to_string(precio) +
+                            " oro"),
+                    playerId);
             }
         }
     }
