@@ -259,16 +259,15 @@ void Game::tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots) {
             
             auto itId = nick_to_player_id.find(nombre);
 
-            push_unicast(snapshots, Snapshot::map_change(
+            push_broadcast(snapshots, Snapshot::map_change(
                 nombre, static_cast<uint16_t>(jugador->getMapaId()),
                 static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())),
-                itId->second);
+                static_cast<uint8_t>(jugador->getDireccion())));
             if (itId != nick_to_player_id.end()) {
-                push_unicast(snapshots,
-                    SnapshotFactory::player_stats_from_player(*jugador),
-                    itId->second);
+                
+                push_broadcast(snapshots,
+                    SnapshotFactory::player_stats_from_player(*jugador));
 
                 push_unicast(snapshots,
                     SnapshotFactory::player_inventory_from_player(*jugador),

@@ -140,10 +140,6 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
                              p.experiencia, p.oro, p.constitucion,
                              p.inteligencia, p.fuerza, p.agilidad);
 
-    if (!p.clan_nombre.empty()) {
-        jugador->setClanNombre(p.clan_nombre);
-    }
-
     auto inventario = p.inventario;
 
     std::sort(
