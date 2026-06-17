@@ -346,6 +346,8 @@ void ClientGameState::apply_damage_event(const Snapshot& snapshot) {
 
     if (snapshot.is_critical()) {
         atk_kind = EffectKind::AtaqueComunDorado;
+    } else if (attacker == local_nick) {
+        atk_kind = local_attack_effect();
     } else if (classify_creature(attacker, creature_type)) {
         atk_kind = EffectKind::AtaqueComunRojo;
     } else {
@@ -362,6 +364,27 @@ void ClientGameState::apply_damage_event(const Snapshot& snapshot) {
         push_chat("Combate", format_chat_sender(attacker) +
                   " te hizo " + dmg_str + " de daño");
     }
+}
+
+EffectKind ClientGameState::local_attack_effect() const {
+    for (const auto& slot : inventory) {
+        if (!slot.equipado) {
+            continue;
+        }
+        if (slot.item == std::string(items::BACULO_NUDOSO) ||
+            slot.item == std::string(items::BACULO_ENGARZADO)) {
+            return EffectKind::AtaqueBaculoDorado;
+        }
+        if (slot.item == std::string(items::VARA_DE_FRESNO) ||
+            slot.item == std::string(items::FLAUTA_ELFICA)) {
+            return EffectKind::AtaqueBaculoComun;
+        }
+        if (slot.item == std::string(items::ARCO_SIMPLE) ||
+            slot.item == std::string(items::ARCO_COMPUESTO)) {
+            return EffectKind::AtaqueFlechas;
+        }
+    }
+    return EffectKind::AtaqueComunGris;
 }
 
 void ClientGameState::apply_dodge_event(const Snapshot& snapshot) {

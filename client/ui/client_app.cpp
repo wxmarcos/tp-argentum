@@ -381,6 +381,8 @@ void ClientApp::load_audio(AudioManager& audio) {
     audio.load_effect(audio_assets::KEY_HEAL,   audio_assets::PATH_HEAL);
     audio.load_effect(audio_assets::KEY_REVIVE, audio_assets::PATH_REVIVE);
     audio.load_effect(audio_assets::KEY_STAFF,  audio_assets::PATH_STAFF);
+    audio.load_effect(audio_assets::KEY_STAFF2, audio_assets::PATH_STAFF2);
+    audio.load_effect(audio_assets::KEY_SHOOT, audio_assets::PATH_SHOOT);
 }
 
 void ClientApp::play_event_sounds(AudioManager& audio,
@@ -402,9 +404,16 @@ void ClientApp::play_event_sounds(AudioManager& audio,
             case EffectKind::AtaqueComunRojo:
             case EffectKind::AtaqueComunGris:
             case EffectKind::AtaqueComunDorado:
-            case EffectKind::AtaqueBaculoComun:
-            case EffectKind::AtaqueBaculoDorado:
                 key = on_me ? audio_assets::KEY_HIT : audio_assets::KEY_ATTACK;
+                break;
+            case EffectKind::AtaqueBaculoDorado:
+                key = on_me ? audio_assets::KEY_HIT : audio_assets::KEY_STAFF;
+                break;
+            case EffectKind::AtaqueBaculoComun:
+                key = on_me ? audio_assets::KEY_HIT : audio_assets::KEY_STAFF2;
+                break;
+            case EffectKind::AtaqueFlechas:
+                key = on_me ? audio_assets::KEY_HIT : audio_assets::KEY_SHOOT;
                 break;
             case EffectKind::EfectoMorir:
                 key = audio_assets::KEY_DEATH;
