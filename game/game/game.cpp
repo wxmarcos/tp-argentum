@@ -243,10 +243,17 @@ void Game::agregarReplayDeJugadores(std::vector<OutgoingSnapshot>& snapshots,
             continue;
         }
 
-         push_unicast(snapshots,Snapshot::entity_created(
-            nombre, mapaId, static_cast<uint16_t>(otro->getPosX()),
+        push_unicast(snapshots, Snapshot::entity_created(
+            nombre, mapaId,
+            static_cast<uint16_t>(otro->getPosX()),
             static_cast<uint16_t>(otro->getPosY()),
-            static_cast<uint8_t>(otro->getDireccion())),playerId);
+            static_cast<uint8_t>(otro->getDireccion())),
+            playerId);
+
+        push_unicast(
+            snapshots,
+            SnapshotFactory::player_stats_from_player(*otro),
+            playerId);
     }
 }
 

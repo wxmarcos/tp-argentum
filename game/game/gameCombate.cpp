@@ -220,10 +220,14 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
 
     if (!arma && !baculo) return resultado;
 
+    if (baculo && !atacante->gastarMana(baculo->getCostoMana())) {
+        return resultado;
+    }
+
     int danio = arma ? Formulas::calcularDanio(fuerza, arma->getDanioMin(),
-                                               arma->getDanioMax())
-                     : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                               baculo->getEfectoMax());
+                                            arma->getDanioMax())
+                    : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
+                                            baculo->getEfectoMax());
 
     resultado.fueCritico =
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
@@ -296,10 +300,14 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
 
     if (!arma && !baculo) return resultado;
 
+    if (baculo && !atacante->gastarMana(baculo->getCostoMana())) {
+        return resultado;
+    }
+
     int danio = arma ? Formulas::calcularDanio(fuerza, arma->getDanioMin(),
-                                               arma->getDanioMax())
-                     : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                               baculo->getEfectoMax());
+                                            arma->getDanioMax())
+                    : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
+                                            baculo->getEfectoMax());
 
     resultado.fueCritico =
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
