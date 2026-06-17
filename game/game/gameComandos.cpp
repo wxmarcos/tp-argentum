@@ -15,16 +15,14 @@
 
 // ----------------- process() -----------------
 
-// TODO : mandar snapshots que tengan sentido con cada accion
 std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
     std::vector<OutgoingSnapshot> snapshots;
-    const uint16_t playerId = cmd.get_player_id();
-
+    uint16_t playerId = cmd.get_player_id();
+    // -- LOGIN --------------------------
     if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
         Jugador* jugador = getJugador(cmd.get_nick());
         nick_to_player_id[cmd.get_nick()] = playerId;
         if (!jugador) {
-            // Login de existente: intentar restaurar de persistencia por nick
             bool restaurado = false;
 
             auto record = PersistenceLoader::load_player_by_nick(
@@ -34,14 +32,12 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             if (record.has_value()) {
                 restaurado = restaurarJugadorPersistido(*record);
             }
-
             if (!restaurado) {
                 push_unicast(snapshots, Snapshot::error_message(cmd.get_nick(), "Login fallido: personaje inexistente"), playerId);
                 return snapshots;
             }
 
             jugador = getJugador(cmd.get_nick());
-
             if (!jugador) {
                  push_unicast(snapshots,Snapshot::error_message(
                     cmd.get_nick(),
@@ -58,26 +54,39 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
-        // Avisar al cliente en que mapa quedo (persistido)
-         push_broadcast(snapshots,Snapshot::map_change(
+        push_broadcast(snapshots, Snapshot::map_change(
             cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
             static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
-         push_broadcast(snapshots,
-            SnapshotFactory::player_stats_from_player(*jugador));
-         push_broadcast(snapshots,
+        push_broadcast(snapshots,SnapshotFactory::player_stats_from_player(*jugador));
+        push_broadcast(snapshots,
             SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick(),
-                                 jugador->getMapaId(), cmd.get_player_id());
-        agregarReplayNpcs(snapshots, jugador->getMapaId(), cmd.get_player_id());
-        agregarReplayCriaturas(snapshots, jugador->getMapaId(), cmd.get_player_id());
+                                 jugador->getMapaId(), playerId);
+        agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayItems(snapshots, jugador->getMapaId());
+
+        // Notificar al clan
+        if (jugador->estaEnClan()) {
+            for (auto& [nick, j] : jugadores) {
+                if (nick == cmd.get_nick()) continue;
+                if (j->getClanNombre() == jugador->getClanNombre()) {
+                    push_broadcast(snapshots, Snapshot::chat_message(
+                        "Sistema", nick,
+                        "Tu compañero " + cmd.get_nick() +
+                            " entro a Argentum"));
+                }
+            }
+        }
 
         return snapshots;
     }
 
+    // -- CREATE CHARACTER --------------------------
     if (cmd.get_type() == protocol::ClientOpcode::CREATE_CHARACTER) {
         bool creado = agregarJugador(cmd.get_nick(), config.getSpawnMapaId(),
                                      config.getSpawnX(), config.getSpawnY(),
@@ -90,50 +99,62 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         }
 
         Jugador* jugador = getJugador(cmd.get_nick());
-
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
 
-         push_broadcast(snapshots,Snapshot::entity_created(
+        // Items de inicio
+        jugador->agarrarItem(ItemFactory::crearEspada());
+        jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
+
+        push_broadcast(snapshots, Snapshot::entity_created(
             cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
             static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
 
-        // Avisar al cliente en que mapa quedo (nuevo)
-         push_broadcast(snapshots,Snapshot::map_change(
+        push_broadcast(snapshots, Snapshot::map_change(
             cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
             static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()),
             static_cast<uint8_t>(jugador->getDireccion())));
-
-         push_broadcast(snapshots,
-            SnapshotFactory::player_stats_from_player(*jugador));
-         push_broadcast(snapshots,
+        push_broadcast(snapshots, SnapshotFactory::player_stats_from_player(*jugador));
+        push_broadcast(snapshots, 
             SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick(),
-                                 jugador->getMapaId(), cmd.get_player_id());
-        agregarReplayNpcs(snapshots, jugador->getMapaId(), cmd.get_player_id());
-        agregarReplayCriaturas(snapshots, jugador->getMapaId(), cmd.get_player_id());
+                                 jugador->getMapaId(), playerId);
+        agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayItems(snapshots, jugador->getMapaId());
 
         return snapshots;
     }
 
-    // -- Disconnect --------------------------
+    // -- DISCONNECT --------------------------
     if (cmd.is_disconnect()) {
         const std::string nombre = getNombreJugadorPorComando(cmd);
-
         if (!nombre.empty()) {
              push_broadcast(snapshots,Snapshot::entity_remove(nombre));
+
+            Jugador* jugadorSaliente = getJugador(nombre);
+            if (jugadorSaliente && jugadorSaliente->estaEnClan()) {
+                std::string clanNom = jugadorSaliente->getClanNombre();
+                for (auto& [nick, j] : jugadores) {
+                    if (nick == nombre) continue;
+                    if (j->getClanNombre() == clanNom) {
+                        push_broadcast(snapshots, Snapshot::chat_message(
+                            "Sistema", nick,
+                            "Tu compañero " + nombre + " salio de Argentum"));
+                    }
+                }
+            }
 
             removerJugador(nombre);
             player_id_to_nick.erase(cmd.get_player_id());
         }
-
         return snapshots;
     }
 
-    // -- Comando que requieren jugador --------------------------
+    // -- Comandos que requieren jugador --------------------------
     const std::string nombre = getNombreJugadorPorComando(cmd);
     if (nombre.empty()) {
         push_unicast(snapshots, Snapshot::error_message(
@@ -143,7 +164,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
 
     Jugador* jugador = getJugador(nombre);
 
-    // Comandos que un fantasma (vivo == false) NO puede ejecutar
+    // Comandos bloqueados para fantasmas
     static const std::initializer_list<protocol::ClientOpcode>
         bloqueadosParaFantasma = {
             protocol::ClientOpcode::ATTACK,
@@ -157,6 +178,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             protocol::ClientOpcode::WITHDRAW_ITEM,
             protocol::ClientOpcode::DEPOSIT_GOLD,
             protocol::ClientOpcode::WITHDRAW_GOLD,
+            protocol::ClientOpcode::LIST_ITEMS,
         };
     if (jugador && !jugador->estaVivo()) {
         for (auto op : bloqueadosParaFantasma) {
@@ -168,125 +190,74 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         }
     }
 
-    // Deja de meditar si recibe cualquier comando distinto a MEDITATE mientras
-    // se está meditando
+    // Interrumpir meditación
     if (jugador && cmd.get_type() != protocol::ClientOpcode::MEDITATE) {
         handle_meditation_interruption(jugador, snapshots, nombre);
     }
 
     switch (cmd.get_type()) {
-        // -- Move --------------------------
-        case protocol::ClientOpcode::MOVE: {
-            Jugador* jugador = getJugador(nombre);
-
-            if (!jugador) {
-                push_unicast(snapshots,
-                    Snapshot::error_message(nombre, "Jugador inexistente"), playerId);
-                break;
-            }
-
-            if (!puedeMoverAhora(nombre)) {
-                break;
-            }
-
-            int mapaAnterior = jugador->getMapaId();
-
-            bool moved = moverJugador(
-                nombre, static_cast<Direccion>(cmd.get_direction()));
-
-            if (!moved) {
-                push_unicast(snapshots,
-                    Snapshot::error_message(nombre, "No se pudo mover"), playerId);
-                break;
-            }
-
-            int mapaActual = jugador->getMapaId();
-
-            if (mapaActual != mapaAnterior) {
-                push_broadcast(snapshots,Snapshot::map_change(
-                    nombre, static_cast<uint16_t>(jugador->getMapaId()),
-                    static_cast<uint16_t>(jugador->getPosX()),
-                    static_cast<uint16_t>(jugador->getPosY()),
-                    static_cast<uint8_t>(jugador->getDireccion())));
-                push_broadcast(snapshots,Snapshot::entity_remove(jugador->getNombre()));
-                agregarReplayDeJugadores(snapshots, nombre, mapaActual, cmd.get_player_id());
-                agregarReplayNpcs(snapshots, mapaActual, cmd.get_player_id());
-                agregarReplayCriaturas(snapshots, mapaActual, cmd.get_player_id());
-            } else {
-                 push_broadcast(snapshots,Snapshot::entity_move(
-                    nombre, static_cast<uint16_t>(jugador->getMapaId()),
-                    static_cast<uint16_t>(jugador->getPosX()),
-                    static_cast<uint16_t>(jugador->getPosY()),
-                    static_cast<uint8_t>(jugador->getDireccion())));
-            }
-
+        // ---- Items ----
+        case protocol::ClientOpcode::MOVE:
+            handleMover(nombre, cmd, snapshots, playerId);
             break;
-        }
-        // -- PICK ITEM --------------------------
-        case protocol::ClientOpcode::PICK_ITEM: {
-            ResultadoTomarItem resultado =
-                tomarItem(nombre, static_cast<int>(cmd.get_item_id()));
-
-            if (!resultado.exito) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "No hay item para recoger"), playerId);
-                break;
-            }
-
-             push_broadcast(snapshots,Snapshot::item_event(
-                static_cast<uint8_t>(protocol::ItemEventAction::PICK), nombre,
-                resultado.itemNombre,
-                static_cast<uint16_t>(jugador->getMapaId()),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()), resultado.cantidad));
-
-            if (resultado.slotInventario == -1) {
-                 push_broadcast(snapshots,
-                    SnapshotFactory::player_stats_from_player(*jugador));
-            } else {
-                 push_broadcast(snapshots,
-                    SnapshotFactory::player_inventory_slot_from_player(
-                        *jugador, resultado.slotInventario));
-            }
-
+        case protocol::ClientOpcode::PICK_ITEM:
+            handlePickItem(nombre, cmd, snapshots, playerId);
             break;
-        }
-
-        case protocol::ClientOpcode::DROP_ITEM: {
-            int slot = static_cast<int>(cmd.get_slot());
-
-            const auto& slots = jugador->getInventario().getSlots();
-
-            if (slot < 0 || slot >= static_cast<int>(slots.size()) ||
-                !slots[slot].has_value()) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "No se pudo arrojar el item"), playerId);
-                break;
-            }
-
-            std::string itemNombre = slots[slot]->item->getNombre();
-            uint16_t cantidad = slots[slot]->cantidad;
-
-            if (tirarItem(nombre, slot)) {
-                 push_broadcast(snapshots,
-                    SnapshotFactory::player_inventory_slot_from_player(*jugador,
-                                                                       slot));
-
-                 push_broadcast(snapshots,Snapshot::item_event(
-                    static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                    nombre, itemNombre,
-                    static_cast<uint16_t>(jugador->getMapaId()),
-                    static_cast<uint16_t>(jugador->getPosX()),
-                    static_cast<uint16_t>(jugador->getPosY()), cantidad));
-            } else {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "No se pudo arrojar el item"), playerId);
-            }
-
+        case protocol::ClientOpcode::DROP_ITEM:
+            handleDropItem(nombre, cmd, snapshots, playerId);
             break;
-        }
+        case protocol::ClientOpcode::EQUIP_ITEM:
+            handleEquipItem(nombre, cmd, snapshots, playerId);
+            break;
 
-        // -- ATTACK --------------------------
+        // ---- Comercio ----
+        case protocol::ClientOpcode::BUY_ITEM:
+            handleBuyItem(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::SELL_ITEM:
+            handleSellItem(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::DEPOSIT_ITEM:
+            handleDepositItem(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::WITHDRAW_ITEM:
+            handleWithdrawItem(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::DEPOSIT_GOLD:
+            handleDepositGold(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::WITHDRAW_GOLD:
+            handleWithdrawGold(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::LIST_ITEMS:
+            handleListItems(nombre, snapshots, playerId);
+            break;
+
+        // ---- Clanes ----
+        case protocol::ClientOpcode::CLAN_CREATE:
+            handleClanCreate(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::CLAN_JOIN:
+            handleClanJoin(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::CLAN_REVIEW:
+            handleClanReview(nombre, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::CLAN_ACCEPT:
+            handleClanAccept(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::CLAN_REJECT:
+            handleClanReject(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::CLAN_BAN:
+        case protocol::ClientOpcode::CLAN_KICK:
+            handleClanBanKick(nombre, cmd, snapshots, playerId);
+            break;
+        case protocol::ClientOpcode::CLAN_LEAVE:
+            handleClanLeave(nombre, snapshots, playerId);
+            break;
+
+        // ---- Combate ----
         case protocol::ClientOpcode::ATTACK: {
             const std::string objetivo = cmd.get_nick();
             ResultadoAtaque resultado = atacar(nombre, objetivo);
@@ -306,9 +277,26 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 static_cast<uint16_t>(resultado.danioAplicado),
                 resultado.fueCritico));
 
-             push_broadcast(snapshots,
-                SnapshotFactory::player_stats_from_player(*jugador));
+            {
+                // Notificar al clan de la victima
+                if (Jugador* victima = getJugador(objetivo)) {
+                    if (victima->estaEnClan()) {
+                        for (auto& [nick, j] : jugadores) {
+                            if (nick == objetivo) continue;
+                            if (j->getClanNombre() ==
+                                victima->getClanNombre()) {
+                                push_broadcast(snapshots, Snapshot::chat_message(
+                                    "Sistema", nick,
+                                    "Tu compañero " + objetivo +
+                                        " esta siendo atacado por " + nombre));
+                            }
+                        }
+                    }
+                }
+            }
 
+            push_broadcast(snapshots, 
+                SnapshotFactory::player_stats_from_player(*jugador));
             if (Jugador* victima = getJugador(objetivo)) {
                  push_broadcast(snapshots,
                     SnapshotFactory::player_stats_from_player(*victima));
@@ -324,16 +312,13 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     removerCriatura(objetivo);
                 } else if (Jugador* victima = getJugador(objetivo)) {
                     auto items = victima->soltarTodosLosItems();
-
                     for (auto& item : items) {
                         std::string nombreItem = item.item->getNombre();
                         uint16_t cantidad = item.cantidad;
-
                         mundo.tirarItem(victima->getMapaId(),
                                         victima->getPosX(), victima->getPosY(),
                                         std::move(item));
-
-                         push_broadcast(snapshots,Snapshot::item_event(
+                        push_broadcast(snapshots, Snapshot::item_event(
                             static_cast<uint8_t>(
                                 protocol::ItemEventAction::DROP),
                             victima->getNombre(), nombreItem,
@@ -345,15 +330,13 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
 
                     int oroExceso = Formulas::calcularOroExceso(
                         victima->getOro(), victima->getOroMax());
-
                     if (oroExceso > 0) {
                         victima->gastarOro(oroExceso);
                         mundo.tirarItem(
                             victima->getMapaId(), victima->getPosX(),
                             victima->getPosY(),
                             SlotInventario(ItemFactory::crearOro(oroExceso)));
-
-                         push_broadcast(snapshots,Snapshot::item_event(
+                        push_broadcast(snapshots, Snapshot::item_event(
                             static_cast<uint8_t>(
                                 protocol::ItemEventAction::DROP),
                             victima->getNombre(), item_defs::ORO,
@@ -365,19 +348,16 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
 
                      push_broadcast(snapshots,
                         SnapshotFactory::player_stats_from_player(*jugador));
-
-                     push_broadcast(snapshots,
+                    push_broadcast(snapshots, 
                         SnapshotFactory::player_stats_from_player(*victima));
-
-                     push_broadcast(snapshots,
-                        SnapshotFactory::player_inventory_from_player(
-                            *victima));
+                    push_broadcast(snapshots, 
+                        SnapshotFactory::player_inventory_from_player(*victima));
                 }
             }
             break;
         }
 
-        // -- MEDITATE --------------------------
+        // ---- Meditación ----
         case protocol::ClientOpcode::MEDITATE: {
             if (!jugador || !jugador->estaVivo()) {
                 push_unicast(snapshots,Snapshot::error_message(
@@ -389,9 +369,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     nombre, "Tu clase no puede meditar"), playerId);
                 break;
             }
-            if (jugador->estaMeditando()) {
-                break;
-            }
+            if (jugador->estaMeditando()) break;
             jugador->iniciarMeditacion();
              push_broadcast(snapshots,Snapshot::meditation_status(nombre, true));
              push_broadcast(snapshots,
@@ -399,147 +377,61 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             break;
         }
 
-            // -- EQUIP ITEM --------------------------
-        case protocol::ClientOpcode::EQUIP_ITEM: {
-            if (!jugador || !jugador->estaVivo()) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "No puedes equipar items si no estas vivo"), playerId);
-                break;
-            }
-
-            int slot = static_cast<int>(cmd.get_slot());
-            const auto& slots = jugador->getInventario().getSlots();
-
-            if (slot < 0 || slot >= static_cast<int>(slots.size())) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Slot de inventario invalido"), playerId);
-                break;
-            }
-
-            if (!slots[slot].has_value()) {
-                 push_broadcast(snapshots,
-                    Snapshot::error_message(nombre, "Slot vacio"));
-                break;
-            }
-
-            bool ok = false;
-
-            switch (slots[slot]->item->getTipo()) {
-                case TipoItem::ARMA:
-                    ok = jugador->equiparArma(slot);
-                    break;
-
-                case TipoItem::BACULO:
-                    ok = jugador->equiparBaculo(slot);
-                    break;
-
-                case TipoItem::ARMADURA:
-                    ok = jugador->equiparArmadura(slot);
-                    break;
-
-                case TipoItem::CASCO:
-                    ok = jugador->equiparCasco(slot);
-                    break;
-
-                case TipoItem::ESCUDO:
-                    ok = jugador->equiparEscudo(slot);
-                    break;
-
-                case TipoItem::POCION:
-                    ok = jugador->usarPocion(slot);
-                    break;
-
-                default:
-                    break;
-            }
-
-            if (!ok) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "No se pudo usar/equipar el item"), playerId);
-                break;
-            }
-
-             push_broadcast(snapshots,
-                SnapshotFactory::player_stats_from_player(*jugador));
-
-             push_broadcast(snapshots,
-                SnapshotFactory::player_inventory_slot_from_player(*jugador,
-                                                                   slot));
-
-            break;
-        }
-
-        // -- CHEATS --------------------------
+        // ---- Cheats ----
         case protocol::ClientOpcode::CHEAT_GOD: {
             if (!jugador) break;
-
             bool activo = jugador->toggleCheatVidaInfinita();
-
-             push_broadcast(snapshots,Snapshot::cheat_status(
-                nombre, static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_GOD),
+            push_broadcast(snapshots, Snapshot::cheat_status(
+                nombre,
+                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_GOD),
                 activo));
-
-             push_broadcast(snapshots,
+            push_broadcast(snapshots, 
                 SnapshotFactory::player_stats_from_player(*jugador));
-
             break;
         }
-
         case protocol::ClientOpcode::CHEAT_MANA: {
             if (!jugador) break;
-
             bool activo = jugador->toggleCheatManaInfinito();
-
-             push_broadcast(snapshots,Snapshot::cheat_status(
+            push_broadcast(snapshots, Snapshot::cheat_status(
                 nombre,
                 static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_MANA),
                 activo));
-
-             push_broadcast(snapshots,
+            push_broadcast(snapshots, 
                 SnapshotFactory::player_stats_from_player(*jugador));
-
             break;
         }
-
         case protocol::ClientOpcode::CHEAT_DIE: {
             if (!jugador) break;
-
             jugador->morir();
-
-             push_broadcast(snapshots,Snapshot::cheat_status(
-                nombre, static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_DIE),
+            push_broadcast(snapshots, Snapshot::cheat_status(
+                nombre,
+                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_DIE),
                 !jugador->estaVivo()));
-
             if (!jugador->estaVivo()) {
-                 push_broadcast(snapshots,Snapshot::death_event(nombre));
-                 push_broadcast(snapshots,Snapshot::entity_remove(nombre));
-
+                push_broadcast(snapshots, Snapshot::death_event(nombre));
+                push_broadcast(snapshots, Snapshot::entity_remove(nombre));
                 auto items = jugador->soltarTodosLosItems();
                 for (auto& item : items) {
                     std::string nombreItem = item.item->getNombre();
                     uint16_t cantidad = item.cantidad;
-
                     mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
                                     jugador->getPosY(), std::move(item));
-
-                     push_broadcast(snapshots,Snapshot::item_event(
+                    push_broadcast(snapshots, Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                         jugador->getNombre(), nombreItem,
                         static_cast<uint16_t>(jugador->getMapaId()),
                         static_cast<uint16_t>(jugador->getPosX()),
                         static_cast<uint16_t>(jugador->getPosY()), cantidad));
                 }
-                int oroExceso = Formulas::calcularOroExceso(
-                    jugador->getOro(), jugador->getOroMax());
-
+                int oroExceso = Formulas::calcularOroExceso(jugador->getOro(),
+                                                            jugador->getOroMax());
                 if (oroExceso > 0) {
                     jugador->gastarOro(oroExceso);
                     mundo.tirarItem(
                         jugador->getMapaId(), jugador->getPosX(),
                         jugador->getPosY(),
                         SlotInventario(ItemFactory::crearOro(oroExceso)));
-
-                     push_broadcast(snapshots,Snapshot::item_event(
+                    push_broadcast(snapshots, Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                         jugador->getNombre(), item_defs::ORO,
                         static_cast<uint16_t>(jugador->getMapaId()),
@@ -548,29 +440,23 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                         static_cast<uint16_t>(oroExceso)));
                 }
             }
-
-             push_broadcast(snapshots,
+            push_broadcast(snapshots, 
                 SnapshotFactory::player_stats_from_player(*jugador));
-
             break;
         }
-
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
             if (!jugador) break;
-
             jugador->revivir(jugador->getVidaMax());
-
-             push_broadcast(snapshots,Snapshot::cheat_status(
+            push_broadcast(snapshots, Snapshot::cheat_status(
                 nombre,
                 static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_RESURRECT),
                 jugador->estaVivo()));
-
-             push_broadcast(snapshots,
+            push_broadcast(snapshots, 
                 SnapshotFactory::player_stats_from_player(*jugador));
-
             break;
         }
-            // -- RESURRECT --------------------------
+
+        // ---- Resurrección ----
         case protocol::ClientOpcode::RESURRECT: {
             if (!jugador || jugador->estaVivo()) {
                 push_unicast(snapshots,Snapshot::error_message(
@@ -595,17 +481,17 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             break;
         }
 
-        // -- HEAL --------------------------
+        // ---- Curación ----
         case protocol::ClientOpcode::HEAL: {
             if (!jugador || !jugador->estaVivo()) {
                 push_unicast(snapshots,Snapshot::error_message(
                     nombre, "No puedes curarte si eres un fantasma"), playerId);
                 break;
             }
-
             if (!hayNPCCercano(jugador, sacerdotes)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Debes estar cerca de un sacerdote para curarte"), playerId);
+                push_broadcast(snapshots, Snapshot::error_message(
+                    nombre,
+                    "Debes estar cerca de un sacerdote para curarte"));
                 break;
             }
             jugador->curar(jugador->getVidaMax());
@@ -615,195 +501,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             break;
         }
 
-        // -- BUY ITEM --------------------------
-        case protocol::ClientOpcode::BUY_ITEM: {
-            bool comercianteCerca = hayNPCCercano(jugador, comerciantes);
-            bool sacerdoteCerca = hayNPCCercano(jugador, sacerdotes);
-
-            if (!comercianteCerca && !sacerdoteCerca) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre,
-                    "Debes estar cercano a un comerciante o sacerdote para "
-                    "comprar"), playerId);
-                break;
-            }
-
-            const std::string& itemNombre = cmd.get_text();
-            int precio = config.getPrecioItem(itemNombre);
-            if (precio == 0) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Ese item no está disponible"), playerId);
-                break;
-            }
-
-            auto item = crear_item_por_nombre(itemNombre);
-            if (!item) {
-                 push_broadcast(snapshots,
-                    Snapshot::error_message(nombre, "Item desconocido"));
-                break;
-            }
-
-            // Validar que el NPC cercano vende este tipo de ítem:
-            // Sacerdote: báculos y pociones - Comerciante: todo excepto
-            // báculos.
-            TipoItem tipoItem = item->getTipo();
-            bool esBaculo = (tipoItem == TipoItem::BACULO);
-            bool esPocion = (tipoItem == TipoItem::POCION);
-            bool vendidoPorSacerdote = esBaculo || esPocion;
-            bool vendidoPorComerciante = !esBaculo;
-
-            if ((!sacerdoteCerca || !vendidoPorSacerdote) &&
-                (!comercianteCerca || !vendidoPorComerciante)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "El NPC cercano no vende ese tipo de item"), playerId);
-                break;
-            }
-
-            if (!jugador->gastarOro(precio)) {
-                 push_broadcast(snapshots,
-                    Snapshot::error_message(nombre, "No tenes suficiente oro"));
-                break;
-            }
-
-            jugador->agarrarItem(std::move(item));
-             push_broadcast(snapshots,
-                SnapshotFactory::player_inventory_from_player(*jugador));
-             push_broadcast(snapshots,
-                SnapshotFactory::player_stats_from_player(*jugador));
-            break;
-        }
-
-        // -- SELL ITEM --------------------------
-        case protocol::ClientOpcode::SELL_ITEM: {
-            if (!hayNPCCercano(jugador, comerciantes)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre,
-                    "Debes estar cercano a un comerciante para vender"), playerId);
-                break;
-            }
-
-            int slot = static_cast<int>(cmd.get_slot());
-            const auto& slots = jugador->getInventario().getSlots();
-            if (slot < 0 || slot >= static_cast<int>(slots.size())) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Slot de inventario invalido"), playerId);
-                break;
-            }
-
-            if (!slots[slot].has_value()) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Slot de inventario invalido"), playerId);
-                break;
-            }
-            const std::string itemNombre = slots[slot]->item->getNombre();
-            int precioVenta = config.getPrecioItem(itemNombre) / 2;
-            auto soltado = jugador->soltarItem(slot);
-            if (!soltado) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "No se pudo vender el item"), playerId);
-                break;
-            }
-            jugador->agregarOro(precioVenta);
-             push_broadcast(snapshots,
-                SnapshotFactory::player_inventory_slot_from_player(*jugador,
-                                                                   slot));
-             push_broadcast(snapshots,
-                SnapshotFactory::player_stats_from_player(*jugador));
-            break;
-        }
-
-        // -- DEPOSIT ITEM --------------------------
-        case protocol::ClientOpcode::DEPOSIT_ITEM: {
-            if (!hayNPCCercano(jugador, banqueros)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre,
-                    "Debes estar cercano a un banquero para depositar"), playerId);
-                break;
-            }
-
-            auto& cuentaDeposito =
-                cuentasBancarias.try_emplace(nombre, nombre).first->second;
-            int slot = static_cast<int>(cmd.get_slot());
-            auto soltado = jugador->soltarItem(slot);
-            if (!soltado) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Slot de inventario invalido"), playerId);
-                break;
-            }
-            cuentaDeposito.depositarItem(std::move(*soltado));
-             push_broadcast(snapshots,
-                SnapshotFactory::player_inventory_from_player(*jugador));
-            break;
-        }
-
-        // -- DEPOSIT GOLD --------------------------
-        case protocol::ClientOpcode::DEPOSIT_GOLD: {
-            if (!hayNPCCercano(jugador, banqueros)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre,
-                    "Debes estar cercano a un banquero para depositar"), playerId);
-                break;
-            }
-
-            int cantidad = static_cast<int>(cmd.get_amount());
-            if (!jugador->gastarOro(cantidad)) {
-                 push_broadcast(snapshots,
-                    Snapshot::error_message(nombre, "No tenes suficiente oro"));
-                break;
-            }
-            cuentasBancarias.try_emplace(nombre, nombre)
-                .first->second.depositarOro(cantidad);
-             push_broadcast(snapshots,
-                SnapshotFactory::player_stats_from_player(*jugador));
-            break;
-        }
-
-        // -- WITHDRAW ITEM --------------------------
-        case protocol::ClientOpcode::WITHDRAW_ITEM: {
-            if (!hayNPCCercano(jugador, banqueros)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Debes estar cercano a un banquero para retirar"), playerId);
-                break;
-            }
-
-            auto& cuentaRetiro =
-                cuentasBancarias.try_emplace(nombre, nombre).first->second;
-            int indice = static_cast<int>(cmd.get_item_id());
-            auto slot = cuentaRetiro.retirarItem(indice);
-            if (!slot) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Indice de banco invalido"), playerId);
-                break;
-            }
-            jugador->agarrarItem(std::move(slot->item), slot->cantidad);
-             push_broadcast(snapshots,
-                SnapshotFactory::player_inventory_from_player(*jugador));
-            break;
-        }
-
-        // -- WITHDRAW GOLD --------------------------
-        case protocol::ClientOpcode::WITHDRAW_GOLD: {
-            if (!hayNPCCercano(jugador, banqueros)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "Debes estar cercano a un banquero para retirar"), playerId);
-                break;
-            }
-
-            int cantidad = static_cast<int>(cmd.get_amount());
-            auto& cuentaRetiro =
-                cuentasBancarias.try_emplace(nombre, nombre).first->second;
-            if (!cuentaRetiro.retirarOro(cantidad)) {
-                push_unicast(snapshots,Snapshot::error_message(
-                    nombre, "No tenes suficiente oro en el banco"), playerId);
-                break;
-            }
-            jugador->agregarOro(cantidad);
-             push_broadcast(snapshots,
-                SnapshotFactory::player_stats_from_player(*jugador));
-            break;
-        }
-
-        // -- Chat privado --------------------------
+        // ---- Chat privado ----
         case protocol::ClientOpcode::PRIVATE_MESSAGE: {
             const std::string destino = cmd.get_nick();
             const std::string mensaje = cmd.get_text();
@@ -812,36 +510,20 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     nombre, "Debe indicar un destinatario"), playerId);
                 break;
             }
-
             if (mensaje.empty()) {
                 push_unicast(snapshots,Snapshot::error_message(
                     nombre, "El mensaje no puede estar vacio"), playerId);
                 break;
             }
-
             if (!getJugador(destino)) {
                 push_unicast(snapshots,Snapshot::error_message(
                     nombre, "El jugador destinatario no existe"), playerId);
                 break;
             }
-
-             push_broadcast(snapshots,
+            push_broadcast(snapshots, 
                 Snapshot::chat_message(nombre, destino, mensaje));
             break;
         }
-
-        // -- Clanes (pendientes) --------------------------
-        case protocol::ClientOpcode::CLAN_CREATE:
-        case protocol::ClientOpcode::CLAN_JOIN:
-        case protocol::ClientOpcode::CLAN_REVIEW:
-        case protocol::ClientOpcode::CLAN_ACCEPT:
-        case protocol::ClientOpcode::CLAN_REJECT:
-        case protocol::ClientOpcode::CLAN_BAN:
-        case protocol::ClientOpcode::CLAN_KICK:
-        case protocol::ClientOpcode::CLAN_LEAVE:
-            push_unicast(snapshots,Snapshot::error_message(
-                nombre, "Clanes todavia no implementados"), playerId);
-            break;
 
         default:
              push_broadcast(snapshots,
@@ -863,72 +545,4 @@ bool Game::hayNPCCercano(const Jugador* jugador,
         if (dx + dy <= 10) return true;
     }
     return false;
-}
-
-// ----------------- Items del piso -----------------
-
-bool Game::tirarItem(const std::string& nombre, int indice, int cantidad) {
-    Jugador* jugador = getJugador(nombre);
-
-    if (!jugador || !jugador->estaVivo()) {
-        return false;
-    }
-
-    auto slot = jugador->soltarItem(indice, cantidad);
-
-    if (!slot) {
-        return false;
-    }
-
-    mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
-                    jugador->getPosY(), std::move(*slot));
-
-    return true;
-}
-
-ResultadoTomarItem Game::tomarItem(const std::string& nombre, int indice) {
-    ResultadoTomarItem resultado;
-
-    Jugador* jugador = getJugador(nombre);
-
-    if (!jugador || !jugador->estaVivo()) {
-        return resultado;
-    }
-
-    int x = jugador->getPosX();
-    int y = jugador->getPosY();
-    int mapaId = jugador->getMapaId();
-
-    auto slot_piso = mundo.tomarItemEnPosicion(mapaId, x, y, indice);
-
-    if (!slot_piso) {
-        return resultado;
-    }
-
-    resultado.itemNombre = slot_piso->item->getNombre();
-    resultado.cantidad = static_cast<uint16_t>(slot_piso->cantidad);
-
-    if (slot_piso->item->getTipo() == TipoItem::ORO) {
-        jugador->agregarOro(slot_piso->cantidad);
-        resultado.exito = true;
-        resultado.slotInventario = -1;
-        return resultado;
-    }
-
-    if (jugador->getInventario().estaLleno()) {
-        mundo.tirarItem(mapaId, x, y, std::move(*slot_piso));
-        return resultado;
-    }
-
-    std::optional<int> slot_inventario =
-        jugador->agarrarItem(std::move(slot_piso->item), slot_piso->cantidad);
-
-    if (!slot_inventario.has_value()) {
-        mundo.tirarItem(mapaId, x, y, std::move(*slot_piso));
-        return resultado;
-    }
-
-    resultado.exito = true;
-    resultado.slotInventario = *slot_inventario;
-    return resultado;
 }

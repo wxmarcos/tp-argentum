@@ -98,6 +98,7 @@ public:
     static Command meditate();
     static Command resurrect();
     static Command heal();
+    static Command list_items();
 
     static Command pick_item();
     static Command drop_item(uint16_t slot);
@@ -109,6 +110,16 @@ public:
 
     static Command private_message(const std::string& nick,
                                    const std::string& text);
+
+    static Command clan_create(const std::string& clan_name);
+    static Command clan_join(const std::string& clan_name);
+    static Command clan_review();
+    static Command clan_accept(const std::string& nick);
+    static Command clan_reject(const std::string& nick);
+    static Command clan_ban(const std::string& nick);
+    static Command clan_kick(const std::string& nick);
+    static Command clan_leave();
+
     bool is_disconnect() const;
 
     protocol::ClientOpcode get_type() const;

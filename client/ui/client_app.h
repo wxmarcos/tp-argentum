@@ -55,12 +55,14 @@ class ClientApp {
                    AudioManager& audio);
 
     bool process_input(ServerConnection& connection, const InputHandler& input,
-                       ClientGameState& state, Console& console);
+                       ClientGameState& state, Console& console,
+                       AudioManager& audio);
 
     void handle_console_event(const SDL_Event& event, Console& console,
-                              ServerConnection& connection);
+                              ServerConnection& connection, AudioManager& audio);
                               
-    void submit_console(Console& console, ServerConnection& connection);
+    void submit_console(Console& console, ServerConnection& connection,
+                        AudioManager& audio);
 
     void handle_click(ServerConnection& connection,
                       const ClientGameState& state, int mouse_x, int mouse_y);

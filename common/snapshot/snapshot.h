@@ -38,6 +38,7 @@ private:
     uint16_t mana_max = 0;
 
     uint32_t experiencia = 0;
+    uint32_t exp_limite = 0;
     uint32_t oro = 0;
 
     uint16_t constitucion = 0;
@@ -112,7 +113,8 @@ public:
         const std::string& nick, const std::string& raza,
         const std::string& clase, uint16_t mapa_id, uint16_t x, uint16_t y,
         uint8_t direction, uint16_t nivel, uint16_t vida, uint16_t vida_max,
-        uint16_t mana, uint16_t mana_max, uint32_t experiencia, uint32_t oro,
+        uint16_t mana, uint16_t mana_max, uint32_t experiencia,
+        uint32_t exp_limite, uint32_t oro,
         uint16_t constitucion, uint16_t inteligencia, uint16_t fuerza,
         uint16_t agilidad);
     static Snapshot inventory_update(
@@ -138,6 +140,7 @@ public:
     uint16_t get_mana_max() const;
 
     uint32_t get_experiencia() const;
+    uint32_t get_exp_limite() const;
     uint32_t get_oro() const;
 
     uint16_t get_constitucion() const;

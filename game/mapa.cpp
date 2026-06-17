@@ -128,6 +128,11 @@ const std::vector<SlotInventario>* Mapa::getItemsEnPosicion(int x,
     return &it->second;
 }
 
+const std::map<std::pair<int, int>, std::vector<SlotInventario>>&
+Mapa::getItemsEnPiso() const {
+    return itemsEnPiso;
+}
+
 void Mapa::registrarPortal(int x, int y, int mapaDestinoId, int destinoX,
                            int destinoY) {
     if (!esPosicionValida(x, y)) return;

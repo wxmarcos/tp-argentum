@@ -59,6 +59,9 @@ target_sources(taller_game PRIVATE
     # Game
     game/game.cpp
     game/gameComandos.cpp
+    game/gameComandosClan.cpp
+    game/gameComandosComercio.cpp
+    game/gameComandosItems.cpp
     game/gameCombate.cpp
     game/gameMundo.cpp
 

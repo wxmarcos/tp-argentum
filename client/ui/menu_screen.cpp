@@ -16,6 +16,7 @@ static constexpr int OPTION_COUNT = 4;
 static constexpr size_t MAX_NICK_LEN = 16;
 static constexpr int NICK_TEXT_PAD = 12;
 static constexpr int FRAME_DELAY_MS = 16;
+static constexpr int ERROR_MSG_GAP = 16;
 
 static constexpr std::array<std::string_view, 4> RAZAS = {
     keys::HUMANO, keys::ELFO, keys::ENANO, keys::GNOMO};
@@ -195,16 +196,24 @@ bool MenuScreen::handle_login_event(const SDL_Event& e, std::string& nick,
     return true;
 }
 
-void MenuScreen::draw_login(const std::string& nick) {
+void MenuScreen::draw_login(const std::string& nick,
+                            const std::string& error_msg) {
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Clear();
     blit_full(tex_login);
     const int ty = nick_box.y + (nick_box.h - text.line_height()) / 2;
     text.draw(nick + "_", nick_box.x + NICK_TEXT_PAD, ty, colors::WHITE);
+
+    if (!error_msg.empty()) {
+        const int ey = nick_box.y + nick_box.h + ERROR_MSG_GAP;
+        text.draw_centered(error_msg, config.window_width / 2, ey,
+                           colors::ERROR_TEXT);
+    }
     renderer.Present();
 }
 
-MenuResult MenuScreen::run_login(std::string& nick) {
+MenuResult MenuScreen::run_login(std::string& nick,
+                                 const std::string& error_msg) {
     SDL_StartTextInput();
     MenuResult result = MenuResult::BACK;
     bool running = true;
@@ -214,7 +223,7 @@ MenuResult MenuScreen::run_login(std::string& nick) {
             running = handle_login_event(e, nick, result);
             if (!running) break;
         }
-        draw_login(nick);
+        draw_login(nick, error_msg);
         SDL_Delay(FRAME_DELAY_MS);
     }
     SDL_StopTextInput();

@@ -28,7 +28,33 @@ bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
     Mapa* mapa = mundo.getMapa(atacante->getMapaId());
     if (mapa && mapa->esZonaSegura()) return false;
 
+    // Mismo clan
+    if (atacante->estaEnClan() &&
+        atacante->getClanNombre() == objetivo->getClanNombre())
+        return false;
+
     return true;
+}
+
+static std::unique_ptr<Item> crearArma() {
+    using Fn = std::unique_ptr<Item> (*)();
+    static const Fn items[] = {
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearEspada(); },
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearHacha(); },
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearMartillo(); },
+    };
+    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    return items[idx]();
+}
+
+static std::unique_ptr<Item> crearEscudo() {
+    using Fn = std::unique_ptr<Item> (*)();
+    static const Fn items[] = {
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeTortuga(); },
+        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeHierro(); },
+    };
+    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    return items[idx]();
 }
 
 static std::unique_ptr<Item> crearItemAleatorio() {
@@ -84,13 +110,14 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
                                 std::vector<OutgoingSnapshot>& snapshots) {
     double r = static_cast<double>(rand()) / RAND_MAX;
 
-    if (r < 0.90) return;
+    if (r < 0.80) return;
 
     int mx = criatura->getMapaId();
     int px = criatura->getPosX();
     int py = criatura->getPosY();
 
-    if (r < 0.98) {
+    // 0.80–0.87: oro (8%)
+    if (r < 0.88) {
         int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax());
         std::string nombreItem = item_defs::ORO;
 
@@ -104,7 +131,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    if (r < 0.99) {
+    // 0.88: poción (1%)
+    if (r < 0.89) {
         bool esVida = rand() % 2 == 0;
         auto pocion = esVida ? ItemFactory::crearPocionDeVida()
                              : ItemFactory::crearPocionDeMana();
@@ -121,7 +149,38 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    auto item = crearItemAleatorio();
+    // 0.89: item aleatorio (1%)
+    if (r < 0.90) {
+        auto item = crearItemAleatorio();
+        std::string nombreItem = item->getNombre();
+
+        mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
+
+        push_broadcast(snapshots, Snapshot::item_event(
+            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), 1));
+
+        return;
+    }
+
+    // 0.90–0.94: arma (5%)
+    if (r < 0.95) {
+        auto item = crearArma();
+        std::string nombreItem = item->getNombre();
+
+        mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
+
+        push_broadcast(snapshots, Snapshot::item_event(
+            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), 1));
+
+        return;
+    }
+
+    // 0.95–1.00: escudo (5%)
+    auto item = crearEscudo();
     std::string nombreItem = item->getNombre();
 
     mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
@@ -169,6 +228,10 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     resultado.fueCritico =
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
+
+    // Bonus grupal de clan del atacante
+    int compAtacante = contarCompañerosClanEnMapa(atacante);
+    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
 
     int danioFinal = danio;
     resultado.danioAplicado = danioFinal;
@@ -242,6 +305,10 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
+    // Bonus grupal de clan del atacante
+    int compAtacante = contarCompañerosClanEnMapa(atacante);
+    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
+
     if (!resultado.fueCritico)
         resultado.fueEsquivado =
             Formulas::calcularEsquive(objetivo->getAgilidad());
@@ -262,6 +329,10 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         escudo ? escudo->getDefensaMax() : 0,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
+    // Bonus grupal de clan del defensor
+    int compDefensor = contarCompañerosClanEnMapa(objetivo);
+    defensa = static_cast<int>(defensa * (1.0 + compDefensor * 0.05));
+
     int danioFinal = std::max(0, danio - defensa);
     resultado.danioAplicado = danioFinal;
     objetivo->recibirDanio(danioFinal);
@@ -271,6 +342,9 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
 
     resultado.objetivoMurio = !objetivo->estaVivo();
     if (resultado.objetivoMurio) {
+        objetivo->perderExperiencia(Formulas::calcularExpPerdida(
+            objetivo->getExperiencia(),
+            config.getFormulaExpPenalidadPorcentaje()));
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
             objetivo->getVidaMax(), objetivo->getNivel(),
             atacante->getNivel()));
@@ -306,9 +380,28 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
         escudo ? escudo->getDefensaMax() : 0,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
+    // Bonus grupal de clan del defensor
+    int comp = contarCompañerosClanEnMapa(objetivo);
+    defensa = static_cast<int>(defensa * (1.0 + comp * 0.05));
+
     int danioFinal = std::max(0, danio - defensa);
 
     objetivo->recibirDanio(danioFinal);
 
     return danioFinal;
+}
+
+// ----------------- Bonus grupal de clan -----------------
+
+int Game::contarCompañerosClanEnMapa(const Jugador* jugador) const {
+    if (!jugador->estaEnClan()) return 0;
+    int count = 0;
+    for (const auto& [nick, j] : jugadores) {
+        if (nick == jugador->getNombre()) continue;
+        if (!j->estaVivo()) continue;
+        if (j->getClanNombre() != jugador->getClanNombre()) continue;
+        if (j->getMapaId() != jugador->getMapaId()) continue;
+        ++count;
+    }
+    return count;
 }

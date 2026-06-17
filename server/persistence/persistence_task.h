@@ -35,5 +35,7 @@ struct PersistenceTask {
     uint16_t fuerza;
     uint16_t agilidad;
 
+    std::string clan_nombre;
+
     std::vector<PersistenceInventoryItem> inventario;
 };

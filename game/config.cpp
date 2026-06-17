@@ -161,6 +161,10 @@ int Config::getFormulaCriticoPorcentaje() const {
     return impl->get<int64_t>("formulas.critico_porcentaje", 20);
 }
 
+int Config::getFormulaExpPenalidadPorcentaje() const {
+    return impl->get<int64_t>("formulas.exp_penalidad_porcentaje", 5);
+}
+
 double Config::getFormulaExpCoeficiente() const {
     return impl->get<double>("formulas.exp_coeficiente", 1000.0);
 }

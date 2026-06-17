@@ -11,6 +11,7 @@
 #include "common/snapshot/snapshot_outgoing.h"
 #include "game/banco/cuentaBanco.h"
 #include "game/characters/jugador.h"
+#include "game/clan.h"
 #include "game/clases/charClase.h"
 #include "game/config.h"
 #include "game/criaturas/criatura.h"
@@ -44,6 +45,7 @@ private:
     std::map<std::string, std::unique_ptr<charClase>> clases;
     std::map<std::string, std::unique_ptr<Jugador>> jugadores;
     std::map<std::string, std::unique_ptr<Criatura>> criaturas;
+    std::map<std::string, Clan> clanes;
     int nextCriaturaId;
 
     std::unordered_map<uint16_t, std::string> player_id_to_nick;
@@ -55,7 +57,7 @@ private:
     struct InfoNPC {
         int mapaId, x, y;
     };
-    
+
     std::vector<InfoNPC> sacerdotes;
     std::vector<InfoNPC> comerciantes;
     std::vector<InfoNPC> banqueros;
@@ -111,6 +113,8 @@ private:
                         int mapaId,
                         uint16_t playerId) const;
 
+    void agregarReplayItems(std::vector<OutgoingSnapshot>& snapshots,
+                            int mapaId) const;
     bool handle_meditation_interruption(Jugador* jugador,
                                         std::vector<OutgoingSnapshot>& snapshots,
                                         const std::string& nombre);
@@ -123,6 +127,7 @@ private:
                               Criatura* criatura,
                               std::vector<OutgoingSnapshot>& snapshots);
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
+    int contarCompañerosClanEnMapa(const Jugador* jugador) const;
 
     // ---- IA / mundo (game_world.cpp) ----
     void spawnCriaturas(std::vector<OutgoingSnapshot>& snapshots);
@@ -131,11 +136,53 @@ private:
                                       float& distancia) const;
     void tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots);
 
-    // ---- Comandos / items (game_commands.cpp) ----
+    // ---- Helpers de comandos (game_commands.cpp) ----
     bool hayNPCCercano(const Jugador* jugador,
                        const std::vector<InfoNPC>& npcs) const;
     bool tirarItem(const std::string& nombre, int indice, int cantidad = -1);
     ResultadoTomarItem tomarItem(const std::string& nombre, int indice);
+
+    // ---- Handlers de items (game_commands_items.cpp) ----
+    void handleMover(const std::string& nombre, const Command& cmd,
+                     std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handlePickItem(const std::string& nombre, const Command& cmd,
+                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleDropItem(const std::string& nombre, const Command& cmd,
+                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleEquipItem(const std::string& nombre, const Command& cmd,
+                         std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+
+    // ---- Handlers de comercio (game_commands_commerce.cpp) ----
+    void handleBuyItem(const std::string& nombre, const Command& cmd,
+                       std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleSellItem(const std::string& nombre, const Command& cmd,
+                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleDepositItem(const std::string& nombre, const Command& cmd,
+                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleWithdrawItem(const std::string& nombre, const Command& cmd,
+                            std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleDepositGold(const std::string& nombre, const Command& cmd,
+                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleWithdrawGold(const std::string& nombre, const Command& cmd,
+                            std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleListItems(const std::string& nombre,
+                         std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+
+    // ---- Handlers de clanes (game_commands_clan.cpp) ----
+    void handleClanCreate(const std::string& nombre, const Command& cmd,
+                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleClanJoin(const std::string& nombre, const Command& cmd,
+                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleClanReview(const std::string& nombre,
+                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleClanAccept(const std::string& nombre, const Command& cmd,
+                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleClanReject(const std::string& nombre, const Command& cmd,
+                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleClanBanKick(const std::string& nombre, const Command& cmd,
+                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+    void handleClanLeave(const std::string& nombre,
+                         std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
 
 public:
     explicit Game(Config& config);
@@ -149,7 +196,8 @@ public:
     // Persistencia (game.cpp)
     std::vector<PersistenceTask> build_persistence_tasks_for_command(
         const Command& cmd) const;
-    
+    std::vector<PersistenceTask> build_all_players_tasks() const;
+
     // Jugadores (game.cpp)
     bool agregarJugador(const std::string& nombre, int mapaId, int posX,
                         int posY, const std::string& razaNombre,

@@ -31,6 +31,7 @@ public:
 
     // Formulas
     int getFormulaCriticoPorcentaje() const;
+    int getFormulaExpPenalidadPorcentaje() const;
     double getFormulaExpCoeficiente() const;
     double getFormulaExpExponente() const;
     double getFormulaOroMaxCoeficiente() const;

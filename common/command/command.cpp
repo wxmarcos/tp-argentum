@@ -117,6 +117,10 @@ Command Command::resurrect() {
 
 Command Command::heal() { return Command(0, protocol::ClientOpcode::HEAL); }
 
+Command Command::list_items() {
+    return Command(0, protocol::ClientOpcode::LIST_ITEMS);
+}
+
 Command Command::pick_item() {
     return Command(0, protocol::ClientOpcode::PICK_ITEM);
 }
@@ -157,6 +161,50 @@ Command Command::private_message(const std::string& nick,
     cmd.nick = nick;
     cmd.text = text;
     return cmd;
+}
+
+Command Command::clan_create(const std::string& clan_name) {
+    Command cmd(0, protocol::ClientOpcode::CLAN_CREATE);
+    cmd.clan_name = clan_name;
+    return cmd;
+}
+
+Command Command::clan_join(const std::string& clan_name) {
+    Command cmd(0, protocol::ClientOpcode::CLAN_JOIN);
+    cmd.clan_name = clan_name;
+    return cmd;
+}
+
+Command Command::clan_review() {
+    return Command(0, protocol::ClientOpcode::CLAN_REVIEW);
+}
+
+Command Command::clan_accept(const std::string& nick) {
+    Command cmd(0, protocol::ClientOpcode::CLAN_ACCEPT);
+    cmd.nick = nick;
+    return cmd;
+}
+
+Command Command::clan_reject(const std::string& nick) {
+    Command cmd(0, protocol::ClientOpcode::CLAN_REJECT);
+    cmd.nick = nick;
+    return cmd;
+}
+
+Command Command::clan_ban(const std::string& nick) {
+    Command cmd(0, protocol::ClientOpcode::CLAN_BAN);
+    cmd.nick = nick;
+    return cmd;
+}
+
+Command Command::clan_kick(const std::string& nick) {
+    Command cmd(0, protocol::ClientOpcode::CLAN_KICK);
+    cmd.nick = nick;
+    return cmd;
+}
+
+Command Command::clan_leave() {
+    return Command(0, protocol::ClientOpcode::CLAN_LEAVE);
 }
 
 Command Command::cheat_god() {

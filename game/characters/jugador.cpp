@@ -86,6 +86,10 @@ void Jugador::recuperarMana(int cantidad) {
 int Jugador::getNivel() const { return nivel; }
 int Jugador::getExperiencia() const { return experiencia; }
 
+int Jugador::getExpParaSiguienteNivel() const {
+    return expParaSiguienteNivel();
+}
+
 int Jugador::expParaSiguienteNivel() const {
     return Formulas::calcularLimiteExp(nivel, formulaExpCoef, formulaExpExp);
 }
@@ -104,6 +108,11 @@ void Jugador::ganarExperiencia(int exp) {
     if (exp <= 0) return;
     experiencia += exp;
     verificarSubidaNivel();
+}
+
+void Jugador::perderExperiencia(int cantidad) {
+    if (cantidad <= 0) return;
+    experiencia = std::max(0, experiencia - cantidad);
 }
 
 // ----------------------- Oro -----------------------
@@ -253,6 +262,11 @@ bool Jugador::estaResucitando() const { return resucitando; }
 bool Jugador::resurreccionCompleta() const {
     return resucitando && tiempoResucitando <= 0.0f;
 }
+
+// ----------------------- Clan -----------------------
+const std::string& Jugador::getClanNombre() const { return clanNombre; }
+void Jugador::setClanNombre(const std::string& nombre) { clanNombre = nombre; }
+bool Jugador::estaEnClan() const { return !clanNombre.empty(); }
 
 // ----------------------- Cheats -----------------------
 bool Jugador::toggleCheatVidaInfinita() {
