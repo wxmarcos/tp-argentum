@@ -1,5 +1,3 @@
-#include "game/game.h"
-
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -7,6 +5,7 @@
 
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
+#include "game/game.h"
 #include "game/items/arma.h"
 #include "game/items/armadura.h"
 #include "game/items/casco.h"
@@ -50,8 +49,12 @@ static std::unique_ptr<Item> crearArma() {
 static std::unique_ptr<Item> crearEscudo() {
     using Fn = std::unique_ptr<Item> (*)();
     static const Fn items[] = {
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeTortuga(); },
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeHierro(); },
+        []() -> std::unique_ptr<Item> {
+            return ItemFactory::crearEscudoDeTortuga();
+        },
+        []() -> std::unique_ptr<Item> {
+            return ItemFactory::crearEscudoDeHierro();
+        },
     };
     int idx = rand() % (sizeof(items) / sizeof(items[0]));
     return items[idx]();
@@ -123,11 +126,14 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         mundo.tirarItem(mx, px, py,
                         SlotInventario(ItemFactory::crearOro(cantidad)));
-            
-        push_broadcast(snapshots, Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), static_cast<uint16_t>(cantidad)));
+
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py),
+                static_cast<uint16_t>(cantidad)));
         return;
     }
 
@@ -141,10 +147,12 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(pocion)));
 
-        push_broadcast(snapshots, Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), 1));
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py), 1));
 
         return;
     }
@@ -156,10 +164,12 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
 
-        push_broadcast(snapshots, Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), 1));
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py), 1));
 
         return;
     }
@@ -171,10 +181,12 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
 
-        push_broadcast(snapshots, Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), 1));
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py), 1));
 
         return;
     }
@@ -185,10 +197,12 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
     mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
 
-    push_broadcast(snapshots, Snapshot::item_event(
-        static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-        nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-        static_cast<uint16_t>(py), 1));
+    push_broadcast(
+        snapshots,
+        Snapshot::item_event(
+            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), 1));
 }
 
 ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
@@ -225,16 +239,16 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     }
 
     int danio = arma ? Formulas::calcularDanio(fuerza, arma->getDanioMin(),
-                                            arma->getDanioMax())
-                    : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                            baculo->getEfectoMax());
+                                               arma->getDanioMax())
+                     : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
+                                               baculo->getEfectoMax());
 
     resultado.fueCritico =
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
     // Bonus grupal de clan del atacante
-    int compAtacante = contarCompañerosClanEnMapa(atacante);
+    int compAtacante = contarCompanerosClanEnMapa(atacante);
     danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
 
     int danioFinal = danio;
@@ -305,16 +319,16 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
     }
 
     int danio = arma ? Formulas::calcularDanio(fuerza, arma->getDanioMin(),
-                                            arma->getDanioMax())
-                    : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                            baculo->getEfectoMax());
+                                               arma->getDanioMax())
+                     : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
+                                               baculo->getEfectoMax());
 
     resultado.fueCritico =
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
     // Bonus grupal de clan del atacante
-    int compAtacante = contarCompañerosClanEnMapa(atacante);
+    int compAtacante = contarCompanerosClanEnMapa(atacante);
     danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
 
     if (!resultado.fueCritico)
@@ -338,7 +352,7 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
     // Bonus grupal de clan del defensor
-    int compDefensor = contarCompañerosClanEnMapa(objetivo);
+    int compDefensor = contarCompanerosClanEnMapa(objetivo);
     defensa = static_cast<int>(defensa * (1.0 + compDefensor * 0.05));
 
     int danioFinal = std::max(0, danio - defensa);
@@ -389,7 +403,7 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
     // Bonus grupal de clan del defensor
-    int comp = contarCompañerosClanEnMapa(objetivo);
+    int comp = contarCompanerosClanEnMapa(objetivo);
     defensa = static_cast<int>(defensa * (1.0 + comp * 0.05));
 
     int danioFinal = std::max(0, danio - defensa);
@@ -401,7 +415,7 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
 
 // ----------------- Bonus grupal de clan -----------------
 
-int Game::contarCompañerosClanEnMapa(const Jugador* jugador) const {
+int Game::contarCompanerosClanEnMapa(const Jugador* jugador) const {
     if (!jugador->estaEnClan()) return 0;
     int count = 0;
     for (const auto& [nick, j] : jugadores) {

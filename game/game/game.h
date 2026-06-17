@@ -80,44 +80,41 @@ private:
     std::string to_lower(const std::string& str) const;
     bool restaurarJugadorPersistido(const PersistenceTask& player);
     bool puedeMoverAhora(const std::string& nombre);
-    // 
+    //
     static void push_broadcast(std::vector<OutgoingSnapshot>& out,
-                            Snapshot snapshot) {
+                               Snapshot snapshot) {
         out.push_back(OutgoingSnapshot::broadcast(std::move(snapshot)));
     }
 
     static void push_unicast(std::vector<OutgoingSnapshot>& out,
-                            Snapshot snapshot,
-                            uint16_t player_id) {
-        out.push_back(OutgoingSnapshot::unicast(std::move(snapshot), player_id));
+                             Snapshot snapshot, uint16_t player_id) {
+        out.push_back(
+            OutgoingSnapshot::unicast(std::move(snapshot), player_id));
     }
 
     static void push_multicast(std::vector<OutgoingSnapshot>& out,
-                            Snapshot snapshot,
-                            std::vector<uint16_t> recipients) {
-        out.push_back(
-            OutgoingSnapshot::multicast(std::move(snapshot), std::move(recipients)));
+                               Snapshot snapshot,
+                               std::vector<uint16_t> recipients) {
+        out.push_back(OutgoingSnapshot::multicast(std::move(snapshot),
+                                                  std::move(recipients)));
     }
     // ---- Helpers de replay/protocolo (game.cpp) ----
     std::string getNombreJugadorPorComando(const Command& cmd) const;
     void agregarReplayDeJugadores(std::vector<OutgoingSnapshot>& snapshots,
-                              const std::string& nickQueEntra,
-                              int mapaId,
-                              uint16_t playerId) const;
+                                  const std::string& nickQueEntra, int mapaId,
+                                  uint16_t playerId) const;
 
     void agregarReplayCriaturas(std::vector<OutgoingSnapshot>& snapshots,
-                                int mapaId,
-                                uint16_t playerId) const;
+                                int mapaId, uint16_t playerId) const;
 
-    void agregarReplayNpcs(std::vector<OutgoingSnapshot>& snapshots,
-                        int mapaId,
-                        uint16_t playerId) const;
+    void agregarReplayNpcs(std::vector<OutgoingSnapshot>& snapshots, int mapaId,
+                           uint16_t playerId) const;
 
     void agregarReplayItems(std::vector<OutgoingSnapshot>& snapshots,
                             int mapaId) const;
-    bool handle_meditation_interruption(Jugador* jugador,
-                                        std::vector<OutgoingSnapshot>& snapshots,
-                                        const std::string& nombre);
+    bool handle_meditation_interruption(
+        Jugador* jugador, std::vector<OutgoingSnapshot>& snapshots,
+        const std::string& nombre);
     std::unique_ptr<Item> crear_item_por_nombre(const std::string& nombre);
 
     // ---- Combate (game_combat.cpp) ----
@@ -127,7 +124,7 @@ private:
                               Criatura* criatura,
                               std::vector<OutgoingSnapshot>& snapshots);
     int criaturaAtacaJugador(Criatura* criatura, Jugador* jugador);
-    int contarCompañerosClanEnMapa(const Jugador* jugador) const;
+    int contarCompanerosClanEnMapa(const Jugador* jugador) const;
 
     // ---- IA / mundo (game_world.cpp) ----
     void spawnCriaturas(std::vector<OutgoingSnapshot>& snapshots);
@@ -144,45 +141,63 @@ private:
 
     // ---- Handlers de items (game_commands_items.cpp) ----
     void handleMover(const std::string& nombre, const Command& cmd,
-                     std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                     std::vector<OutgoingSnapshot>& snapshots,
+                     uint16_t playerId);
     void handlePickItem(const std::string& nombre, const Command& cmd,
-                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                        std::vector<OutgoingSnapshot>& snapshots,
+                        uint16_t playerId);
     void handleDropItem(const std::string& nombre, const Command& cmd,
-                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                        std::vector<OutgoingSnapshot>& snapshots,
+                        uint16_t playerId);
     void handleEquipItem(const std::string& nombre, const Command& cmd,
-                         std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                         std::vector<OutgoingSnapshot>& snapshots,
+                         uint16_t playerId);
 
     // ---- Handlers de comercio (game_commands_commerce.cpp) ----
     void handleBuyItem(const std::string& nombre, const Command& cmd,
-                       std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                       std::vector<OutgoingSnapshot>& snapshots,
+                       uint16_t playerId);
     void handleSellItem(const std::string& nombre, const Command& cmd,
-                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                        std::vector<OutgoingSnapshot>& snapshots,
+                        uint16_t playerId);
     void handleDepositItem(const std::string& nombre, const Command& cmd,
-                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                           std::vector<OutgoingSnapshot>& snapshots,
+                           uint16_t playerId);
     void handleWithdrawItem(const std::string& nombre, const Command& cmd,
-                            std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                            std::vector<OutgoingSnapshot>& snapshots,
+                            uint16_t playerId);
     void handleDepositGold(const std::string& nombre, const Command& cmd,
-                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                           std::vector<OutgoingSnapshot>& snapshots,
+                           uint16_t playerId);
     void handleWithdrawGold(const std::string& nombre, const Command& cmd,
-                            std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                            std::vector<OutgoingSnapshot>& snapshots,
+                            uint16_t playerId);
     void handleListItems(const std::string& nombre,
-                         std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                         std::vector<OutgoingSnapshot>& snapshots,
+                         uint16_t playerId);
 
     // ---- Handlers de clanes (game_commands_clan.cpp) ----
     void handleClanCreate(const std::string& nombre, const Command& cmd,
-                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                          std::vector<OutgoingSnapshot>& snapshots,
+                          uint16_t playerId);
     void handleClanJoin(const std::string& nombre, const Command& cmd,
-                        std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                        std::vector<OutgoingSnapshot>& snapshots,
+                        uint16_t playerId);
     void handleClanReview(const std::string& nombre,
-                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                          std::vector<OutgoingSnapshot>& snapshots,
+                          uint16_t playerId);
     void handleClanAccept(const std::string& nombre, const Command& cmd,
-                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                          std::vector<OutgoingSnapshot>& snapshots,
+                          uint16_t playerId);
     void handleClanReject(const std::string& nombre, const Command& cmd,
-                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                          std::vector<OutgoingSnapshot>& snapshots,
+                          uint16_t playerId);
     void handleClanBanKick(const std::string& nombre, const Command& cmd,
-                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                           std::vector<OutgoingSnapshot>& snapshots,
+                           uint16_t playerId);
     void handleClanLeave(const std::string& nombre,
-                         std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId);
+                         std::vector<OutgoingSnapshot>& snapshots,
+                         uint16_t playerId);
 
 public:
     explicit Game(Config& config);
