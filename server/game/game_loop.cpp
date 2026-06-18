@@ -5,7 +5,7 @@
 #include <thread>
 
 GameLoop::GameLoop(Queue<Command>& commands_queue,
-                   Queue<PersistenceTask>& persistence_queue,
+                   Queue<PersistenceJob>& persistence_queue,
                    MonitorClients& clients, Config& config):
     commands_queue(commands_queue),
     persistence_queue(persistence_queue), clients(clients), config(config),
@@ -76,7 +76,12 @@ void GameLoop::enqueue_persistence_tasks(const Command& cmd) {
         game.build_persistence_tasks_for_command(cmd);
 
     for (const PersistenceTask& task : tasks) {
-        persistence_queue.push(task);
+        persistence_queue.push(PersistenceJob::player_job(task));
+    }
+
+    if (game.command_changes_clans(cmd)) {
+        persistence_queue.push(
+            PersistenceJob::clans_job(game.getClanes()));
     }
 }
 

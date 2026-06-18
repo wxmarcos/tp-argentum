@@ -33,7 +33,6 @@
 #include "game/tmx_loader.h"
 #include "server/persistence/players/persistence_loader.h"
 #include "server/persistence/clan/clan_loader.h"
-#include "server/persistence/clan/clan_saver.h"
 
 // ----------------- Constructor -----------------
 Game::Game(Config& config):
@@ -230,9 +229,6 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
     }
     restaurarClanDeJugador(jugador);
     return true;
-}
-void Game::guardarClanes() const {
-    ClanSaver::save_all(config.getRutaClanes(), clanes);
 }
 
 void Game::restaurarClanDeJugador(Jugador* jugador) {
@@ -562,6 +558,27 @@ PersistenceTask Game::buildPlayerTask(const std::string& nombre,
 
     return task;
 }
+
+bool Game::command_changes_clans(const Command& cmd) const {
+    switch (cmd.get_type()) {
+        case protocol::ClientOpcode::CLAN_CREATE:
+        case protocol::ClientOpcode::CLAN_JOIN:
+        case protocol::ClientOpcode::CLAN_ACCEPT:
+        case protocol::ClientOpcode::CLAN_REJECT:
+        case protocol::ClientOpcode::CLAN_BAN:
+        case protocol::ClientOpcode::CLAN_KICK:
+        case protocol::ClientOpcode::CLAN_LEAVE:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+std::map<std::string, Clan> Game::getClanes() const {
+    return clanes;
+}
+
 std::vector<PersistenceTask> Game::build_persistence_tasks_for_command(
     const Command& cmd) const {
     std::vector<PersistenceTask> tasks;

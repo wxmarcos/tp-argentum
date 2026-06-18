@@ -19,7 +19,6 @@
 #include "game/razas/raza.h"
 #include "server/persistence/persistence_task.h"
 #include "server/persistence/persistence_task_factory.h"
-#include "server/persistence/clan/clan_saver.h"
 
 struct ResultadoAtaque {
     bool exito;
@@ -81,7 +80,6 @@ private:
     void cargarNPCs();
     std::string to_lower(const std::string& str) const;
     bool restaurarJugadorPersistido(const PersistenceTask& player);
-    void guardarClanes() const;
     void restaurarClanDeJugador(Jugador* jugador);
     bool puedeMoverAhora(const std::string& nombre);
     //
@@ -217,6 +215,8 @@ public:
         const Command& cmd) const;
     std::vector<PersistenceTask> build_all_players_tasks() const;
     PersistenceTask buildPlayerTask(const std::string& nombre,const Jugador& jugador) const;
+    bool command_changes_clans(const Command& cmd) const;
+    std::map<std::string, Clan> getClanes() const;
 
     // Jugadores (game.cpp)
     bool agregarJugador(const std::string& nombre, int mapaId, int posX,
