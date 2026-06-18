@@ -294,9 +294,15 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             ResultadoAtaque resultado = atacar(nombre, objetivo);
 
             if (!resultado.exito) {
-                push_unicast(snapshots,
-                             Snapshot::error_message(nombre, "Ataque invalido"),
-                             playerId);
+                const std::string msg = resultado.fueraDeRango
+                    ? "Estas demasiado lejos para atacar"
+                    : "Ataque invalido";
+
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(nombre, msg),
+                    playerId);
+
                 break;
             }
             if (resultado.fueEsquivado) {

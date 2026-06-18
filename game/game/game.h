@@ -26,6 +26,7 @@ struct ResultadoAtaque {
     bool fueEsquivado;
     bool fueCritico;
     bool objetivoMurio;
+    bool fueraDeRango = false;
 };
 
 struct ResultadoTomarItem {
