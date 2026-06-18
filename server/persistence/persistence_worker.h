@@ -5,16 +5,17 @@
 #include "common/queue.h"
 #include "common/thread.h"
 #include "server/persistence/persistence_task.h"
+#include "game/config.h"
 
 class PersistenceWorker: public Thread {
 private:
     Queue<PersistenceTask>& queue;
 
-    std::string save_file_path;
+    Config& config;
 
 public:
     PersistenceWorker(Queue<PersistenceTask>& queue,
-                      const std::string& save_file_path);
+                      Config& config);
 
     void run() override;
 };

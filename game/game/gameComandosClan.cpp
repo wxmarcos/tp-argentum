@@ -116,12 +116,29 @@ void Game::handleClanReview(const std::string& nombre,
         push_broadcast(snapshots, Snapshot::chat_message(
             "Sistema", nombre, "No hay solicitudes pendientes."));
     } else {
+        const auto& miembros = clan.getMiembros();
+
+        std::string listaMiembros = "Miembros: ";
+        for (size_t i = 0; i < miembros.size(); ++i) {
+            if (i > 0) listaMiembros += ", ";
+            listaMiembros += miembros[i];
+        }
+
+        push_unicast(
+            snapshots,
+            Snapshot::chat_message("Sistema", nombre, listaMiembros),
+            playerId);
+
         std::string lista = "Solicitudes pendientes: ";
         for (size_t i = 0; i < sols.size(); ++i) {
             if (i > 0) lista += ", ";
             lista += sols[i];
         }
-        push_broadcast(snapshots, Snapshot::chat_message("Sistema", nombre, lista));
+
+        push_unicast(
+            snapshots,
+            Snapshot::chat_message("Sistema", nombre, lista),
+            playerId);
     }
 }
 

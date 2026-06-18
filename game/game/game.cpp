@@ -161,6 +161,7 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
         if (!slot_agregado.has_value()) {
             continue;
         }
+
         int slot = item_persistido.slot_id;
 
         if (!item_persistido.equipado) {
@@ -201,6 +202,29 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
             default:
                 break;
         }
+    }
+
+    auto& cuenta = cuentasBancarias.try_emplace(p.nick, p.nick).first->second;
+    cuenta.setOro(static_cast<int>(p.banco_oro));
+    cuenta.limpiarItems();
+
+    auto banco_items = p.banco_items;
+
+    std::sort(
+        banco_items.begin(), banco_items.end(),
+        [](const auto& a, const auto& b) { return a.slot_id < b.slot_id; });
+
+    for (const auto& item_banco : banco_items) {
+        auto item = crear_item_por_nombre(item_banco.item);
+
+        if (!item) {
+            std::cout << "[Game] item desconocido en banco persistido: "
+                      << item_banco.item << "\n";
+            continue;
+        }
+
+        cuenta.depositarItem(
+            SlotInventario(std::move(item), item_banco.cantidad));
     }
 
     return true;
@@ -498,7 +522,35 @@ std::vector<PersistenceTask> Game::build_persistence_tasks_for_command(
     for (const std::string& name :
          PersistenceTaskFactory::get_affected_players(cmd, actor)) {
         const Jugador* j = getJugador(name);
-        if (j) tasks.push_back(PersistenceTaskFactory::from_player(*j));
+        if (j) {
+            PersistenceTask task = PersistenceTaskFactory::from_player(*j);
+
+            auto itCuenta = cuentasBancarias.find(name);
+            if (itCuenta != cuentasBancarias.end()) {
+                const CuentaBanco& cuenta = itCuenta->second;
+
+                task.banco_oro = static_cast<uint32_t>(cuenta.getOro());
+
+                const auto& itemsBanco = cuenta.getItems();
+                for (size_t i = 0; i < itemsBanco.size(); ++i) {
+                    const SlotInventario& slot = itemsBanco[i];
+
+                    if (!slot.item) {
+                        continue;
+                    }
+
+                    PersistenceInventoryItem item;
+                    item.slot_id = static_cast<int>(i);
+                    item.item = slot.item->getNombre();
+                    item.cantidad = slot.cantidad;
+                    item.equipado = false;
+
+                    task.banco_items.push_back(item);
+                }
+            }
+
+            tasks.push_back(std::move(task));
+        }
     }
     return tasks;
 }

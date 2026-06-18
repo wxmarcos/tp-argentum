@@ -52,7 +52,23 @@ PersistencePlayerRecord PersistenceRecordMapper::to_record(
 
         record.inventario_count++;
     }
+    record.banco_oro = task.banco_oro;
+    record.banco_items_count = 0;
 
+    for (const auto& item : task.banco_items) {
+        if (record.banco_items_count >= PERSISTENCE_MAX_BANK_ITEMS) {
+            break;
+        }
+
+        auto& slot = record.banco_items[record.banco_items_count];
+
+        slot.slot_id = item.slot_id;
+        copy_string(slot.item, PERSISTENCE_ITEM_SIZE, item.item);
+        slot.cantidad = item.cantidad;
+        slot.equipado = 0;
+
+        record.banco_items_count++;
+    }
     return record;
 }
 
@@ -95,6 +111,23 @@ PersistenceTask PersistenceRecordMapper::from_record(
 
         if (!item.item.empty() && item.cantidad > 0) {
             task.inventario.push_back(item);
+        }
+    }
+    
+    task.banco_oro = record.banco_oro;
+    const uint32_t bank_count =
+        std::min<uint32_t>(record.banco_items_count, PERSISTENCE_MAX_BANK_ITEMS);
+
+    for (uint32_t i = 0; i < bank_count; ++i) {
+        PersistenceInventoryItem item;
+
+        item.slot_id = record.banco_items[i].slot_id;
+        item.item = record.banco_items[i].item;
+        item.cantidad = record.banco_items[i].cantidad;
+        item.equipado = false;
+
+        if (!item.item.empty() && item.cantidad > 0) {
+            task.banco_items.push_back(item);
         }
     }
 

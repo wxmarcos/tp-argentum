@@ -11,9 +11,9 @@
 #include "server/persistence/persistence_record_mapper.h"
 
 PersistenceWorker::PersistenceWorker(Queue<PersistenceTask>& queue,
-                                     const std::string& save_file_path):
+                                     Config& config):
     queue(queue),
-    save_file_path(save_file_path) {}
+    config(config) {}
 
 static void copy_string(char* dest, std::size_t size, const std::string& src) {
     std::memset(dest, 0, size);
@@ -85,7 +85,7 @@ static uint64_t append_player_record(const std::filesystem::path& players_path,
 }
 
 void PersistenceWorker::run() {
-    std::filesystem::path players_path(save_file_path);
+    std::filesystem::path players_path(config.getRutaJugadores());
     std::filesystem::path index_path = players_path.parent_path() / "index.bin";
     std::filesystem::path directory = players_path.parent_path();
 
