@@ -81,7 +81,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                                  jugador->getMapaId(), playerId);
         agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
         agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
-        agregarReplayItems(snapshots, jugador->getMapaId());
+        agregarReplayItems(snapshots, jugador->getMapaId(), playerId);
 
         // Notificar al clan
         if (jugador->estaEnClan()) {
@@ -148,7 +148,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                                  jugador->getMapaId(), playerId);
         agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
         agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
-        agregarReplayItems(snapshots, jugador->getMapaId());
+        agregarReplayItems(snapshots, jugador->getMapaId(), playerId);
 
         return snapshots;
     }

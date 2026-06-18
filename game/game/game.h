@@ -111,7 +111,7 @@ private:
                            uint16_t playerId) const;
 
     void agregarReplayItems(std::vector<OutgoingSnapshot>& snapshots,
-                            int mapaId) const;
+                            int mapaId, uint16_t playerId) const;
     bool handle_meditation_interruption(
         Jugador* jugador, std::vector<OutgoingSnapshot>& snapshots,
         const std::string& nombre);

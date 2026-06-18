@@ -52,10 +52,23 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
                 static_cast<uint8_t>(jugador->getDireccion())),
             playerId);
 
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_created(
+                nombre,
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+
+        push_broadcast(
+            snapshots,
+            SnapshotFactory::player_stats_from_player(*jugador));
+
         agregarReplayDeJugadores(snapshots, nombre, mapaActual, playerId);
         agregarReplayNpcs(snapshots, mapaActual, playerId);
         agregarReplayCriaturas(snapshots, mapaActual, playerId);
-        agregarReplayItems(snapshots, mapaActual);
+        agregarReplayItems(snapshots, mapaActual, playerId);
     } else {
         push_broadcast(
             snapshots,

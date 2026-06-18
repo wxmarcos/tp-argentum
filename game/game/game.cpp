@@ -295,21 +295,21 @@ void Game::agregarReplayCriaturas(std::vector<OutgoingSnapshot>& snapshots,
 }
 
 void Game::agregarReplayItems(std::vector<OutgoingSnapshot>& snapshots,
-                              int mapaId) const {
+                              int mapaId, uint16_t playerId) const {
     const Mapa* mapa = mundo.getMapa(mapaId);
     if (!mapa) return;
 
     for (const auto& [pos, slots] : mapa->getItemsEnPiso()) {
         for (const auto& slot : slots) {
             if (!slot.item) continue;
-            push_broadcast(snapshots,Snapshot::item_event(
+            push_unicast(snapshots,Snapshot::item_event(
                 static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                 "",  // sin entidad emisora
                 slot.item->getNombre(),
                 static_cast<uint16_t>(mapaId),
                 static_cast<uint16_t>(pos.first),
                 static_cast<uint16_t>(pos.second),
-                static_cast<uint16_t>(slot.cantidad)));
+                static_cast<uint16_t>(slot.cantidad)), playerId);
         }
     }
 }
