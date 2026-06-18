@@ -31,7 +31,9 @@
 #include "game/razas/humano.h"
 #include "game/snapshot_factory.h"
 #include "game/tmx_loader.h"
-#include "server/persistence/persistence_loader.h"
+#include "server/persistence/players/persistence_loader.h"
+#include "server/persistence/clan/clan_loader.h"
+#include "server/persistence/clan/clan_saver.h"
 
 // ----------------- Constructor -----------------
 Game::Game(Config& config):
@@ -40,7 +42,7 @@ Game::Game(Config& config):
     inicializarRazas();
     inicializarClases();
     cargarMundo();
-
+    clanes = ClanLoader::load_all(config.getRutaClanes());   
     for (const auto& cm : config.getMapas()) {
         infoSpawn[cm.id] = {cm.poblacionMax, cm.criaturasPosibles};
     }
@@ -226,9 +228,26 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
         cuenta.depositarItem(
             SlotInventario(std::move(item), item_banco.cantidad));
     }
-
+    restaurarClanDeJugador(jugador);
     return true;
 }
+void Game::guardarClanes() const {
+    ClanSaver::save_all(config.getRutaClanes(), clanes);
+}
+
+void Game::restaurarClanDeJugador(Jugador* jugador) {
+    if (!jugador) return;
+
+    for (const auto& [nombreClan, clan] : clanes) {
+        if (clan.esMiembro(jugador->getNombre())) {
+            jugador->setClanNombre(nombreClan);
+            return;
+        }
+    }
+
+    jugador->setClanNombre("");
+}
+
 
 void Game::cargarNPCs() {
     for (const auto& cm : config.getMapas()) {
@@ -514,51 +533,57 @@ std::vector<OutgoingSnapshot> Game::tick(float dt) {
 // ----------------- Resto de metodos -----------------
 
 const Mundo& Game::getMundo() const { return mundo; }
+PersistenceTask Game::buildPlayerTask(const std::string& nombre,
+                                      const Jugador& jugador) const {
+    PersistenceTask task = PersistenceTaskFactory::from_player(jugador);
 
+    auto itCuenta = cuentasBancarias.find(nombre);
+    if (itCuenta == cuentasBancarias.end()) {
+        return task;
+    }
+
+    const CuentaBanco& cuenta = itCuenta->second;
+    task.banco_oro = static_cast<uint32_t>(cuenta.getOro());
+
+    const auto& itemsBanco = cuenta.getItems();
+    for (size_t i = 0; i < itemsBanco.size(); ++i) {
+        const SlotInventario& slot = itemsBanco[i];
+
+        if (!slot.item) continue;
+
+        PersistenceInventoryItem item;
+        item.slot_id = static_cast<int>(i);
+        item.item = slot.item->getNombre();
+        item.cantidad = slot.cantidad;
+        item.equipado = false;
+
+        task.banco_items.push_back(item);
+    }
+
+    return task;
+}
 std::vector<PersistenceTask> Game::build_persistence_tasks_for_command(
     const Command& cmd) const {
     std::vector<PersistenceTask> tasks;
     const std::string actor = getNombreJugadorPorComando(cmd);
+
     for (const std::string& name :
          PersistenceTaskFactory::get_affected_players(cmd, actor)) {
         const Jugador* j = getJugador(name);
         if (j) {
-            PersistenceTask task = PersistenceTaskFactory::from_player(*j);
-
-            auto itCuenta = cuentasBancarias.find(name);
-            if (itCuenta != cuentasBancarias.end()) {
-                const CuentaBanco& cuenta = itCuenta->second;
-
-                task.banco_oro = static_cast<uint32_t>(cuenta.getOro());
-
-                const auto& itemsBanco = cuenta.getItems();
-                for (size_t i = 0; i < itemsBanco.size(); ++i) {
-                    const SlotInventario& slot = itemsBanco[i];
-
-                    if (!slot.item) {
-                        continue;
-                    }
-
-                    PersistenceInventoryItem item;
-                    item.slot_id = static_cast<int>(i);
-                    item.item = slot.item->getNombre();
-                    item.cantidad = slot.cantidad;
-                    item.equipado = false;
-
-                    task.banco_items.push_back(item);
-                }
-            }
-
-            tasks.push_back(std::move(task));
+            tasks.push_back(buildPlayerTask(name, *j));
         }
     }
+
     return tasks;
 }
 
 std::vector<PersistenceTask> Game::build_all_players_tasks() const {
     std::vector<PersistenceTask> tasks;
+
     for (const auto& [nombre, jugador] : jugadores) {
-        tasks.push_back(PersistenceTaskFactory::from_player(*jugador));
+        tasks.push_back(buildPlayerTask(nombre, *jugador));
     }
+
     return tasks;
 }

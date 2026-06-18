@@ -10,7 +10,7 @@
 #include "game/items/item_defs.h"
 #include "game/items/oro.h"
 #include "game/snapshot_factory.h"
-#include "server/persistence/persistence_loader.h"
+#include "server/persistence/players/persistence_loader.h"
 
 // ----------------- process() -----------------
 

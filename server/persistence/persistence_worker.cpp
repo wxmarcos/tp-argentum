@@ -6,9 +6,9 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "server/persistence/persistence_index_record.h"
-#include "server/persistence/persistence_loader.h"
-#include "server/persistence/persistence_record_mapper.h"
+#include "server/persistence/players/persistence_index_record.h"
+#include "server/persistence/players/persistence_loader.h"
+#include "server/persistence/players/persistence_record_mapper.h"
 
 PersistenceWorker::PersistenceWorker(Queue<PersistenceTask>& queue,
                                      Config& config):

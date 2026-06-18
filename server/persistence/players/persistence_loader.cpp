@@ -1,13 +1,13 @@
-#include "server/persistence/persistence_loader.h"
+#include "server/persistence/players/persistence_loader.h"
 
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <optional>
 
-#include "server/persistence/persistence_index_record.h"
-#include "server/persistence/persistence_record.h"
-#include "server/persistence/persistence_record_mapper.h"
+#include "server/persistence/players/persistence_index_record.h"
+#include "server/persistence/players/persistence_record.h"
+#include "server/persistence/players/persistence_record_mapper.h"
 
 std::unordered_map<std::string, uint64_t> PersistenceLoader::load_index(
     const std::string& path) {

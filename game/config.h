@@ -101,6 +101,7 @@ public:
     std::string getRutaJugadores() const;
     std::string getRutaIndiceJugadores() const;
     std::string getRutaNPCsCriaturas() const;
+    std::string getRutaClanes() const;
     ~Config();
 
 private:

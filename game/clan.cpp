@@ -67,3 +67,7 @@ void Clan::banear(const std::string& nombre) {
 bool Clan::esBaneado(const std::string& nombre) const {
     return baneados.count(nombre) > 0;
 }
+
+const std::set<std::string>& Clan::getBaneados() const {
+    return baneados;
+}

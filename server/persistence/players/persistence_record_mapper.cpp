@@ -1,4 +1,4 @@
-#include "server/persistence/persistence_record_mapper.h"
+#include "server/persistence/players/persistence_record_mapper.h"
 
 #include <algorithm>
 #include <cstring>
@@ -113,7 +113,7 @@ PersistenceTask PersistenceRecordMapper::from_record(
             task.inventario.push_back(item);
         }
     }
-    
+
     task.banco_oro = record.banco_oro;
     const uint32_t bank_count =
         std::min<uint32_t>(record.banco_items_count, PERSISTENCE_MAX_BANK_ITEMS);
