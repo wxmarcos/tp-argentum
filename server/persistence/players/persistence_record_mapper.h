@@ -1,6 +1,6 @@
 #pragma once
 
-#include "server/persistence/persistence_record.h"
+#include "server/persistence/players/persistence_record.h"
 #include "server/persistence/persistence_task.h"
 
 class PersistenceRecordMapper {

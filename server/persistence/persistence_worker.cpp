@@ -6,14 +6,14 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "server/persistence/persistence_index_record.h"
-#include "server/persistence/persistence_loader.h"
-#include "server/persistence/persistence_record_mapper.h"
+#include "server/persistence/players/persistence_index_record.h"
+#include "server/persistence/players/persistence_loader.h"
+#include "server/persistence/players/persistence_record_mapper.h"
 
 PersistenceWorker::PersistenceWorker(Queue<PersistenceTask>& queue,
-                                     const std::string& save_file_path):
+                                     Config& config):
     queue(queue),
-    save_file_path(save_file_path) {}
+    config(config) {}
 
 static void copy_string(char* dest, std::size_t size, const std::string& src) {
     std::memset(dest, 0, size);
@@ -81,15 +81,11 @@ static uint64_t append_player_record(const std::filesystem::path& players_path,
 
     file.write(reinterpret_cast<const char*>(&record), sizeof(record));
 
-    std::cout << "[PersistenceWorker] append record nick="
-              << task.nick << " offset=" << offset
-              << " size=" << sizeof(record) << "\n";
-
     return offset;
 }
 
 void PersistenceWorker::run() {
-    std::filesystem::path players_path(save_file_path);
+    std::filesystem::path players_path(config.getRutaJugadores());
     std::filesystem::path index_path = players_path.parent_path() / "index.bin";
     std::filesystem::path directory = players_path.parent_path();
 
@@ -97,8 +93,7 @@ void PersistenceWorker::run() {
         try {
             std::filesystem::create_directories(directory);
         } catch (const std::exception& ex) {
-            std::cout << "[PersistenceWorker] no se pudo crear directorio: "
-                      << ex.what() << "\n";
+            std::cout << "[PersistenceWorker] error: " << ex.what() << "\n";
         }
     }
 
@@ -117,13 +112,8 @@ void PersistenceWorker::run() {
                 index[task.nick] = offset;
                 append_index_record(index_path, task.nick, offset);
 
-                std::cout << "[PersistenceWorker] nuevo jugador "
-                          << task.nick << " offset=" << offset << "\n";
             } else {
                 write_player_record_at(players_path, it->second, task);
-
-                std::cout << "[PersistenceWorker] actualizado jugador "
-                          << task.nick << " offset=" << it->second << "\n";
             }
 
         } catch (const ClosedQueue&) {

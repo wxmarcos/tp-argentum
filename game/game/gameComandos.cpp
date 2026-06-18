@@ -1,27 +1,34 @@
-#include "game/game.h"
-
 #include <algorithm>
 #include <iostream>
 
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
+#include "game/game.h"
 #include "game/items/arma.h"
 #include "game/items/inventario.h"
 #include "game/items/itemFactory.h"
 #include "game/items/item_defs.h"
 #include "game/items/oro.h"
 #include "game/snapshot_factory.h"
-#include "server/persistence/persistence_loader.h"
+#include "server/persistence/players/persistence_loader.h"
 
 // ----------------- process() -----------------
 
-std::vector<Snapshot> Game::process(const Command& cmd) {
-    std::vector<Snapshot> snapshots;
-
+std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
+    std::vector<OutgoingSnapshot> snapshots;
+    uint16_t playerId = cmd.get_player_id();
     // -- LOGIN --------------------------
     if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
         Jugador* jugador = getJugador(cmd.get_nick());
-
+        if (nick_to_player_id.find(cmd.get_nick()) != nick_to_player_id.end()) {
+            push_unicast(
+                snapshots,
+                Snapshot::error_message(
+                    cmd.get_nick(),
+                    "Login fallido: la cuenta ya esta conectada"),
+                playerId);
+            return snapshots;
+        }
         if (!jugador) {
             bool restaurado = false;
 
@@ -33,53 +40,66 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 restaurado = restaurarJugadorPersistido(*record);
             }
             if (!restaurado) {
-                snapshots.push_back(Snapshot::error_message(
-                    cmd.get_nick(), "Login fallido: personaje inexistente"));
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(
+                        cmd.get_nick(), "Login fallido: personaje inexistente"),
+                    playerId);
                 return snapshots;
             }
 
             jugador = getJugador(cmd.get_nick());
             if (!jugador) {
-                snapshots.push_back(Snapshot::error_message(
-                    cmd.get_nick(),
-                    "Login fallido: error restaurando personaje"));
+                push_unicast(snapshots,
+                             Snapshot::error_message(
+                                 cmd.get_nick(),
+                                 "Login fallido: error restaurando personaje"),
+                             playerId);
                 return snapshots;
             }
         }
 
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
+        nick_to_player_id[cmd.get_nick()] = playerId;
 
-        snapshots.push_back(Snapshot::entity_login(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
-            static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_login(
+                cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
 
-        snapshots.push_back(Snapshot::map_change(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
-            static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(snapshots,
+                       SnapshotFactory::player_stats_from_player(*jugador));
 
-        snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
-        snapshots.push_back(
-            SnapshotFactory::player_inventory_from_player(*jugador));
+        push_broadcast(
+            snapshots,
+            Snapshot::map_change(
+                cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+
+        push_broadcast(snapshots,
+                       SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick(),
-                                 jugador->getMapaId());
-        agregarReplayNpcs(snapshots, jugador->getMapaId());
-        agregarReplayCriaturas(snapshots, jugador->getMapaId());
-        agregarReplayItems(snapshots, jugador->getMapaId());
+                                 jugador->getMapaId(), playerId);
+        agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayItems(snapshots, jugador->getMapaId(), playerId);
 
         // Notificar al clan
         if (jugador->estaEnClan()) {
             for (auto& [nick, j] : jugadores) {
                 if (nick == cmd.get_nick()) continue;
                 if (j->getClanNombre() == jugador->getClanNombre()) {
-                    snapshots.push_back(Snapshot::chat_message(
-                        "Sistema", nick,
-                        "Tu compañero " + cmd.get_nick() +
-                            " entro a Argentum"));
+                    push_broadcast(snapshots,
+                                   Snapshot::chat_message(
+                                       "Sistema", nick,
+                                       "Tu compañero " + cmd.get_nick() +
+                                           " entro a Argentum"));
                 }
             }
         }
@@ -92,40 +112,47 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         bool creado = agregarJugador(cmd.get_nick(), config.getSpawnMapaId(),
                                      config.getSpawnX(), config.getSpawnY(),
                                      cmd.get_raza(), cmd.get_clase());
-
         if (!creado) {
-            snapshots.push_back(Snapshot::error_message(
-                cmd.get_nick(), "No se pudo crear el personaje"));
+            push_unicast(snapshots,
+                         Snapshot::error_message(
+                             cmd.get_nick(), "No se pudo crear el personaje"),
+                         playerId);
             return snapshots;
         }
 
         Jugador* jugador = getJugador(cmd.get_nick());
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
-
+        nick_to_player_id[cmd.get_nick()] = playerId;
         // Items de inicio
         jugador->agarrarItem(ItemFactory::crearEspada());
         jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
 
-        snapshots.push_back(Snapshot::entity_created(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
-            static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_created(
+                cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
 
-        snapshots.push_back(Snapshot::map_change(
-            cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
-            static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
-        snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
-        snapshots.push_back(
-            SnapshotFactory::player_inventory_from_player(*jugador));
+        push_broadcast(snapshots,
+                       SnapshotFactory::player_stats_from_player(*jugador));
+
+        push_unicast(
+            snapshots,
+            Snapshot::map_change(
+                cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())), playerId);
+        push_broadcast(snapshots,
+                       SnapshotFactory::player_inventory_from_player(*jugador));
 
         agregarReplayDeJugadores(snapshots, cmd.get_nick(),
-                                 jugador->getMapaId());
-        agregarReplayNpcs(snapshots, jugador->getMapaId());
-        agregarReplayCriaturas(snapshots, jugador->getMapaId());
-        agregarReplayItems(snapshots, jugador->getMapaId());
+                                 jugador->getMapaId(), playerId);
+        agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
+        agregarReplayItems(snapshots, jugador->getMapaId(), playerId);
 
         return snapshots;
     }
@@ -134,7 +161,7 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     if (cmd.is_disconnect()) {
         const std::string nombre = getNombreJugadorPorComando(cmd);
         if (!nombre.empty()) {
-            snapshots.push_back(Snapshot::entity_remove(nombre));
+            push_broadcast(snapshots, Snapshot::entity_remove(nombre));
 
             Jugador* jugadorSaliente = getJugador(nombre);
             if (jugadorSaliente && jugadorSaliente->estaEnClan()) {
@@ -142,15 +169,18 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                 for (auto& [nick, j] : jugadores) {
                     if (nick == nombre) continue;
                     if (j->getClanNombre() == clanNom) {
-                        snapshots.push_back(Snapshot::chat_message(
-                            "Sistema", nick,
-                            "Tu compañero " + nombre + " salio de Argentum"));
+                        push_broadcast(
+                            snapshots,
+                            Snapshot::chat_message("Sistema", nick,
+                                                   "Tu compañero " + nombre +
+                                                       " salio de Argentum"));
                     }
                 }
             }
 
             removerJugador(nombre);
             player_id_to_nick.erase(cmd.get_player_id());
+            nick_to_player_id.erase(nombre);
         }
         return snapshots;
     }
@@ -158,8 +188,10 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     // -- Comandos que requieren jugador --------------------------
     const std::string nombre = getNombreJugadorPorComando(cmd);
     if (nombre.empty()) {
-        snapshots.push_back(Snapshot::error_message(
-            "", "Comando recibido sin jugador asociado"));
+        push_unicast(snapshots,
+                     Snapshot::error_message(
+                         "", "Comando recibido sin jugador asociado"),
+                     playerId);
         return snapshots;
     }
 
@@ -184,8 +216,11 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     if (jugador && !jugador->estaVivo()) {
         for (auto op : bloqueadosParaFantasma) {
             if (cmd.get_type() == op) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "No puedes hacer eso siendo un fantasma"));
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(
+                        nombre, "No puedes hacer eso siendo un fantasma"),
+                    playerId);
                 return snapshots;
             }
         }
@@ -199,63 +234,63 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
     switch (cmd.get_type()) {
         // ---- Items ----
         case protocol::ClientOpcode::MOVE:
-            handleMover(nombre, cmd, snapshots);
+            handleMover(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::PICK_ITEM:
-            handlePickItem(nombre, cmd, snapshots);
+            handlePickItem(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::DROP_ITEM:
-            handleDropItem(nombre, cmd, snapshots);
+            handleDropItem(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::EQUIP_ITEM:
-            handleEquipItem(nombre, cmd, snapshots);
+            handleEquipItem(nombre, cmd, snapshots, playerId);
             break;
 
         // ---- Comercio ----
         case protocol::ClientOpcode::BUY_ITEM:
-            handleBuyItem(nombre, cmd, snapshots);
+            handleBuyItem(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::SELL_ITEM:
-            handleSellItem(nombre, cmd, snapshots);
+            handleSellItem(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::DEPOSIT_ITEM:
-            handleDepositItem(nombre, cmd, snapshots);
+            handleDepositItem(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::WITHDRAW_ITEM:
-            handleWithdrawItem(nombre, cmd, snapshots);
+            handleWithdrawItem(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::DEPOSIT_GOLD:
-            handleDepositGold(nombre, cmd, snapshots);
+            handleDepositGold(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::WITHDRAW_GOLD:
-            handleWithdrawGold(nombre, cmd, snapshots);
+            handleWithdrawGold(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::LIST_ITEMS:
-            handleListItems(nombre, snapshots);
+            handleListItems(nombre, snapshots, playerId);
             break;
 
         // ---- Clanes ----
         case protocol::ClientOpcode::CLAN_CREATE:
-            handleClanCreate(nombre, cmd, snapshots);
+            handleClanCreate(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::CLAN_JOIN:
-            handleClanJoin(nombre, cmd, snapshots);
+            handleClanJoin(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::CLAN_REVIEW:
-            handleClanReview(nombre, snapshots);
+            handleClanReview(nombre, snapshots, playerId);
             break;
         case protocol::ClientOpcode::CLAN_ACCEPT:
-            handleClanAccept(nombre, cmd, snapshots);
+            handleClanAccept(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::CLAN_REJECT:
-            handleClanReject(nombre, cmd, snapshots);
+            handleClanReject(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::CLAN_BAN:
         case protocol::ClientOpcode::CLAN_KICK:
-            handleClanBanKick(nombre, cmd, snapshots);
+            handleClanBanKick(nombre, cmd, snapshots, playerId);
             break;
         case protocol::ClientOpcode::CLAN_LEAVE:
-            handleClanLeave(nombre, snapshots);
+            handleClanLeave(nombre, snapshots, playerId);
             break;
 
         // ---- Combate ----
@@ -264,19 +299,28 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
             ResultadoAtaque resultado = atacar(nombre, objetivo);
 
             if (!resultado.exito) {
-                snapshots.push_back(
-                    Snapshot::error_message(nombre, "Ataque invalido"));
+                const std::string msg = resultado.fueraDeRango
+                    ? "Estas demasiado lejos para atacar"
+                    : "Ataque invalido";
+
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(nombre, msg),
+                    playerId);
+
                 break;
             }
             if (resultado.fueEsquivado) {
-                snapshots.push_back(Snapshot::dodge_event(nombre, objetivo));
+                push_broadcast(snapshots,
+                               Snapshot::dodge_event(nombre, objetivo));
                 break;
             }
 
-            snapshots.push_back(Snapshot::damage_event(
-                nombre, objetivo,
-                static_cast<uint16_t>(resultado.danioAplicado),
-                resultado.fueCritico));
+            push_broadcast(snapshots,
+                           Snapshot::damage_event(
+                               nombre, objetivo,
+                               static_cast<uint16_t>(resultado.danioAplicado),
+                               resultado.fueCritico));
 
             {
                 // Notificar al clan de la victima
@@ -286,26 +330,30 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                             if (nick == objetivo) continue;
                             if (j->getClanNombre() ==
                                 victima->getClanNombre()) {
-                                snapshots.push_back(Snapshot::chat_message(
-                                    "Sistema", nick,
-                                    "Tu compañero " + objetivo +
-                                        " esta siendo atacado por " + nombre));
+                                push_broadcast(
+                                    snapshots,
+                                    Snapshot::chat_message(
+                                        "Sistema", nick,
+                                        "Tu compañero " + objetivo +
+                                            " esta siendo atacado por " +
+                                            nombre));
                             }
                         }
                     }
                 }
             }
 
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
             if (Jugador* victima = getJugador(objetivo)) {
-                snapshots.push_back(
+                push_broadcast(
+                    snapshots,
                     SnapshotFactory::player_stats_from_player(*victima));
             }
 
             if (resultado.objetivoMurio) {
-                snapshots.push_back(Snapshot::death_event(objetivo));
-                snapshots.push_back(Snapshot::entity_remove(objetivo));
+                push_broadcast(snapshots, Snapshot::death_event(objetivo));
+                push_broadcast(snapshots, Snapshot::entity_remove(objetivo));
 
                 if (Criatura* criatura = getCriatura(objetivo)) {
                     procesarDropCriatura(objetivo, jugador, criatura,
@@ -319,14 +367,16 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                         mundo.tirarItem(victima->getMapaId(),
                                         victima->getPosX(), victima->getPosY(),
                                         std::move(item));
-                        snapshots.push_back(Snapshot::item_event(
-                            static_cast<uint8_t>(
-                                protocol::ItemEventAction::DROP),
-                            victima->getNombre(), nombreItem,
-                            static_cast<uint16_t>(victima->getMapaId()),
-                            static_cast<uint16_t>(victima->getPosX()),
-                            static_cast<uint16_t>(victima->getPosY()),
-                            cantidad));
+                        push_broadcast(
+                            snapshots,
+                            Snapshot::item_event(
+                                static_cast<uint8_t>(
+                                    protocol::ItemEventAction::DROP),
+                                victima->getNombre(), nombreItem,
+                                static_cast<uint16_t>(victima->getMapaId()),
+                                static_cast<uint16_t>(victima->getPosX()),
+                                static_cast<uint16_t>(victima->getPosY()),
+                                cantidad));
                     }
 
                     int oroExceso = Formulas::calcularOroExceso(
@@ -337,22 +387,28 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
                             victima->getMapaId(), victima->getPosX(),
                             victima->getPosY(),
                             SlotInventario(ItemFactory::crearOro(oroExceso)));
-                        snapshots.push_back(Snapshot::item_event(
-                            static_cast<uint8_t>(
-                                protocol::ItemEventAction::DROP),
-                            victima->getNombre(), item_defs::ORO,
-                            static_cast<uint16_t>(victima->getMapaId()),
-                            static_cast<uint16_t>(victima->getPosX()),
-                            static_cast<uint16_t>(victima->getPosY()),
-                            static_cast<uint16_t>(oroExceso)));
+                        push_broadcast(
+                            snapshots,
+                            Snapshot::item_event(
+                                static_cast<uint8_t>(
+                                    protocol::ItemEventAction::DROP),
+                                victima->getNombre(), item_defs::ORO,
+                                static_cast<uint16_t>(victima->getMapaId()),
+                                static_cast<uint16_t>(victima->getPosX()),
+                                static_cast<uint16_t>(victima->getPosY()),
+                                static_cast<uint16_t>(oroExceso)));
                     }
 
-                    snapshots.push_back(
+                    push_broadcast(
+                        snapshots,
                         SnapshotFactory::player_stats_from_player(*jugador));
-                    snapshots.push_back(
+                    push_broadcast(
+                        snapshots,
                         SnapshotFactory::player_stats_from_player(*victima));
-                    snapshots.push_back(
-                        SnapshotFactory::player_inventory_from_player(*victima));
+                    push_broadcast(
+                        snapshots,
+                        SnapshotFactory::player_inventory_from_player(
+                            *victima));
                 }
             }
             break;
@@ -361,20 +417,26 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         // ---- Meditación ----
         case protocol::ClientOpcode::MEDITATE: {
             if (!jugador || !jugador->estaVivo()) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "No se puede meditar si no estas vivo"));
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(
+                        nombre, "No se puede meditar si no estas vivo"),
+                    playerId);
                 break;
             }
             if (!jugador->getClase()->puedeMeditar()) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "Tu clase no puede meditar"));
+                push_unicast(snapshots,
+                             Snapshot::error_message(
+                                 nombre, "Tu clase no puede meditar"),
+                             playerId);
                 break;
             }
             if (jugador->estaMeditando()) break;
             jugador->iniciarMeditacion();
-            snapshots.push_back(Snapshot::meditation_status(nombre, true));
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(snapshots,
+                           Snapshot::meditation_status(nombre, true));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
@@ -382,98 +444,118 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         case protocol::ClientOpcode::CHEAT_GOD: {
             if (!jugador) break;
             bool activo = jugador->toggleCheatVidaInfinita();
-            snapshots.push_back(Snapshot::cheat_status(
-                nombre,
-                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_GOD),
-                activo));
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(
+                snapshots,
+                Snapshot::cheat_status(
+                    nombre,
+                    static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_GOD),
+                    activo));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
         case protocol::ClientOpcode::CHEAT_MANA: {
             if (!jugador) break;
             bool activo = jugador->toggleCheatManaInfinito();
-            snapshots.push_back(Snapshot::cheat_status(
-                nombre,
-                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_MANA),
-                activo));
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(
+                snapshots,
+                Snapshot::cheat_status(
+                    nombre,
+                    static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_MANA),
+                    activo));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
         case protocol::ClientOpcode::CHEAT_DIE: {
             if (!jugador) break;
             jugador->morir();
-            snapshots.push_back(Snapshot::cheat_status(
-                nombre,
-                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_DIE),
-                !jugador->estaVivo()));
+            push_broadcast(
+                snapshots,
+                Snapshot::cheat_status(
+                    nombre,
+                    static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_DIE),
+                    !jugador->estaVivo()));
             if (!jugador->estaVivo()) {
-                snapshots.push_back(Snapshot::death_event(nombre));
-                snapshots.push_back(Snapshot::entity_remove(nombre));
+                push_broadcast(snapshots, Snapshot::death_event(nombre));
+                push_broadcast(snapshots, Snapshot::entity_remove(nombre));
                 auto items = jugador->soltarTodosLosItems();
                 for (auto& item : items) {
                     std::string nombreItem = item.item->getNombre();
                     uint16_t cantidad = item.cantidad;
                     mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
                                     jugador->getPosY(), std::move(item));
-                    snapshots.push_back(Snapshot::item_event(
-                        static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                        jugador->getNombre(), nombreItem,
-                        static_cast<uint16_t>(jugador->getMapaId()),
-                        static_cast<uint16_t>(jugador->getPosX()),
-                        static_cast<uint16_t>(jugador->getPosY()), cantidad));
+                    push_broadcast(
+                        snapshots,
+                        Snapshot::item_event(
+                            static_cast<uint8_t>(
+                                protocol::ItemEventAction::DROP),
+                            jugador->getNombre(), nombreItem,
+                            static_cast<uint16_t>(jugador->getMapaId()),
+                            static_cast<uint16_t>(jugador->getPosX()),
+                            static_cast<uint16_t>(jugador->getPosY()),
+                            cantidad));
                 }
-                int oroExceso = Formulas::calcularOroExceso(jugador->getOro(),
-                                                            jugador->getOroMax());
+                int oroExceso = Formulas::calcularOroExceso(
+                    jugador->getOro(), jugador->getOroMax());
                 if (oroExceso > 0) {
                     jugador->gastarOro(oroExceso);
                     mundo.tirarItem(
                         jugador->getMapaId(), jugador->getPosX(),
                         jugador->getPosY(),
                         SlotInventario(ItemFactory::crearOro(oroExceso)));
-                    snapshots.push_back(Snapshot::item_event(
-                        static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                        jugador->getNombre(), item_defs::ORO,
-                        static_cast<uint16_t>(jugador->getMapaId()),
-                        static_cast<uint16_t>(jugador->getPosX()),
-                        static_cast<uint16_t>(jugador->getPosY()),
-                        static_cast<uint16_t>(oroExceso)));
+                    push_broadcast(
+                        snapshots,
+                        Snapshot::item_event(
+                            static_cast<uint8_t>(
+                                protocol::ItemEventAction::DROP),
+                            jugador->getNombre(), item_defs::ORO,
+                            static_cast<uint16_t>(jugador->getMapaId()),
+                            static_cast<uint16_t>(jugador->getPosX()),
+                            static_cast<uint16_t>(jugador->getPosY()),
+                            static_cast<uint16_t>(oroExceso)));
                 }
             }
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
             if (!jugador) break;
             jugador->revivir(jugador->getVidaMax());
-            snapshots.push_back(Snapshot::cheat_status(
-                nombre,
-                static_cast<uint8_t>(protocol::ClientOpcode::CHEAT_RESURRECT),
-                jugador->estaVivo()));
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(snapshots,
+                           Snapshot::cheat_status(
+                               nombre,
+                               static_cast<uint8_t>(
+                                   protocol::ClientOpcode::CHEAT_RESURRECT),
+                               jugador->estaVivo()));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
         // ---- Resurrección ----
         case protocol::ClientOpcode::RESURRECT: {
             if (!jugador || jugador->estaVivo()) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "Solo un fantasma puede usar /resucitar"));
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(
+                        nombre, "Solo un fantasma puede usar /resucitar"),
+                    playerId);
                 break;
             }
             if (jugador->estaResucitando()) {
-                snapshots.push_back(
-                    Snapshot::error_message(nombre, "Ya estas resucitando"));
+                push_broadcast(snapshots, Snapshot::error_message(
+                                              nombre, "Ya estas resucitando"));
                 break;
             }
             InfoNPC destino;
             float distancia;
             if (!encontrarSacerdoteMasCercano(jugador, destino, distancia)) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "No hay ningun sacerdote en el mundo"));
+                push_unicast(snapshots,
+                             Snapshot::error_message(
+                                 nombre, "No hay ningun sacerdote en el mundo"),
+                             playerId);
                 break;
             }
             float tiempo = distancia / config.getVelocidadResurreccion();
@@ -485,20 +567,25 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         // ---- Curación ----
         case protocol::ClientOpcode::HEAL: {
             if (!jugador || !jugador->estaVivo()) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "No puedes curarte si eres un fantasma"));
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(
+                        nombre, "No puedes curarte si eres un fantasma"),
+                    playerId);
                 break;
             }
             if (!hayNPCCercano(jugador, sacerdotes)) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre,
-                    "Debes estar cerca de un sacerdote para curarte"));
+                push_broadcast(
+                    snapshots,
+                    Snapshot::error_message(
+                        nombre,
+                        "Debes estar cerca de un sacerdote para curarte"));
                 break;
             }
             jugador->curar(jugador->getVidaMax());
             jugador->recuperarMana(jugador->getManaMax());
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
             break;
         }
 
@@ -506,29 +593,59 @@ std::vector<Snapshot> Game::process(const Command& cmd) {
         case protocol::ClientOpcode::PRIVATE_MESSAGE: {
             const std::string destino = cmd.get_nick();
             const std::string mensaje = cmd.get_text();
+
             if (destino.empty()) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "Debe indicar un destinatario"));
+                push_unicast(snapshots,
+                             Snapshot::error_message(
+                                 nombre, "Debe indicar un destinatario"),
+                             playerId);
                 break;
             }
+
             if (mensaje.empty()) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "El mensaje no puede estar vacio"));
+                push_unicast(snapshots,
+                             Snapshot::error_message(
+                                 nombre, "El mensaje no puede estar vacio"),
+                             playerId);
                 break;
             }
+
             if (!getJugador(destino)) {
-                snapshots.push_back(Snapshot::error_message(
-                    nombre, "El jugador destinatario no existe"));
+                push_unicast(snapshots,
+                             Snapshot::error_message(
+                                 nombre, "El jugador destinatario no existe"),
+                             playerId);
                 break;
             }
-            snapshots.push_back(
-                Snapshot::chat_message(nombre, destino, mensaje));
+
+            auto itDestino = nick_to_player_id.find(destino);
+
+            if (itDestino == nick_to_player_id.end()) {
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(
+                        nombre, "El jugador destinatario no esta conectado"),
+                    playerId);
+                break;
+            }
+
+            std::vector<uint16_t> recipients = {playerId};
+
+            if (itDestino->second != playerId) {
+                recipients.push_back(itDestino->second);
+            }
+
+            push_multicast(snapshots,
+                           Snapshot::chat_message(nombre, destino, mensaje),
+                           std::move(recipients));
+
             break;
         }
-
         default:
-            snapshots.push_back(
-                Snapshot::error_message(nombre, "Comando no implementado"));
+            push_unicast(
+                snapshots,
+                Snapshot::error_message(nombre, "Comando no implementado"),
+                playerId);
             break;
     }
 

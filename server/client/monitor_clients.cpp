@@ -27,6 +27,33 @@ void MonitorClients::remove_finished() {
     }
 }
 
+void MonitorClients::send_to(uint16_t player_id, const Snapshot& snapshot) {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    for (auto& client : clients) {
+        if (client && client->get_id() == player_id) {
+            client->push(snapshot);
+            return;
+        }
+    }
+}
+
+void MonitorClients::send_to_many(const std::vector<uint16_t>& player_ids,
+                                  const Snapshot& snapshot) {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    for (auto& client : clients) {
+        if (!client) continue;
+
+        for (uint16_t id : player_ids) {
+            if (client->get_id() == id) {
+                client->push(snapshot);
+                break;
+            }
+        }
+    }
+}
+
 void MonitorClients::broadcast(const Snapshot& snapshot) {
     std::lock_guard<std::mutex> lock(mutex);
 

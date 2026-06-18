@@ -33,4 +33,5 @@ public:
     // Ban
     void banear(const std::string& nombre);
     bool esBaneado(const std::string& nombre) const;
+    const std::set<std::string>& getBaneados() const;
 };

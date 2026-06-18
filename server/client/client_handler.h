@@ -31,6 +31,8 @@ public:
                   Queue<Command>& commands_queue);
 
     ~ClientHandler() override;
+    
+    uint16_t get_id() const { return player_id; }
 
     void push(Snapshot element);
 

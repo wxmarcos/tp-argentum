@@ -8,49 +8,83 @@
 // ----------------- MOVE -----------------
 
 void Game::handleMover(const std::string& nombre, const Command& cmd,
-                       std::vector<Snapshot>& snapshots) {
+                       std::vector<OutgoingSnapshot>& snapshots,
+                       uint16_t playerId) {
     Jugador* jugador = getJugador(nombre);
     if (!jugador) {
-        snapshots.push_back(Snapshot::error_message(nombre, "Jugador inexistente"));
+        push_unicast(
+            snapshots,
+            Snapshot::error_message(nombre, "Jugador inexistente"),
+            playerId);
         return;
     }
 
     if (!puedeMoverAhora(nombre)) return;
 
     int mapaAnterior = jugador->getMapaId();
-    bool moved = moverJugador(nombre, static_cast<Direccion>(cmd.get_direction()));
+
+    bool moved = moverJugador(
+        nombre,
+        static_cast<Direccion>(cmd.get_direction()));
 
     if (!moved) {
-        snapshots.push_back(Snapshot::error_message(nombre, "No se pudo mover"));
+        push_unicast(
+            snapshots,
+            Snapshot::error_message(nombre, "No se pudo mover"),
+            playerId);
         return;
     }
 
     int mapaActual = jugador->getMapaId();
 
     if (mapaActual != mapaAnterior) {
-        snapshots.push_back(Snapshot::map_change(
-            nombre, static_cast<uint16_t>(jugador->getMapaId()),
-            static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
-        snapshots.push_back(Snapshot::entity_remove(jugador->getNombre()));
-        agregarReplayDeJugadores(snapshots, nombre, mapaActual);
-        agregarReplayNpcs(snapshots, mapaActual);
-        agregarReplayCriaturas(snapshots, mapaActual);
-        agregarReplayItems(snapshots, mapaActual);
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_remove(jugador->getNombre()));
+
+        push_unicast(
+            snapshots,
+            Snapshot::map_change(
+                nombre,
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())),
+            playerId);
+
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_created(
+                nombre,
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+
+        push_broadcast(
+            snapshots,
+            SnapshotFactory::player_stats_from_player(*jugador));
+
+        agregarReplayDeJugadores(snapshots, nombre, mapaActual, playerId);
+        agregarReplayNpcs(snapshots, mapaActual, playerId);
+        agregarReplayCriaturas(snapshots, mapaActual, playerId);
+        agregarReplayItems(snapshots, mapaActual, playerId);
     } else {
-        snapshots.push_back(Snapshot::entity_move(
-            nombre, static_cast<uint16_t>(jugador->getMapaId()),
-            static_cast<uint16_t>(jugador->getPosX()),
-            static_cast<uint16_t>(jugador->getPosY()),
-            static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_move(
+                nombre,
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
     }
 }
 
 // ----------------- PICK ITEM -----------------
 
 void Game::handlePickItem(const std::string& nombre, const Command& cmd,
-                          std::vector<Snapshot>& snapshots) {
+                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId) {
     Jugador* jugador = getJugador(nombre);
     if (!jugador) return;
 
@@ -58,12 +92,12 @@ void Game::handlePickItem(const std::string& nombre, const Command& cmd,
         tomarItem(nombre, static_cast<int>(cmd.get_item_id()));
 
     if (!resultado.exito) {
-        snapshots.push_back(
-            Snapshot::error_message(nombre, "No hay item para recoger"));
+        push_unicast(snapshots, 
+            Snapshot::error_message(nombre, "No hay item para recoger"), playerId);
         return;
     }
 
-    snapshots.push_back(Snapshot::item_event(
+    push_broadcast(snapshots, Snapshot::item_event(
         static_cast<uint8_t>(protocol::ItemEventAction::PICK), nombre,
         resultado.itemNombre,
         static_cast<uint16_t>(jugador->getMapaId()),
@@ -71,9 +105,9 @@ void Game::handlePickItem(const std::string& nombre, const Command& cmd,
         static_cast<uint16_t>(jugador->getPosY()), resultado.cantidad));
 
     if (resultado.slotInventario == -1) {
-        snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+        push_broadcast(snapshots, SnapshotFactory::player_stats_from_player(*jugador));
     } else {
-        snapshots.push_back(SnapshotFactory::player_inventory_slot_from_player(
+        push_broadcast(snapshots, SnapshotFactory::player_inventory_slot_from_player(
             *jugador, resultado.slotInventario));
     }
 }
@@ -81,7 +115,7 @@ void Game::handlePickItem(const std::string& nombre, const Command& cmd,
 // ----------------- DROP ITEM -----------------
 
 void Game::handleDropItem(const std::string& nombre, const Command& cmd,
-                          std::vector<Snapshot>& snapshots) {
+                          std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId) {
     Jugador* jugador = getJugador(nombre);
     if (!jugador) return;
 
@@ -90,8 +124,8 @@ void Game::handleDropItem(const std::string& nombre, const Command& cmd,
 
     if (slot < 0 || slot >= static_cast<int>(slots.size()) ||
         !slots[slot].has_value()) {
-        snapshots.push_back(
-            Snapshot::error_message(nombre, "No se pudo arrojar el item"));
+        push_unicast(snapshots, 
+            Snapshot::error_message(nombre, "No se pudo arrojar el item"), playerId);
         return;
     }
 
@@ -99,27 +133,27 @@ void Game::handleDropItem(const std::string& nombre, const Command& cmd,
     uint16_t cantidad = slots[slot]->cantidad;
 
     if (tirarItem(nombre, slot)) {
-        snapshots.push_back(SnapshotFactory::player_inventory_slot_from_player(
-            *jugador, slot));
-        snapshots.push_back(Snapshot::item_event(
+        push_unicast(snapshots, SnapshotFactory::player_inventory_slot_from_player(
+            *jugador, slot), playerId);
+        push_broadcast(snapshots, Snapshot::item_event(
             static_cast<uint8_t>(protocol::ItemEventAction::DROP), nombre,
             itemNombre, static_cast<uint16_t>(jugador->getMapaId()),
             static_cast<uint16_t>(jugador->getPosX()),
             static_cast<uint16_t>(jugador->getPosY()), cantidad));
     } else {
-        snapshots.push_back(
-            Snapshot::error_message(nombre, "No se pudo arrojar el item"));
+        push_unicast(snapshots, 
+            Snapshot::error_message(nombre, "No se pudo arrojar el item"), playerId);
     }
 }
 
 // ----------------- EQUIP ITEM -----------------
 
 void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
-                           std::vector<Snapshot>& snapshots) {
+                           std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId) {
     Jugador* jugador = getJugador(nombre);
     if (!jugador || !jugador->estaVivo()) {
-        snapshots.push_back(Snapshot::error_message(
-            nombre, "No puedes equipar items si no estas vivo"));
+        push_unicast(snapshots, Snapshot::error_message(
+            nombre, "No puedes equipar items si no estas vivo"), playerId);
         return;
     }
 
@@ -127,12 +161,12 @@ void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
     const auto& slots = jugador->getInventario().getSlots();
 
     if (slot < 0 || slot >= static_cast<int>(slots.size())) {
-        snapshots.push_back(
-            Snapshot::error_message(nombre, "Slot de inventario invalido"));
+        push_unicast(snapshots, 
+            Snapshot::error_message(nombre, "Slot de inventario invalido"), playerId);
         return;
     }
     if (!slots[slot].has_value()) {
-        snapshots.push_back(Snapshot::error_message(nombre, "Slot vacio"));
+        push_unicast(snapshots, Snapshot::error_message(nombre, "Slot vacio"), playerId);
         return;
     }
 
@@ -148,13 +182,13 @@ void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
     }
 
     if (!ok) {
-        snapshots.push_back(Snapshot::error_message(
-            nombre, "No se pudo usar/equipar el item"));
+        push_unicast(snapshots, Snapshot::error_message(
+            nombre, "No se pudo usar/equipar el item"), playerId);
         return;
     }
 
-    snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
-    snapshots.push_back(
+    push_broadcast(snapshots, SnapshotFactory::player_stats_from_player(*jugador));
+    push_broadcast(snapshots, 
         SnapshotFactory::player_inventory_from_player(*jugador));
 }
 

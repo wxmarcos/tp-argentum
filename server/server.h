@@ -38,7 +38,7 @@ public:
 
         gameloop(commands_queue, persistence_queue, clients, game_config),
 
-        persistence_worker(persistence_queue, game_config.getRutaJugadores()) {}
+        persistence_worker(persistence_queue, game_config) {}
 
     void start() {
         persistence_worker.start();

@@ -319,9 +319,9 @@ std::string Config::getRutaIndiceJugadores() const {
     return impl->get<std::string>("rutas.ruta_index_jugadores", "data/index.bin");
 }
 
-std::string Config::getRutaNPCsCriaturas() const {
-    return impl->get<std::string>("rutas.ruta_npcs_criaturas",
-                                  "data/npcs_criaturas.toml");
+std::string Config::getRutaClanes() const {
+    return impl->get<std::string>("rutas.ruta_clanes",
+                                  "data/clanes.bin");
 }
 
 // ----------------- Mapas -----------------

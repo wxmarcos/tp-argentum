@@ -217,6 +217,9 @@ bool Snapshot::is_entity_move() const {
 bool Snapshot::is_entity_remove() const {
     return opcode == protocol::ServerOpcode::ENTITY_REMOVE;
 }
+bool Snapshot::is_cheat_status() const {
+    return opcode == protocol::ServerOpcode::CHEAT_STATUS;
+}
 
 bool Snapshot::is_damage_event() const {
     return opcode == protocol::ServerOpcode::DAMAGE_EVENT;
