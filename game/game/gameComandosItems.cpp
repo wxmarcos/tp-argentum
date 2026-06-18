@@ -133,8 +133,8 @@ void Game::handleDropItem(const std::string& nombre, const Command& cmd,
     uint16_t cantidad = slots[slot]->cantidad;
 
     if (tirarItem(nombre, slot)) {
-        push_broadcast(snapshots, SnapshotFactory::player_inventory_slot_from_player(
-            *jugador, slot));
+        push_unicast(snapshots, SnapshotFactory::player_inventory_slot_from_player(
+            *jugador, slot), playerId);
         push_broadcast(snapshots, Snapshot::item_event(
             static_cast<uint8_t>(protocol::ItemEventAction::DROP), nombre,
             itemNombre, static_cast<uint16_t>(jugador->getMapaId()),

@@ -20,6 +20,15 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
     // -- LOGIN --------------------------
     if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
         Jugador* jugador = getJugador(cmd.get_nick());
+        if (nick_to_player_id.find(cmd.get_nick()) != nick_to_player_id.end()) {
+            push_unicast(
+                snapshots,
+                Snapshot::error_message(
+                    cmd.get_nick(),
+                    "Login fallido: la cuenta ya esta conectada"),
+                playerId);
+            return snapshots;
+        }
         nick_to_player_id[cmd.get_nick()] = playerId;
         if (!jugador) {
             bool restaurado = false;
@@ -132,15 +141,13 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         push_broadcast(snapshots,
                        SnapshotFactory::player_stats_from_player(*jugador));
 
-        push_broadcast(
+        push_unicast(
             snapshots,
             Snapshot::map_change(
                 cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
                 static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
-        push_broadcast(snapshots,
-                       SnapshotFactory::player_stats_from_player(*jugador));
+                static_cast<uint8_t>(jugador->getDireccion())), playerId);
         push_broadcast(snapshots,
                        SnapshotFactory::player_inventory_from_player(*jugador));
 
