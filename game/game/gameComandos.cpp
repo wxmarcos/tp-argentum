@@ -29,7 +29,6 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 playerId);
             return snapshots;
         }
-        nick_to_player_id[cmd.get_nick()] = playerId;
         if (!jugador) {
             bool restaurado = false;
 
@@ -61,6 +60,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         }
 
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
+        nick_to_player_id[cmd.get_nick()] = playerId;
 
         push_broadcast(
             snapshots,
@@ -81,8 +81,6 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
 
-        push_broadcast(snapshots,
-                       SnapshotFactory::player_stats_from_player(*jugador));
         push_broadcast(snapshots,
                        SnapshotFactory::player_inventory_from_player(*jugador));
 
@@ -114,7 +112,6 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         bool creado = agregarJugador(cmd.get_nick(), config.getSpawnMapaId(),
                                      config.getSpawnX(), config.getSpawnY(),
                                      cmd.get_raza(), cmd.get_clase());
-        nick_to_player_id[cmd.get_nick()] = playerId;
         if (!creado) {
             push_unicast(snapshots,
                          Snapshot::error_message(
@@ -125,7 +122,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
 
         Jugador* jugador = getJugador(cmd.get_nick());
         player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
-
+        nick_to_player_id[cmd.get_nick()] = playerId;
         // Items de inicio
         jugador->agarrarItem(ItemFactory::crearEspada());
         jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
