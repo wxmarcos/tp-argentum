@@ -183,6 +183,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
 
             removerJugador(nombre);
             player_id_to_nick.erase(cmd.get_player_id());
+            nick_to_player_id.erase(nombre);
         }
         return snapshots;
     }
