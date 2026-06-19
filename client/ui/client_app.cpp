@@ -34,7 +34,7 @@ using SDL2pp::Window;
 static constexpr Uint32 AWAIT_TIMEOUT_MS = 5000;
 static constexpr Uint32 AWAIT_POLL_DELAY_MS = 10;
 static constexpr int TARGET_FPS = 60;
-static constexpr SDL_Color GAME_BG{34, 51, 34, 255};
+static constexpr SDL_Color GAME_BG{0, 0, 0, 255};
 
 ClientApp::ClientApp(ClientConfig config): config(std::move(config)) {}
 
@@ -52,6 +52,9 @@ int ClientApp::run() {
 
         Renderer renderer(window, -1,
                           SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+        SDL_RenderSetLogicalSize(renderer.Get(), config.window_width,
+                                 config.window_height);
 
         SDL_Cursor* game_cursor = setup_cursor();
 

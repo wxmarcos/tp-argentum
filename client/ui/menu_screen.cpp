@@ -74,9 +74,8 @@ SDL_Texture* MenuScreen::load_texture(std::string_view rel_path) {
 }
 
 void MenuScreen::compute_layout() {
-    const SDL2pp::Point out = renderer.GetOutputSize();
-    win_w = out.x;
-    win_h = out.y;
+    win_w = config.window_width;
+    win_h = config.window_height;
 
     auto frac = [&](const float f[4]) {
         return SDL_Rect{static_cast<int>(f[0] * win_w),
