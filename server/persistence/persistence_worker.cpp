@@ -6,11 +6,12 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "server/persistence/clan/clan_saver.h"
 #include "server/persistence/players/persistence_index_record.h"
 #include "server/persistence/players/persistence_loader.h"
 #include "server/persistence/players/persistence_record_mapper.h"
 
-PersistenceWorker::PersistenceWorker(Queue<PersistenceTask>& queue,
+PersistenceWorker::PersistenceWorker(Queue<PersistenceJob>& queue,
                                      Config& config):
     queue(queue),
     config(config) {}
@@ -53,7 +54,6 @@ static void write_player_record_at(const std::filesystem::path& players_path,
     file.write(reinterpret_cast<const char*>(&record), sizeof(record));
 }
 
-
 static uint64_t append_player_record(const std::filesystem::path& players_path,
                                      const PersistenceTask& task) {
     std::fstream file(players_path,
@@ -73,8 +73,7 @@ static uint64_t append_player_record(const std::filesystem::path& players_path,
 
     file.seekp(0, std::ios::end);
 
-    uint64_t offset =
-        static_cast<uint64_t>(file.tellp());
+    uint64_t offset = static_cast<uint64_t>(file.tellp());
 
     PersistencePlayerRecord record =
         PersistenceRecordMapper::to_record(task);
@@ -102,18 +101,31 @@ void PersistenceWorker::run() {
 
     while (true) {
         try {
-            PersistenceTask task = queue.pop();
+            PersistenceJob job = queue.pop();
 
-            auto it = index.find(task.nick);
+            switch (job.type) {
+                case PersistenceJobType::PLAYER: {
+                    const PersistenceTask& task = job.player;
 
-            if (it == index.end()) {
-                uint64_t offset = append_player_record(players_path, task);
+                    auto it = index.find(task.nick);
 
-                index[task.nick] = offset;
-                append_index_record(index_path, task.nick, offset);
+                    if (it == index.end()) {
+                        uint64_t offset =
+                            append_player_record(players_path, task);
 
-            } else {
-                write_player_record_at(players_path, it->second, task);
+                        index[task.nick] = offset;
+                        append_index_record(index_path, task.nick, offset);
+                    } else {
+                        write_player_record_at(players_path, it->second, task);
+                    }
+
+                    break;
+                }
+
+                case PersistenceJobType::CLANS: {
+                    ClanSaver::save_all(config.getRutaClanes(), job.clanes);
+                    break;
+                }
             }
 
         } catch (const ClosedQueue&) {

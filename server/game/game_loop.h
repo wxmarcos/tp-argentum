@@ -11,12 +11,12 @@
 #include "common/snapshot/snapshot_outgoing.h"
 #include "common/thread.h"
 #include "game/game.h"
-#include "persistence/persistence_task.h"
+#include "persistence/persistence_job.h"
 
 class GameLoop: public Thread {
 private:
     Queue<Command>& commands_queue;
-    Queue<PersistenceTask>& persistence_queue;
+    Queue<PersistenceJob>& persistence_queue;
 
     MonitorClients& clients;
 
@@ -37,7 +37,7 @@ private:
 
 public:
     GameLoop(Queue<Command>& commands_queue,
-             Queue<PersistenceTask>& persistence_queue, MonitorClients& clients,
+             Queue<PersistenceJob>& persistence_queue, MonitorClients& clients,
              Config& config);
 
     void run() override;

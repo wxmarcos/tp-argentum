@@ -17,13 +17,13 @@
 #include "game/game_loop.h"
 #include "persistence/persistence_task.h"
 #include "persistence/persistence_worker.h"
-
+#include "persistence/persistence_job.h"
 class Server {
 private:
     MonitorClients clients;
 
     Queue<Command> commands_queue;
-    Queue<PersistenceTask> persistence_queue;
+    Queue<PersistenceJob> persistence_queue;
 
     Acceptor acceptor;
     GameLoop gameloop;

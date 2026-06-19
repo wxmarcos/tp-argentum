@@ -34,7 +34,6 @@ void Game::handleClanCreate(const std::string& nombre, const Command& cmd,
 
     clanes.emplace(clanNom, Clan(clanNom, nombre));
     j->setClanNombre(clanNom);
-    guardarClanes();
     push_broadcast(snapshots, Snapshot::chat_message(
         "Sistema", nombre,
         "Clan '" + clanNom + "' creado. Eres el fundador."));
@@ -82,7 +81,6 @@ void Game::handleClanJoin(const std::string& nombre, const Command& cmd,
     }
 
     clan.agregarSolicitud(nombre);
-    guardarClanes();
     push_broadcast(snapshots, Snapshot::chat_message(
         "Sistema", nombre, "Solicitud enviada al clan '" + clanNom + "'"));
 
@@ -187,7 +185,6 @@ void Game::handleClanAccept(const std::string& nombre, const Command& cmd,
     push_broadcast(snapshots, Snapshot::chat_message(
         "Sistema", nombre, nickSol + " ahora es miembro del clan."));
 
-    guardarClanes();
 }
 
 // ----------------- CLAN REJECT -----------------
@@ -224,7 +221,6 @@ void Game::handleClanReject(const std::string& nombre, const Command& cmd,
     }
     push_broadcast(snapshots, Snapshot::chat_message(
         "Sistema", nombre, "Solicitud de " + nickSol + " rechazada."));
-    guardarClanes();
 }
 
 // ----------------- CLAN BAN / KICK -----------------
@@ -275,7 +271,6 @@ void Game::handleClanBanKick(const std::string& nombre, const Command& cmd,
     push_broadcast(snapshots, Snapshot::chat_message(
         "Sistema", nombre, nickTarget + " fue " + accion + " del clan."));
 
-    guardarClanes();
 }
 
 // ----------------- CLAN LEAVE -----------------
@@ -291,7 +286,7 @@ void Game::handleClanLeave(const std::string& nombre,
     auto it = clanes.find(j->getClanNombre());
     if (it == clanes.end()) {
         j->setClanNombre("");
-        guardarClanes();
+
         return;
     }
 
@@ -307,5 +302,4 @@ void Game::handleClanLeave(const std::string& nombre,
     j->setClanNombre("");
     push_broadcast(snapshots, Snapshot::chat_message(
         "Sistema", nombre, "Abandonaste el clan '" + clanNom + "'."));
-    guardarClanes();
 }
