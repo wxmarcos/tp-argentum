@@ -133,6 +133,8 @@ private:
     void tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots);
     bool encontrarSacerdoteMasCercano(const Jugador* fantasma, InfoNPC& destino,
                                       float& distancia) const;
+    bool buscarPosicionLibreCerca(int mapaId, int x, int y,
+                              int& outX, int& outY) const;
     void tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots);
 
     // ---- Helpers de comandos (game_commands.cpp) ----
@@ -239,4 +241,5 @@ public:
 
     // Mundo (game.cpp)
     const Mundo& getMundo() const;
+    void replay(std::vector<OutgoingSnapshot>& snapshots, const Command& cmd, uint16_t playerId);
 };

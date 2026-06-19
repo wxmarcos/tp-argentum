@@ -237,6 +237,31 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
     distancia = distMin;
     return encontrado;
 }
+bool Game::buscarPosicionLibreCerca(int mapaId, int x, int y,
+                                    int& outX, int& outY) const {
+    const Mapa* mapa = mundo.getMapa(mapaId);
+    if (!mapa) return false;
+
+    static const int dirs[8][2] = {
+        {0, 1}, {1, 0}, {0, -1}, {-1, 0},
+        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+    };
+
+    for (const auto& d : dirs) {
+        int nx = x + d[0];
+        int ny = y + d[1];
+
+        if (!mapa->esPosicionValida(nx, ny)) continue;
+        if (!mapa->esTransitable(nx, ny)) continue;
+        if (mapa->estaOcupada(nx, ny)) continue;
+
+        outX = nx;
+        outY = ny;
+        return true;
+    }
+
+    return false;
+}
 
 // ----------------- Tick resurrección -----------------
 
@@ -246,33 +271,75 @@ void Game::tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots) {
 
         jugador->tickResurreccion(dt);
 
-        if (jugador->resurreccionCompleta()) {
-            mundo.removerPersonaje(jugador.get());
+        if (!jugador->resurreccionCompleta()) continue;
 
-            jugador->setPosicion(jugador->getDestinoPosX(),
-                                 jugador->getDestinoPosY());
-            jugador->setMapaId(jugador->getDestinoMapaId());
+        const int mapaAnterior = jugador->getMapaId();
+        const int destinoMapa = jugador->getDestinoMapaId();
+        const int destinoX = jugador->getDestinoPosX();
+        const int destinoY = jugador->getDestinoPosY();
 
-            mundo.agregarPersonaje(jugador.get());
-            jugador->revivir(jugador->getVidaMax());
+        mundo.removerPersonaje(jugador.get());
 
-            
-            auto itId = nick_to_player_id.find(nombre);
+        jugador->setMapaId(destinoMapa);
+        jugador->setPosicion(destinoX, destinoY);
 
-            push_broadcast(snapshots, Snapshot::map_change(
-                nombre, static_cast<uint16_t>(jugador->getMapaId()),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
-            if (itId != nick_to_player_id.end()) {
-                
-                push_broadcast(snapshots,
-                    SnapshotFactory::player_stats_from_player(*jugador));
+        mundo.agregarPersonaje(jugador.get());
+        jugador->revivir(jugador->getVidaMax());
 
-                push_unicast(snapshots,
-                    SnapshotFactory::player_inventory_from_player(*jugador),
-                    itId->second);
+        auto itId = nick_to_player_id.find(nombre);
+
+        if (itId != nick_to_player_id.end()) {
+            const uint16_t playerId = itId->second;
+
+            if (mapaAnterior != destinoMapa) {
+                push_unicast(
+                    snapshots,
+                    Snapshot::map_change(
+                        nombre,
+                        static_cast<uint16_t>(destinoMapa),
+                        static_cast<uint16_t>(destinoX),
+                        static_cast<uint16_t>(destinoY),
+                        static_cast<uint8_t>(jugador->getDireccion())),
+                    playerId);
+
+                agregarReplayDeJugadores(snapshots, nombre, destinoMapa, playerId);
+                agregarReplayNpcs(snapshots, destinoMapa, playerId);
+                agregarReplayCriaturas(snapshots, destinoMapa, playerId);
+                agregarReplayItems(snapshots, destinoMapa, playerId);
+            } else {
+                push_unicast(
+                    snapshots,
+                    Snapshot::entity_move(
+                        nombre,
+                        static_cast<uint16_t>(destinoMapa),
+                        static_cast<uint16_t>(destinoX),
+                        static_cast<uint16_t>(destinoY),
+                        static_cast<uint8_t>(jugador->getDireccion())),
+                    playerId);
             }
+
+            push_unicast(
+                snapshots,
+                SnapshotFactory::player_stats_from_player(*jugador),
+                playerId);
+
+            push_unicast(
+                snapshots,
+                SnapshotFactory::player_inventory_from_player(*jugador),
+                playerId);
         }
+
+        if (mapaAnterior != destinoMapa) {
+            push_broadcast(snapshots, Snapshot::entity_remove(nombre));
+        }
+
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_created(
+                nombre,
+                static_cast<uint16_t>(destinoMapa),
+                static_cast<uint16_t>(destinoX),
+                static_cast<uint16_t>(destinoY),
+                static_cast<uint8_t>(jugador->getDireccion())));
     }
 }

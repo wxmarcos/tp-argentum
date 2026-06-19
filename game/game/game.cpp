@@ -285,10 +285,29 @@ void Game::agregarReplayDeJugadores(std::vector<OutgoingSnapshot>& snapshots,
             static_cast<uint8_t>(otro->getDireccion())),
             playerId);
 
-        push_unicast(
-            snapshots,
+        push_unicast(snapshots,
             SnapshotFactory::player_stats_from_player(*otro),
             playerId);
+
+        const auto& slots = otro->getInventario().getSlots();
+
+        for (size_t i = 0; i < slots.size(); ++i) {
+            if (!slots[i].has_value()) {
+                continue;
+            }
+
+            const SlotInventario& slot = *slots[i];
+
+            if (!otro->getInventario().estaEquipado(slot.item.get())) {
+                continue;
+            }
+
+            push_unicast(
+                snapshots,
+                SnapshotFactory::player_inventory_slot_from_player(
+                    *otro, static_cast<int>(i)),
+                playerId);
+        }
     }
 }
 

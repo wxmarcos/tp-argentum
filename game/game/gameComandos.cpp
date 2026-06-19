@@ -69,7 +69,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
-
+                
         push_broadcast(snapshots,
                        SnapshotFactory::player_stats_from_player(*jugador));
 
@@ -84,12 +84,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         push_broadcast(snapshots,
                        SnapshotFactory::player_inventory_from_player(*jugador));
 
-        agregarReplayDeJugadores(snapshots, cmd.get_nick(),
-                                 jugador->getMapaId(), playerId);
-        agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
-        agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
-        agregarReplayItems(snapshots, jugador->getMapaId(), playerId);
-
+        replay(snapshots, cmd, playerId);
         // Notificar al clan
         if (jugador->estaEnClan()) {
             for (auto& [nick, j] : jugadores) {
@@ -121,39 +116,41 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         }
 
         Jugador* jugador = getJugador(cmd.get_nick());
-        player_id_to_nick[cmd.get_player_id()] = cmd.get_nick();
+        player_id_to_nick[playerId] = cmd.get_nick();
         nick_to_player_id[cmd.get_nick()] = playerId;
-        // Items de inicio
+
         jugador->agarrarItem(ItemFactory::crearEspada());
         jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
-
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_created(
-                cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
-
-        push_broadcast(snapshots,
-                       SnapshotFactory::player_stats_from_player(*jugador));
 
         push_unicast(
             snapshots,
             Snapshot::map_change(
-                cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
+                cmd.get_nick(),
+                static_cast<uint16_t>(jugador->getMapaId()),
                 static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())), playerId);
-        push_broadcast(snapshots,
-                       SnapshotFactory::player_inventory_from_player(*jugador));
+                static_cast<uint8_t>(jugador->getDireccion())),
+            playerId);
 
-        agregarReplayDeJugadores(snapshots, cmd.get_nick(),
-                                 jugador->getMapaId(), playerId);
-        agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
-        agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
-        agregarReplayItems(snapshots, jugador->getMapaId(), playerId);
+        push_unicast(
+            snapshots,
+            SnapshotFactory::player_stats_from_player(*jugador),
+            playerId);
 
+        push_unicast(
+            snapshots,
+            SnapshotFactory::player_inventory_from_player(*jugador),
+            playerId);
+
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_created(
+                cmd.get_nick(),
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+        replay(snapshots, cmd, playerId);
         return snapshots;
     }
 
@@ -546,8 +543,9 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 break;
             }
             if (jugador->estaResucitando()) {
-                push_broadcast(snapshots, Snapshot::error_message(
-                                              nombre, "Ya estas resucitando"));
+                push_unicast(snapshots, Snapshot::error_message(
+                                              nombre, "Ya estas resucitando"),
+                    playerId);
                 break;
             }
             InfoNPC destino;
@@ -560,8 +558,19 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 break;
             }
             float tiempo = distancia / config.getVelocidadResurreccion();
-            jugador->iniciarResurreccion(tiempo, destino.mapaId, destino.x,
-                                         destino.y);
+            int resX = destino.x;
+            int resY = destino.y;
+
+            if (!buscarPosicionLibreCerca(destino.mapaId, destino.x, destino.y,
+                                        resX, resY)) {
+                push_unicast(snapshots,
+                            Snapshot::error_message(
+                                nombre, "No hay espacio libre cerca del sacerdote"),
+                            playerId);
+                break;
+            }
+
+            jugador->iniciarResurreccion(tiempo, destino.mapaId, resX, resY);
             break;
         }
 
@@ -664,4 +673,18 @@ bool Game::hayNPCCercano(const Jugador* jugador,
         if (dx + dy <= 10) return true;
     }
     return false;
+}
+
+// ----------------- Replay Helper -----------------
+void Game::replay(std::vector<OutgoingSnapshot>& snapshots,
+                  const Command& cmd,
+                  uint16_t playerId) {
+    const std::string& nick = cmd.get_nick();
+    Jugador* jugador = getJugador(nick);
+    if (!jugador) return;
+
+    agregarReplayDeJugadores(snapshots, nick, jugador->getMapaId(), playerId);
+    agregarReplayNpcs(snapshots, jugador->getMapaId(), playerId);
+    agregarReplayCriaturas(snapshots, jugador->getMapaId(), playerId);
+    agregarReplayItems(snapshots, jugador->getMapaId(), playerId);
 }

@@ -65,10 +65,7 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
             snapshots,
             SnapshotFactory::player_stats_from_player(*jugador));
 
-        agregarReplayDeJugadores(snapshots, nombre, mapaActual, playerId);
-        agregarReplayNpcs(snapshots, mapaActual, playerId);
-        agregarReplayCriaturas(snapshots, mapaActual, playerId);
-        agregarReplayItems(snapshots, mapaActual, playerId);
+        replay(snapshots, cmd, playerId);
     } else {
         push_broadcast(
             snapshots,
