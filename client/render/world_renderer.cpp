@@ -441,10 +441,10 @@ void WorldRenderer::draw_floor_items(const ClientGameState& state,
     }
 }
 
-std::string WorldRenderer::local_weapon_name(
-    const ClientGameState& state) const {
+std::string WorldRenderer::weapon_name_for(
+    const std::vector<InventorySlotView>& inv) const {
     std::string shield;
-    for (const auto& slot : state.get_inventory()) {
+    for (const auto& slot : inv) {
         if (!slot.equipado || !weapon_sprites.find(slot.item)) {
             continue;
         }
@@ -457,11 +457,11 @@ std::string WorldRenderer::local_weapon_name(
     return shield;
 }
 
-std::string WorldRenderer::local_shield_name(
-    const ClientGameState& state) const {
+std::string WorldRenderer::shield_name_for(
+    const std::vector<InventorySlotView>& inv) const {
     std::string shield;
     bool has_weapon = false;
-    for (const auto& slot : state.get_inventory()) {
+    for (const auto& slot : inv) {
         if (!slot.equipado || !weapon_sprites.find(slot.item)) {
             continue;
         }
@@ -545,10 +545,11 @@ void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
     const std::string& nick = state.get_local_nick();
     draw_player(nick, state.is_dead(nick), state.get_local_x(),
                 state.get_local_y(), state.get_local_dir(),
-                local_body_key(state, local_clase), local_raza,
+                body_key_for(state.get_inventory(), local_clase), local_raza,
                 local_anim.current_frame(), cam_offset_x, cam_offset_y,
-                local_weapon_name(state), local_helmet_key(state),
-                local_shield_name(state));
+                weapon_name_for(state.get_inventory()),
+                helmet_key_for(state.get_inventory()),
+                shield_name_for(state.get_inventory()));
 
     if (state.is_meditating(nick)) {
         draw_meditation_effect(state.get_local_x(), state.get_local_y(),
@@ -567,10 +568,17 @@ void WorldRenderer::draw_others(const ClientGameState& state,
             other_anims.try_emplace(nick, ANIM_FRAMES, ANIM_MS_FRAME);
         it->second.update(delta_ms, pv.direction, pv.moved);
 
+        const std::string clase =
+            pv.clase.empty() ? std::string(keys::HUMANO) : pv.clase;
+        const std::string raza =
+            pv.raza.empty() ? std::string(keys::HUMANO) : pv.raza;
+
         draw_player(nick, state.is_dead(nick), pv.x, pv.y, pv.direction,
-                    pv.clase.empty() ? std::string(keys::HUMANO) : pv.clase,
-                    pv.raza.empty() ? std::string(keys::HUMANO) : pv.raza,
-                    it->second.current_frame(), cam_offset_x, cam_offset_y);
+                    body_key_for(pv.inventory, clase), raza,
+                    it->second.current_frame(), cam_offset_x, cam_offset_y,
+                    weapon_name_for(pv.inventory),
+                    helmet_key_for(pv.inventory),
+                    shield_name_for(pv.inventory));
 
         if (state.is_meditating(nick)) {
             draw_meditation_effect(pv.x, pv.y, cam_offset_x, cam_offset_y);
@@ -721,15 +729,16 @@ void WorldRenderer::draw_effects(const ClientGameState& state,
     }
 }
 
-std::string WorldRenderer::local_body_key(const ClientGameState& state,
-                                          const std::string& clase_key) const {
+std::string WorldRenderer::body_key_for(
+    const std::vector<InventorySlotView>& inv,
+    const std::string& clase_key) const {
     static constexpr std::pair<std::string_view, std::string_view> armaduras[] =
         {
             {items::ARMADURA_CUERO, keys::ARMADURA_CUERO},
             {items::ARMADURA_PLACAS, keys::ARMADURA_PLACAS},
             {items::TUNICA_AZUL, keys::TUNICA_AZUL},
         };
-    for (const auto& slot : state.get_inventory()) {
+    for (const auto& slot : inv) {
         if (!slot.equipado) {
             continue;
         }
@@ -742,14 +751,14 @@ std::string WorldRenderer::local_body_key(const ClientGameState& state,
     return clase_key;
 }
 
-std::string WorldRenderer::local_helmet_key(
-        const ClientGameState& state) const {
+std::string WorldRenderer::helmet_key_for(
+    const std::vector<InventorySlotView>& inv) const {
     static constexpr std::pair<std::string_view, std::string_view> helmets[] = {
         {items::CAPUCHA, keys::CASCO_CAPUCHA},
         {items::CASCO_HIERRO, keys::CASCO_HIERRO},
         {items::SOMBRERO_MAGICO, keys::CASCO_SOMBRERO},
     };
-    for (const auto& slot : state.get_inventory()) {
+    for (const auto& slot : inv) {
         if (!slot.equipado) {
             continue;
         }

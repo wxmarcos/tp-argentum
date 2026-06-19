@@ -127,8 +127,6 @@ class WorldRenderer {
     void draw_weapon(const std::string& weapon_name, int dir_idx, int px,
                      int body_top, int body_h);
 
-    std::string local_weapon_name(const ClientGameState& state) const;
-
     void draw_meditation_effect(int world_x, int world_y, int cam_offset_x,
                                 int cam_offset_y);
 
@@ -148,12 +146,17 @@ class WorldRenderer {
 
     static int dir_to_idx(protocol::Direction dir);
 
-    std::string local_body_key(const ClientGameState& state,
-                               const std::string& clase_key) const;
+    std::string weapon_name_for(
+        const std::vector<InventorySlotView>& inv) const;
 
-    std::string local_helmet_key(const ClientGameState& state) const;
+    std::string body_key_for(const std::vector<InventorySlotView>& inv,
+                             const std::string& clase_key) const;
 
-    std::string local_shield_name(const ClientGameState& state) const;
+    std::string helmet_key_for(
+        const std::vector<InventorySlotView>& inv) const;
+
+    std::string shield_name_for(
+        const std::vector<InventorySlotView>& inv) const;
     
     bool is_shield(const std::string& item) const;
 

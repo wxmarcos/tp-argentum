@@ -29,6 +29,13 @@ struct PlayerStats {
     uint16_t agilidad = 0;
 };
 
+struct InventorySlotView {
+    std::string item;
+    uint16_t cantidad = 0;
+    bool equipado = false;
+    bool empty() const;
+};
+
 struct PlayerView {
     std::string nick;
     std::string raza;
@@ -37,6 +44,7 @@ struct PlayerView {
     uint16_t y = 0;
     protocol::Direction direction = protocol::Direction::SOUTH;
     bool moved = false;
+    std::vector<InventorySlotView> inventory;
 };
 
 struct FloorItem {
@@ -53,13 +61,6 @@ struct CreatureView {
     uint16_t y = 0;
     protocol::Direction direction = protocol::Direction::SOUTH;
     bool moved = false;
-};
-
-struct InventorySlotView {
-    std::string item;
-    uint16_t cantidad = 0;
-    bool equipado = false;
-    bool empty() const;
 };
 
 struct ChatMessage {

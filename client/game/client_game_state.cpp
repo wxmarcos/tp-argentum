@@ -275,16 +275,28 @@ bool ClientGameState::resolve_entity_pos(const std::string& nick, uint16_t& x,
 }
 
 void ClientGameState::apply_inventory_update(const Snapshot& snapshot) {
-    if (snapshot.get_nick() != local_nick) return;
-
+    const std::string& nick = snapshot.get_nick();
     const auto& items = snapshot.get_inventory_items();
-    if (items.empty()) return;
+    if (items.empty()) {
+        return;
+    }
+
+    std::vector<InventorySlotView>* target = nullptr;
+    if (nick == local_nick) {
+        target = &inventory;
+    } else {
+        std::string type;
+        if (classify_creature(nick, type)) {
+            return;
+        }
+        target = &others[nick].inventory;
+    }
 
     if (items.size() > 1) {
-        inventory.resize(items.size());
+        target->resize(items.size());
         for (const auto& item : items) {
-            if (item.slot_id < inventory.size()) {
-                inventory[item.slot_id] =
+            if (item.slot_id < target->size()) {
+                (*target)[item.slot_id] =
                     {item.item, item.cantidad, item.equipado};
             }
         }
@@ -292,10 +304,10 @@ void ClientGameState::apply_inventory_update(const Snapshot& snapshot) {
     }
 
     const auto& item = items[0];
-    if (item.slot_id >= inventory.size()) {
-        inventory.resize(item.slot_id + 1);
+    if (item.slot_id >= target->size()) {
+        target->resize(item.slot_id + 1);
     }
-    inventory[item.slot_id] = {item.item, item.cantidad, item.equipado};
+    (*target)[item.slot_id] = {item.item, item.cantidad, item.equipado};
 }
 
 bool ClientGameState::entity_at(uint16_t x, uint16_t y,
