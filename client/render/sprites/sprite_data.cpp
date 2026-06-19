@@ -585,6 +585,13 @@ HeadData make_casco_capucha_data() {
     d.head_rects[DIR_WEST] = {6, 138, 16, 18};
     d.head_rects[DIR_EAST] = {5, 201, 18, 19};
 
+    d.off_y[DIR_SOUTH] = -3;
+    d.off_y[DIR_NORTH] = -3;
+    d.off_y[DIR_EAST] = -3;
+    d.off_y[DIR_WEST] = -3;
+    d.off_x[DIR_EAST] = 3;
+    d.off_x[DIR_WEST] = -3;
+
     return d;
 }
 

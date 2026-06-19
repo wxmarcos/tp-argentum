@@ -23,7 +23,7 @@ static constexpr int BAR_TEXT_PAD = 8;
 static constexpr int CHAT_PAD = 6;
 static constexpr int CHAT_LINE_GAP = 2;
 static constexpr int CHAT_MAX_LINES = 8;
-static constexpr int CHAT_FONT_SIZE = 14;
+static constexpr int CHAT_FONT_SIZE = 13;
 static constexpr int CHAT_BOTTOM_MARGIN = 10;
 
 static constexpr int HEADER_GAP = 2;

@@ -124,6 +124,7 @@ private:
     void apply_player_stats(const Snapshot& snapshot);
     void apply_inventory_update(const Snapshot& snapshot);
     void apply_damage_event(const Snapshot& snapshot);
+    EffectKind local_attack_effect() const;
     void apply_dodge_event(const Snapshot& snapshot);
     void apply_death_event(const Snapshot& snapshot);
     void apply_meditation_status(const Snapshot& snapshot);

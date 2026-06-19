@@ -55,6 +55,12 @@ inline constexpr std::string_view SOMBRERO_MAGICO = "Sombrero magico";
 
 inline constexpr std::string_view ESCUDO_TORTUGA = "Escudo de tortuga";
 inline constexpr std::string_view ESCUDO_HIERRO = "Escudo de hierro";
+inline constexpr std::string_view VARA_DE_FRESNO = "Vara de fresno";
+inline constexpr std::string_view FLAUTA_ELFICA = "Flauta elfica";
+inline constexpr std::string_view BACULO_NUDOSO = "Baculo nudoso";
+inline constexpr std::string_view BACULO_ENGARZADO = "Baculo engarzado";
+inline constexpr std::string_view ARCO_SIMPLE = "Arco simple";
+inline constexpr std::string_view ARCO_COMPUESTO = "Arco compuesto";
 
 }
 
