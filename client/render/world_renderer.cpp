@@ -140,6 +140,38 @@ void WorldRenderer::compute_camera(const ClientGameState& state,
 
     cam_offset_x = screen_cx - cam_x * ts - ts / 2;
     cam_offset_y = screen_cy - cam_y * ts - ts / 2;
+
+    const int map_w = state.get_map_width() * ts;
+    const int map_h = state.get_map_height() * ts;
+    const int view_w = config.game_area_width();
+    const int view_h = config.window_height;
+
+    if (map_w >= view_w) {
+        if (cam_offset_x > 0) cam_offset_x = 0;
+        if (cam_offset_x < view_w - map_w) cam_offset_x = view_w - map_w;
+    }
+    if (map_h >= view_h) {
+        if (cam_offset_y > 0) cam_offset_y = 0;
+        if (cam_offset_y < view_h - map_h) cam_offset_y = view_h - map_h;
+    }
+}
+
+bool WorldRenderer::screen_to_tile(const ClientGameState& state, int mouse_x,
+                                   int mouse_y, uint16_t& tile_x,
+                                   uint16_t& tile_y) const {
+    int cam_offset_x = 0;
+    int cam_offset_y = 0;
+    compute_camera(state, cam_offset_x, cam_offset_y);
+
+    const int ts = config.tile_size;
+    const int tx = (mouse_x - cam_offset_x) / ts;
+    const int ty = (mouse_y - cam_offset_y) / ts;
+    if (tx < 0 || ty < 0) {
+        return false;
+    }
+    tile_x = static_cast<uint16_t>(tx);
+    tile_y = static_cast<uint16_t>(ty);
+    return true;
 }
 
 void WorldRenderer::draw_layers(int cam_offset_x, int cam_offset_y) {

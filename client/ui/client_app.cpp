@@ -194,7 +194,8 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input, hud, state, console, audio);
+        running = process_input(connection, input, world, hud, state, console,
+                                audio);
         if (running) {
             running = process_updates(connection, state);
         }
@@ -216,9 +217,9 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
 }
 
 bool ClientApp::process_input(ServerConnection& connection,
-                              const InputHandler& input, HudRenderer& hud,
-                              ClientGameState& state, Console& console,
-                              AudioManager& audio) {
+                              const InputHandler& input, WorldRenderer& world,
+                              HudRenderer& hud, ClientGameState& state,
+                              Console& console, AudioManager& audio) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -233,7 +234,7 @@ bool ClientApp::process_input(ServerConnection& connection,
 
         if (event.type == SDL_MOUSEBUTTONDOWN &&
             event.button.button == SDL_BUTTON_LEFT) {
-            handle_click(connection, hud, audio, state, event.button.x,
+            handle_click(connection, world, hud, audio, state, event.button.x,
                          event.button.y);
         }
 
@@ -315,9 +316,10 @@ void ClientApp::submit_console(Console& console, ServerConnection& connection,
     }
 }
 
-void ClientApp::handle_click(ServerConnection& connection, HudRenderer& hud,
-                             AudioManager& audio, const ClientGameState& state,
-                             int mouse_x, int mouse_y) {
+void ClientApp::handle_click(ServerConnection& connection, WorldRenderer& world,
+                             HudRenderer& hud, AudioManager& audio,
+                             const ClientGameState& state, int mouse_x,
+                             int mouse_y) {
     if (!state.has_local_position()) {
         return;
     }
@@ -334,23 +336,14 @@ void ClientApp::handle_click(ServerConnection& connection, HudRenderer& hud,
         return;
     }
 
-    const int ts = config.tile_size;
-
-    const int cam_offset_x =
-        config.game_area_width() / 2 - state.get_local_x() * ts - ts / 2;
-    const int cam_offset_y =
-        config.window_height / 2 - state.get_local_y() * ts - ts / 2;
-
-    const int tile_x = (mouse_x - cam_offset_x) / ts;
-    const int tile_y = (mouse_y - cam_offset_y) / ts;
-
-    if (tile_x < 0 || tile_y < 0) {
+    uint16_t tile_x = 0;
+    uint16_t tile_y = 0;
+    if (!world.screen_to_tile(state, mouse_x, mouse_y, tile_x, tile_y)) {
         return;
     }
 
     std::string target;
-    if (state.entity_at(static_cast<uint16_t>(tile_x),
-                        static_cast<uint16_t>(tile_y), target)) {
+    if (state.entity_at(tile_x, tile_y, target)) {
         connection.send(Command::attack(target));
     }
 }

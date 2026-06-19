@@ -163,6 +163,9 @@ class WorldRenderer {
     public:
     WorldRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);
 
+    bool screen_to_tile(const ClientGameState& state, int mouse_x, int mouse_y,
+                        uint16_t& tile_x, uint16_t& tile_y) const;
+
     void render(const ClientGameState& state, uint32_t delta_ms);
 
     void load_map(const std::string& map_name);
