@@ -52,13 +52,19 @@ int ClientApp::run() {
 
         Renderer renderer(window, -1,
                           SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-        MenuScreen menu(renderer, config);
 
+        SDL_Cursor* game_cursor = setup_cursor();
+
+        MenuScreen menu(renderer, config);
         AudioManager audio(config);
         load_audio(audio);
         audio.play_music(audio_assets::MUSIC);
 
-        return menu_loop(menu, renderer, audio);
+        const int result = menu_loop(menu, renderer, audio);
+
+        if (game_cursor) SDL_FreeCursor(game_cursor);
+        return result;
+
     } catch (const std::exception& e) {
         std::cerr << "[Client] Error fatal: " << e.what() << std::endl;
         return 1;
@@ -73,6 +79,22 @@ void ClientApp::setup_window_icon(Window& window) const {
         SDL_SetWindowIcon(window.Get(), icon);
         SDL_FreeSurface(icon);
     }
+}
+
+SDL_Cursor* ClientApp::setup_cursor() const {
+    const auto cur_path =
+        (std::filesystem::current_path() / config.assets_path /
+         std::string(assets::UI_CURSOR))
+            .lexically_normal();
+    SDL_Cursor* cursor = nullptr;
+    if (SDL_Surface* surf = IMG_Load(cur_path.string().c_str())) {
+        cursor = SDL_CreateColorCursor(surf, 0, 0);
+        if (cursor) {
+            SDL_SetCursor(cursor);
+        }
+        SDL_FreeSurface(surf);
+    }
+    return cursor;
 }
 
 int ClientApp::menu_loop(MenuScreen& menu, Renderer& renderer,

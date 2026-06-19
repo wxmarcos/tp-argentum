@@ -35,6 +35,8 @@ class ClientApp {
 
     void setup_window_icon(SDL2pp::Window& window) const;
 
+    SDL_Cursor* setup_cursor() const;
+
     int menu_loop(MenuScreen& menu, SDL2pp::Renderer& renderer,
                   AudioManager& audio);
 
