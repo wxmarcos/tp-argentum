@@ -518,6 +518,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             }
             push_broadcast(snapshots,
                            SnapshotFactory::player_stats_from_player(*jugador));
+            push_unicast(snapshots,SnapshotFactory::player_inventory_from_player(*jugador), playerId);
             break;
         }
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
