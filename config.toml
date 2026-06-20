@@ -98,7 +98,7 @@ rango_deteccion_criaturas = 15
 cooldown_movimiento_criatura = 2.0  # segundos entre movimientos de criaturas
 cooldown_ataque_criatura = 2.0      # segundos entre ataques de criaturas
 intervalo_spawn = 30.0  # segundos entre spawns de criaturas
-velocidad_resurreccion = 0.5
+velocidad_resurreccion = 5
 
 # -----------------------------------------------------------------------------
 # Criaturas
