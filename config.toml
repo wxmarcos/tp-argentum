@@ -212,7 +212,13 @@ criaturas_posibles = ["orco", "golem", "esqueleto"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
-portales           = []
+portales           = [
+    { x = 92, y = 11, mapa_destino = 5, destino_x = 50, destino_y = 48 },
+    { x = 66, y = 64, mapa_destino = 2, destino_x = 9,  destino_y = 32 },
+    { x = 7,  y = 32, mapa_destino = 2, destino_x = 68, destino_y = 64 },
+    { x = 18, y = 61, mapa_destino = 2, destino_x = 85, destino_y = 37 },
+    { x = 87, y = 37, mapa_destino = 2, destino_x = 20, destino_y = 61 }
+]
 
 [mapas.3]
 archivo_tmx = "assets/mapa/ciudad.tmx"
@@ -244,7 +250,28 @@ criaturas_posibles = ["orco", "golem"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
-portales           = []
+portales           = [ 
+    { x = 98, y = 16, mapa_destino = 4, destino_x = 89, destino_y = 66 },
+    { x = 91, y = 66, mapa_destino = 4, destino_x = 96, destino_y = 16 }
+]
+
+[mapas.5]
+archivo_tmx = "assets/mapa/mazmorraInfinita.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco", "golem"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 89, y = 11, mapa_destino = 2, destino_x = 90, destino_y = 11 }
+]
 
 [spawn]
 mapa_id = 3
