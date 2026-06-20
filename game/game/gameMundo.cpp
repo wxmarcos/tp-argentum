@@ -244,6 +244,34 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
     distancia = distMin;
     return encontrado;
 }
+
+static constexpr int MAX_RADIO_DROP = 8;
+
+std::pair<int, int> Game::buscarTileParaItem(
+    int mapaId, int cx, int cy,
+    std::set<std::pair<int, int>>& usados) const {
+    const Mapa* mapa = mundo.getMapa(mapaId);
+    if (!mapa) return {cx, cy};
+
+    for (int r = 0; r <= MAX_RADIO_DROP; ++r) {
+        for (int dx = -r; dx <= r; ++dx) {
+            for (int dy = -r; dy <= r; ++dy) {
+                if (std::abs(dx) != r && std::abs(dy) != r) continue;
+                int nx = cx + dx;
+                int ny = cy + dy;
+                if (!mapa->esPosicionValida(nx, ny)) continue;
+                if (!mapa->esTransitable(nx, ny)) continue;
+                std::pair<int, int> tile{nx, ny};
+                if (usados.count(tile)) continue;
+                if (mapa->hayItemEnPosicion(nx, ny)) continue;
+                usados.insert(tile);
+                return tile;
+            }
+        }
+    }
+    return {cx, cy};
+}
+
 bool Game::buscarPosicionLibreCerca(int mapaId, int x, int y,
                                     int& outX, int& outY) const {
     const Mapa* mapa = mundo.getMapa(mapaId);
