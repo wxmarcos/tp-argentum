@@ -571,6 +571,8 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             }
 
             jugador->iniciarResurreccion(tiempo, destino.mapaId, resX, resY);
+            push_unicast(snapshots, Snapshot::chat_message("Sistema", nombre,
+                "Resucitando en " + std::to_string((int)tiempo) + " segundos"),playerId);
             break;
         }
 
