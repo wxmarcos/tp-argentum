@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <set>
 
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
@@ -358,11 +359,14 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     removerCriatura(objetivo);
                 } else if (Jugador* victima = getJugador(objetivo)) {
                     auto items = victima->soltarTodosLosItems();
+                    std::set<std::pair<int, int>> tilesUsados;
                     for (auto& item : items) {
                         std::string nombreItem = item.item->getNombre();
                         uint16_t cantidad = item.cantidad;
-                        mundo.tirarItem(victima->getMapaId(),
-                                        victima->getPosX(), victima->getPosY(),
+                        auto [tx, ty] = buscarTileParaItem(
+                            victima->getMapaId(),
+                            victima->getPosX(), victima->getPosY(), tilesUsados);
+                        mundo.tirarItem(victima->getMapaId(), tx, ty,
                                         std::move(item));
                         push_broadcast(
                             snapshots,
@@ -371,8 +375,8 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                                     protocol::ItemEventAction::DROP),
                                 victima->getNombre(), nombreItem,
                                 static_cast<uint16_t>(victima->getMapaId()),
-                                static_cast<uint16_t>(victima->getPosX()),
-                                static_cast<uint16_t>(victima->getPosY()),
+                                static_cast<uint16_t>(tx),
+                                static_cast<uint16_t>(ty),
                                 cantidad));
                     }
 
@@ -380,9 +384,11 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                         victima->getOro(), victima->getOroMax());
                     if (oroExceso > 0) {
                         victima->gastarOro(oroExceso);
+                        auto [tx, ty] = buscarTileParaItem(
+                            victima->getMapaId(),
+                            victima->getPosX(), victima->getPosY(), tilesUsados);
                         mundo.tirarItem(
-                            victima->getMapaId(), victima->getPosX(),
-                            victima->getPosY(),
+                            victima->getMapaId(), tx, ty,
                             SlotInventario(ItemFactory::crearOro(oroExceso)));
                         push_broadcast(
                             snapshots,
@@ -391,8 +397,8 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                                     protocol::ItemEventAction::DROP),
                                 victima->getNombre(), item_defs::ORO,
                                 static_cast<uint16_t>(victima->getMapaId()),
-                                static_cast<uint16_t>(victima->getPosX()),
-                                static_cast<uint16_t>(victima->getPosY()),
+                                static_cast<uint16_t>(tx),
+                                static_cast<uint16_t>(ty),
                                 static_cast<uint16_t>(oroExceso)));
                     }
 

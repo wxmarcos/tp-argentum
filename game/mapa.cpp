@@ -128,6 +128,11 @@ const std::vector<SlotInventario>* Mapa::getItemsEnPosicion(int x,
     return &it->second;
 }
 
+bool Mapa::hayItemEnPosicion(int x, int y) const {
+    auto it = itemsEnPiso.find({x, y});
+    return it != itemsEnPiso.end() && !it->second.empty();
+}
+
 const std::map<std::pair<int, int>, std::vector<SlotInventario>>&
 Mapa::getItemsEnPiso() const {
     return itemsEnPiso;
