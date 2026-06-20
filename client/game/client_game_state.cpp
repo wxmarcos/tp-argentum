@@ -413,6 +413,7 @@ void ClientGameState::apply_dodge_event(const Snapshot& snapshot) {
     } else {
         push_chat("Combate", format_chat_sender(target) + " esquivó tu ataque");
     }
+    pending_dodge_sound = true;
 }
 
 void ClientGameState::apply_death_event(const Snapshot& snapshot) {
@@ -473,6 +474,9 @@ std::string ClientGameState::format_chat_sender(
 
 void ClientGameState::apply_chat_message(const Snapshot& snapshot) {
     push_chat(snapshot.get_nick(), snapshot.get_text());
+    if (snapshot.get_target() == local_nick && !snapshot.get_nick().empty()) {
+        pending_private_msg_sound = true;
+    }
 }
 
 const std::vector<ChatMessage>& ClientGameState::get_chat_messages() const {
@@ -565,3 +569,15 @@ bool ClientGameState::is_dead(const std::string& nick) const {
 int ClientGameState::get_map_width() const { return map_width; }
 
 int ClientGameState::get_map_height() const { return map_height; }
+
+bool ClientGameState::consume_dodge_sound() {
+    const bool v = pending_dodge_sound;
+    pending_dodge_sound = false;
+    return v;
+}
+
+bool ClientGameState::consume_private_msg_sound() {
+    const bool v = pending_private_msg_sound;
+    pending_private_msg_sound = false;
+    return v;
+}

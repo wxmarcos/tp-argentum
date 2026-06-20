@@ -109,6 +109,9 @@ private:
 
     std::vector<ChatMessage> chat_messages;
 
+    bool pending_dodge_sound = false;
+    bool pending_private_msg_sound = false;
+
     bool resolve_entity_pos(const std::string& nick, uint16_t& x,
                             uint16_t& y) const;
 
@@ -174,6 +177,9 @@ public:
     int get_map_height() const;
 
     const std::vector<ChatMessage>& get_chat_messages() const;
+
+    bool consume_dodge_sound();
+    bool consume_private_msg_sound();
 };
 
 #endif

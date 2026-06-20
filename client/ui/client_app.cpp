@@ -401,6 +401,9 @@ void ClientApp::load_audio(AudioManager& audio) {
     audio.load_effect(audio_assets::KEY_STAFF,  audio_assets::PATH_STAFF);
     audio.load_effect(audio_assets::KEY_STAFF2, audio_assets::PATH_STAFF2);
     audio.load_effect(audio_assets::KEY_SHOOT, audio_assets::PATH_SHOOT);
+    audio.load_effect(audio_assets::KEY_DODGE, audio_assets::PATH_DODGE);
+    audio.load_effect(audio_assets::KEY_SEND_MSG, audio_assets::PATH_SEND_MSG);
+    audio.load_effect(audio_assets::KEY_RECV_MSG, audio_assets::PATH_RECV_MSG); 
 }
 
 void ClientApp::play_event_sounds(AudioManager& audio,
@@ -455,8 +458,7 @@ void ClientApp::play_event_sounds(AudioManager& audio,
     }
 }
 
-void ClientApp::update_audio(AudioManager& audio,
-                             const ClientGameState& state) {
+void ClientApp::update_audio(AudioManager& audio, ClientGameState& state) {
     play_event_sounds(audio, state);
 
     const bool meditating_now =
@@ -483,5 +485,12 @@ void ClientApp::update_audio(AudioManager& audio,
             audio.play_effect(audio_assets::KEY_LEVELUP);
         }
         prev_level = level;
+    }
+
+    if (state.consume_dodge_sound()) {
+        audio.play_effect(audio_assets::KEY_DODGE);
+    }
+    if (state.consume_private_msg_sound()) {
+        audio.play_effect(audio_assets::KEY_RECV_MSG);
     }
 }

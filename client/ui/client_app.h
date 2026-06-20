@@ -79,7 +79,7 @@ class ClientApp {
 
     void play_event_sounds(AudioManager& audio, const ClientGameState& state);
 
-    void update_audio(AudioManager& audio, const ClientGameState& state);
+    void update_audio(AudioManager& audio, ClientGameState& state);
 
     public:
     explicit ClientApp(ClientConfig config);

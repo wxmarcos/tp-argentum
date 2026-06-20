@@ -18,6 +18,9 @@ inline constexpr const char* KEY_REVIVE  = "resucitar";
 inline constexpr const char* KEY_STAFF   = "baculo";
 inline constexpr const char* KEY_STAFF2 = "baculo2";
 inline constexpr const char* KEY_SHOOT = "disparo";
+inline constexpr const char* KEY_DODGE = "esquiva";
+inline constexpr const char* KEY_SEND_MSG = "enviar_msg";
+inline constexpr const char* KEY_RECV_MSG = "recibir_msg";
 
 inline constexpr const char* PATH_ATTACK = "assets/sonidos/hacer_ataque.wav";
 inline constexpr const char* PATH_DEATH = "assets/sonidos/muerte.wav";
@@ -32,6 +35,9 @@ inline constexpr const char* PATH_REVIVE = "assets/sonidos/resucitar.wav";
 inline constexpr const char* PATH_STAFF  = "assets/sonidos/sonido_baculo.wav";
 inline constexpr const char* PATH_STAFF2 = "assets/sonidos/sonido_baculo2.wav";
 inline constexpr const char* PATH_SHOOT = "assets/sonidos/disparo.wav";
+inline constexpr const char* PATH_DODGE = "assets/sonidos/esquiva.wav";
+inline constexpr const char* PATH_SEND_MSG = "assets/sonidos/enviar_msg.wav";
+inline constexpr const char* PATH_RECV_MSG = "assets/sonidos/recibir_msg.wav";
 
 inline constexpr int STEP_VOLUME = 13;
 
