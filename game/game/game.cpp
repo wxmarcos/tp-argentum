@@ -288,7 +288,10 @@ void Game::agregarReplayDeJugadores(std::vector<OutgoingSnapshot>& snapshots,
         push_unicast(snapshots,
             SnapshotFactory::player_stats_from_player(*otro),
             playerId);
-
+        push_unicast(
+            snapshots,
+            SnapshotFactory::player_inventory_from_player(*otro),
+            playerId);
         const auto& slots = otro->getInventario().getSlots();
 
         for (size_t i = 0; i < slots.size(); ++i) {
