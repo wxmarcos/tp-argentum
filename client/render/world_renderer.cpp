@@ -12,11 +12,9 @@
 #include "game/entity_keys.h"
 #include "render/colors.h"
 
-static constexpr int ANIM_FRAMES = 4;
 static constexpr int ANIM_MS_FRAME = 150;
 static constexpr Uint32 DEATH_ANIM_MS = 900;
 
-static constexpr int CHARACTER_HEIGHT_TILES = 2;
 static constexpr int PLACEHOLDER_PAD = 3;
 static constexpr uint32_t FLOATING_TEXT_LIFETIME_MS = 1000;
 static constexpr float FLOATING_TEXT_RISE_PX = 24.0f;
@@ -40,7 +38,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
              config.font_size),
         item_sprites(renderer, config),
         weapon_sprites(renderer, config),
-        local_anim(ANIM_FRAMES, ANIM_MS_FRAME) {
+        local_anim(WALK_FRAME_COUNT, ANIM_MS_FRAME) {
     load_map(config.map_name);
     load_effects();
 }
@@ -359,11 +357,11 @@ void WorldRenderer::draw_character(int world_x, int world_y,
     }
 
     if (!weapon_name.empty()) {
-        draw_weapon(weapon_name, dir_idx, px, body_top, body_h);
+        draw_weapon(weapon_name, dir_idx, frame, px, body_top, body_h);
     }
 
     if (!shield_name.empty() && dir_idx == DIR_SOUTH) {
-        draw_weapon(shield_name, dir_idx, px, body_top, body_h);
+        draw_weapon(shield_name, dir_idx, frame, px, body_top, body_h);
     }
 }
 
@@ -512,7 +510,7 @@ bool WorldRenderer::is_shield(const std::string& item) const {
 }
 
 void WorldRenderer::draw_weapon(const std::string& weapon_name, int dir_idx,
-                                int px, int body_top, int body_h) {
+                                int frame, int px, int body_top, int body_h) {
     if (dir_idx == DIR_NORTH) {
         return;
     }
@@ -520,13 +518,14 @@ void WorldRenderer::draw_weapon(const std::string& weapon_name, int dir_idx,
     if (!w || !w->tex) {
         return;
     }
-    const SDL_Rect& src = w->rects[dir_idx];
+    const int f = frame % WALK_FRAME_COUNT;
+    const SDL_Rect& src = w->rects[dir_idx][f];
     const WeaponDirAdjust& adj = w->adjust[dir_idx];
     const int draw_h = src.h * body_h / WEAPON_REF_H;
     const int draw_w = src.w * body_h / WEAPON_REF_H;
     const int cx = px + config.tile_size / 2;
-    const SDL_Rect dst{cx + adj.off_x - draw_w / 2,
-                       body_top + adj.off_y, draw_w, draw_h};
+    const SDL_Rect dst{cx + adj.off_x - draw_w / 2, body_top + adj.off_y,
+                       draw_w, draw_h};
     const SDL_RendererFlip flip =
         adj.flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
     SDL_RenderCopyEx(renderer.Get(), w->tex, &src, &dst, 0.0, nullptr, flip);
@@ -597,7 +596,7 @@ void WorldRenderer::draw_others(const ClientGameState& state,
                                 int cam_offset_y) {
     for (const auto& [nick, pv] : state.get_others()) {
         auto [it, inserted] =
-            other_anims.try_emplace(nick, ANIM_FRAMES, ANIM_MS_FRAME);
+            other_anims.try_emplace(nick, WALK_FRAME_COUNT, ANIM_MS_FRAME);
         it->second.update(delta_ms, pv.direction, pv.moved);
 
         const std::string clase =
@@ -633,7 +632,7 @@ void WorldRenderer::draw_all_creatures(const ClientGameState& state,
                                        int cam_offset_y) {
     for (const auto& [key, cv] : state.get_creatures()) {
         auto [it, inserted] =
-            creature_anims.try_emplace(key, ANIM_FRAMES, ANIM_MS_FRAME);
+            creature_anims.try_emplace(key, WALK_FRAME_COUNT, ANIM_MS_FRAME);
         it->second.update(delta_ms, cv.direction, cv.moved);
 
         draw_creature(cv.x, cv.y, cv.direction, cv.type,

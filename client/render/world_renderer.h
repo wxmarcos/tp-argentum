@@ -124,17 +124,17 @@ class WorldRenderer {
     void draw_floor_items(const ClientGameState& state, int cam_offset_x,
                           int cam_offset_y);
 
-    void draw_weapon(const std::string& weapon_name, int dir_idx, int px,
-                     int body_top, int body_h);
+    void draw_weapon(const std::string& weapon_name, int dir_idx, int frame,
+                    int px, int body_top, int body_h);
 
     void draw_meditation_effect(int world_x, int world_y, int cam_offset_x,
                                 int cam_offset_y);
 
     void draw_floating_texts(const ClientGameState& state, uint32_t delta_ms,
-                             int cam_offset_x, int cam_offset_y);
+                            int cam_offset_x, int cam_offset_y);
 
     void draw_effects(const ClientGameState& state, uint32_t delta_ms,
-                      int cam_offset_x, int cam_offset_y);
+                     int cam_offset_x, int cam_offset_y);
 
     void load_effects();
 
