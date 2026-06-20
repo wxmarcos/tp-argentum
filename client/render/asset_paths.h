@@ -81,6 +81,18 @@ inline constexpr std::string_view ESCUDOTORTUGA =
     "objetos/armas/escudoTortuga.png";
 inline constexpr std::string_view ESCUDOHIERRO = "objetos/armas/escudoHierro.png";
 
+inline constexpr std::string_view ESPADA_ANIM = "objetos/armas/espadaMovimiento.png";
+inline constexpr std::string_view HACHA_ANIM = "objetos/armas/hachaMovimiento.png";
+inline constexpr std::string_view MARTILLO_ANIM = "objetos/armas/martilloMovimiento.png";
+inline constexpr std::string_view VARADEFRESNO_ANIM = "objetos/armas/varaDeFresnoMovimiento.png";
+inline constexpr std::string_view FLAUTAELFICA_ANIM = "objetos/armas/flautaElficaMovimiento.png";
+inline constexpr std::string_view BACULONUDOSO_ANIM = "objetos/armas/baculoNudosoMovimiento.png";
+inline constexpr std::string_view BACULOENGARZADO_ANIM = "objetos/armas/baculoEngarzadoMovimiento.png";
+inline constexpr std::string_view ARCOSIMPLE_ANIM = "objetos/armas/arcoSimpleMovimiento.png";
+inline constexpr std::string_view ARCOCOMPUESTO_ANIM = "objetos/armas/arcoCompuestoMovimiento.png";
+inline constexpr std::string_view ESCUDOTORTUGA_ANIM = "objetos/armas/escudoTortugaMovimiento.png";
+inline constexpr std::string_view ESCUDOHIERRO_ANIM = "objetos/armas/escudoHierroMovimiento.png";
+
 }
 
 #endif

@@ -9,6 +9,7 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "config/client_config.h"
+#include "render/sprites/sprite_constants.h"
 
 struct WeaponDirAdjust {
     int off_x = 0;
@@ -18,7 +19,7 @@ struct WeaponDirAdjust {
 
 struct WeaponSprite {
     SDL_Texture* tex = nullptr;
-    SDL_Rect rects[4]{};
+    SDL_Rect rects[4][WALK_FRAME_COUNT]{};
     WeaponDirAdjust adjust[4]{};
 };
 
@@ -32,10 +33,14 @@ class WeaponSpriteRegistry {
     std::vector<SDL_Texture*> owned;
 
     void load_defs();
+
     SDL_Texture* load_texture(const std::string& rel_path);
+
     void register_weapon(const std::string& name, const std::string& sheet,
-                         const SDL_Rect& s, const SDL_Rect& n,
-                         const SDL_Rect& e, const SDL_Rect& w);
+                         const SDL_Rect (&south)[WALK_FRAME_COUNT],
+                         const SDL_Rect (&east)[WALK_FRAME_COUNT],
+                         const SDL_Rect (&west)[WALK_FRAME_COUNT]);
+
     void set_adjust(const std::string& name, const WeaponDirAdjust& s,
                     const WeaponDirAdjust& n, const WeaponDirAdjust& e,
                     const WeaponDirAdjust& w);
