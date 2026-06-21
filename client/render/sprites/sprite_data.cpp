@@ -383,6 +383,106 @@ SpriteData make_golem_sprite_data() {
     return d;
 }
 
+SpriteData make_esqueleto_hacha_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {18, 8, 34, 87};
+    d.frame_rects[DIR_SOUTH][1] = {82, 9, 32, 87};
+    d.frame_rects[DIR_SOUTH][2] = {209, 4, 34, 91};
+    d.frame_rects[DIR_SOUTH][3] = {274, 7, 34, 87};
+
+    d.frame_rects[DIR_NORTH][0] = {11, 101, 34, 95};
+    d.frame_rects[DIR_NORTH][1] = {77, 101, 32, 90};
+    d.frame_rects[DIR_NORTH][2] = {204, 98, 34, 93};
+    d.frame_rects[DIR_NORTH][3] = {267, 102, 34, 89};
+
+    d.frame_rects[DIR_EAST][0] = {11, 293, 43, 87};
+    d.frame_rects[DIR_EAST][1] = {81, 293, 40, 90};
+    d.frame_rects[DIR_EAST][2] = {209, 293, 40, 89};
+    d.frame_rects[DIR_EAST][3] = {274, 293, 40, 90};
+
+    d.frame_rects[DIR_WEST][0] = {10, 196, 40, 91};
+    d.frame_rects[DIR_WEST][1] = {77, 201, 40, 92};
+    d.frame_rects[DIR_WEST][2] = {191, 196, 50, 97};
+    d.frame_rects[DIR_WEST][3] = {268, 200, 40, 93};
+    
+    return d;
+}
+
+SpriteData make_arana_blanca_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {14, 44, 70, 52};
+    d.frame_rects[DIR_SOUTH][1] = {110, 43, 70, 53};
+    d.frame_rects[DIR_SOUTH][2] = {206, 43, 70, 53};
+    d.frame_rects[DIR_SOUTH][3] = {302, 44, 70, 52};
+
+    d.frame_rects[DIR_NORTH][0] = {14, 136, 70, 55};
+    d.frame_rects[DIR_NORTH][1] = {110, 135, 70, 56};
+    d.frame_rects[DIR_NORTH][2] = {206, 135, 70, 56};
+    d.frame_rects[DIR_NORTH][3] = {302, 135, 70, 56};
+
+    d.frame_rects[DIR_EAST][0] = {10, 331, 84, 53};
+    d.frame_rects[DIR_EAST][1] = {106, 331, 84, 53};
+    d.frame_rects[DIR_EAST][2] = {202, 330, 84, 54};
+    d.frame_rects[DIR_EAST][3] = {298, 331, 84, 53};
+
+    d.frame_rects[DIR_WEST][0] = {3, 236, 85, 52};
+    d.frame_rects[DIR_WEST][1] = {99, 236, 85, 52};
+    d.frame_rects[DIR_WEST][2] = {195, 235, 84, 53};
+    d.frame_rects[DIR_WEST][3] = {291, 235, 85, 53};
+
+    return d;
+}
+
+SpriteData make_goblin_jorobado_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {29, 16, 23, 32};
+    d.frame_rects[DIR_SOUTH][1] = {103, 15, 21, 33};
+    d.frame_rects[DIR_SOUTH][2] = {177, 15, 21, 34};
+    d.frame_rects[DIR_SOUTH][3] = {249, 15, 22, 32};
+
+    d.frame_rects[DIR_NORTH][0] = {31, 58, 22, 43};
+    d.frame_rects[DIR_NORTH][1] = {104, 58, 22, 42};
+    d.frame_rects[DIR_NORTH][2] = {178, 57, 21, 42};
+    d.frame_rects[DIR_NORTH][3] = {252, 57, 20, 44};
+
+    d.frame_rects[DIR_EAST][0] = {24, 157, 33, 37};
+    d.frame_rects[DIR_EAST][1] = {96, 157, 37, 39};
+    d.frame_rects[DIR_EAST][2] = {175, 157, 30, 40};
+    d.frame_rects[DIR_EAST][3] = {245, 157, 34, 37};
+
+    d.frame_rects[DIR_WEST][0] = {26, 110, 32, 36};
+    d.frame_rects[DIR_WEST][1] = {99, 110, 30, 39};
+    d.frame_rects[DIR_WEST][2] = {168, 110, 39, 40};
+    d.frame_rects[DIR_WEST][3] = {244, 110, 35, 37};
+
+    return d;
+}
+
+SpriteData make_golem_demoniaco_sprite_data() {
+    SpriteData d;
+    d.frame_rects[DIR_SOUTH][0] = {20, 3, 53, 122};
+    d.frame_rects[DIR_SOUTH][1] = {109, 12, 52, 113};
+    d.frame_rects[DIR_SOUTH][2] = {200, 3, 53, 122};
+    d.frame_rects[DIR_SOUTH][3] = {292, 10, 52, 116};
+
+    d.frame_rects[DIR_NORTH][0] = {20, 132, 53, 122};
+    d.frame_rects[DIR_NORTH][1] = {110, 139, 51, 116};
+    d.frame_rects[DIR_NORTH][2] = {200, 132, 53, 122};
+    d.frame_rects[DIR_NORTH][3] = {290, 137, 52, 118};
+
+    d.frame_rects[DIR_EAST][0] = {4, 389, 72, 121};
+    d.frame_rects[DIR_EAST][1] = {99, 393, 70, 118};
+    d.frame_rects[DIR_EAST][2] = {185, 389, 72, 121};
+    d.frame_rects[DIR_EAST][3] = {276, 391, 74, 119};
+
+    d.frame_rects[DIR_WEST][0] = {12, 262, 73, 121};
+    d.frame_rects[DIR_WEST][1] = {102, 265, 72, 119};
+    d.frame_rects[DIR_WEST][2] = {195, 262, 73, 121};
+    d.frame_rects[DIR_WEST][3] = {279, 264, 73, 117};
+
+    return d;
+}
+
 SpriteData make_banquero_sprite_data() {
     SpriteData d;
     d.frame_rects[DIR_SOUTH][0] = {3, 1, 19, 47};

@@ -95,11 +95,15 @@ int WorldRenderer::head_scale_pct(const std::string& raza) const {
 
 int WorldRenderer::creature_scale_pct(const std::string& type) const {
     if (type == keys::GOLEM) return 170;
+    if (type == keys::GOLEM_DEMONIACO) return 170;
     if (type == keys::ORCO) return 150;
     if (type == keys::ARANA) return 130;
+    if (type == keys::ARANA_BLANCA) return 110;
     if (type == keys::ESQUELETO) return 110;
+    if (type == keys::ESQUELETO_HACHA) return 130;
     if (type == keys::ZOMBIE) return 105;
     if (type == keys::GOBLIN) return 90;
+    if (type == keys::GOBLIN_JOROBADO) return 95;
     return 100;
 }
 
