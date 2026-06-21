@@ -123,6 +123,10 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
                 push_broadcast(snapshots,
                     Snapshot::entity_remove(objetivo->getNombre()));
 
+                objetivo->perderExperiencia(Formulas::calcularExpPerdida(
+                    objetivo->getExperiencia(),
+                    config.getFormulaExpPenalidadPorcentaje()));
+
                 auto items = objetivo->soltarTodosLosItems();
                 std::set<std::pair<int, int>> tilesUsados;
                 for (auto& item : items) {
