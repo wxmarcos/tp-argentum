@@ -69,6 +69,14 @@ void SpriteRegistry::load_creatures() {
     register_sprite(keys::ORCO, assets::CRE_ORCO, make_orco_sprite_data());
     register_sprite(keys::ARANA, assets::CRE_ARANA, make_arana_sprite_data());
     register_sprite(keys::GOLEM, assets::CRE_GOLEM, make_golem_sprite_data());
+    register_sprite(keys::ESQUELETO_HACHA, assets::CRE_ESQUELETO_HACHA,
+                    make_esqueleto_hacha_sprite_data());
+    register_sprite(keys::ARANA_BLANCA, assets::CRE_ARANA_BLANCA,
+                    make_arana_blanca_sprite_data());
+    register_sprite(keys::GOBLIN_JOROBADO, assets::CRE_GOBLIN_JOROBADO,
+                    make_goblin_jorobado_sprite_data());
+    register_sprite(keys::GOLEM_DEMONIACO, assets::CRE_GOLEM_DEMONIACO,
+                    make_golem_demoniaco_sprite_data());
     register_sprite(keys::BANQUERO, assets::NPC_BANQUERO,
                     make_banquero_sprite_data());
     register_sprite(keys::COMERCIANTE, assets::NPC_COMERCIANTE,

@@ -39,6 +39,10 @@ inline constexpr std::string_view CRE_ZOMBIE = "criaturas/zombie.png";
 inline constexpr std::string_view CRE_ORCO = "criaturas/orco.png";
 inline constexpr std::string_view CRE_ARANA = "criaturas/arana.png";
 inline constexpr std::string_view CRE_GOLEM = "criaturas/golem.png";
+inline constexpr std::string_view CRE_ESQUELETO_HACHA = "criaturas/esqueletoHacha.png";
+inline constexpr std::string_view CRE_ARANA_BLANCA = "criaturas/aranaBlanca.png";
+inline constexpr std::string_view CRE_GOBLIN_JOROBADO = "criaturas/goblinJorobado.png";
+inline constexpr std::string_view CRE_GOLEM_DEMONIACO = "criaturas/golemDemoniaco.png";
 
 // NPCs
 inline constexpr std::string_view NPC_BANQUERO = "characters/banquero.png";
@@ -65,21 +69,7 @@ inline constexpr std::string_view CASCO_CAPUCHA = "objetos/armaduras/capucha.png
 inline constexpr std::string_view CASCO_HIERRO = "objetos/armaduras/cascoHierro.png";
 inline constexpr std::string_view CASCO_SOMBRERO_MAGICO = "objetos/armaduras/sombreroMagico.png";
 
-// Armas
-inline constexpr std::string_view ESPADA = "objetos/armas/espada.png";
-inline constexpr std::string_view HACHA = "objetos/armas/hacha.png";
-inline constexpr std::string_view MARTILLO = "objetos/armas/martillo.png";
-inline constexpr std::string_view VARADEFRESNO = "objetos/armas/varaDeFresno.png";
-inline constexpr std::string_view FLAUTAELFICA = "objetos/armas/flautaElfica.png";
-inline constexpr std::string_view BACULONUDOSO = "objetos/armas/baculoNudoso.png";
-inline constexpr std::string_view BACULOENGARZADO =
-    "objetos/armas/baculoEngarzado.png";
-inline constexpr std::string_view ARCOSIMPLE = "objetos/armas/arcoSimple.png";
-inline constexpr std::string_view ARCOCOMPUESTO =
-    "objetos/armas/arcoCompuesto.png";
-inline constexpr std::string_view ESCUDOTORTUGA =
-    "objetos/armas/escudoTortuga.png";
-inline constexpr std::string_view ESCUDOHIERRO = "objetos/armas/escudoHierro.png";
+// Armas (animacion de caminata)
 
 inline constexpr std::string_view ESPADA_ANIM = "objetos/armas/espadaMovimiento.png";
 inline constexpr std::string_view HACHA_ANIM = "objetos/armas/hachaMovimiento.png";
