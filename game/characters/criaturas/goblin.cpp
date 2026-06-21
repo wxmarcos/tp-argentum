@@ -1,4 +1,4 @@
-#include "criaturas/goblin.h"
+#include "game/characters/criaturas/goblin.h"
 
 Goblin::Goblin(const Config& config, int posX, int posY):
     Criatura(

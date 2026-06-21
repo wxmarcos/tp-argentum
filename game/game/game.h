@@ -15,7 +15,7 @@
 #include "game/clan.h"
 #include "game/clases/charClase.h"
 #include "game/config.h"
-#include "game/criaturas/criatura.h"
+#include "game/characters/criaturas/criatura.h"
 #include "game/mundo.h"
 #include "game/razas/raza.h"
 #include "server/persistence/persistence_task.h"

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#include "characters/character.h"
+#include "game/characters/character.h"
 
 class Criatura: public Character {
 protected:
@@ -18,6 +18,7 @@ public:
              float cooldownAtaque, float cooldownMovimiento);
     virtual ~Criatura() = default;
     virtual std::string getTipo() const = 0;
+    bool esCriatura() const override { return true; }
 
     int getNivel() const;
     int getDanioMin() const;

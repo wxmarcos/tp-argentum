@@ -1,4 +1,4 @@
-#include "criaturas/criatura.h"
+#include "game/characters/criaturas/criatura.h"
 
 Criatura::Criatura(const std::string& nombre, int posX, int posY, int vidaMax,
                    int nivel, int danioMin, int danioMax, int fuerza,

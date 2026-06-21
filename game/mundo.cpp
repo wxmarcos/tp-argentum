@@ -139,7 +139,7 @@ bool Mundo::moverPersonaje(Character* personaje, Direccion dir) {
 
     if (!mapaVecino->esTransitable(entradaX, entradaY) ||
         mapaVecino->estaOcupada(entradaX, entradaY) ||
-        mapaVecino->esZonaSegura()) {
+        (personaje->esCriatura() && mapaVecino->esZonaSegura())) {
         return false;
     }
 

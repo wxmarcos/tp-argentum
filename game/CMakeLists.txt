@@ -30,13 +30,13 @@ target_sources(taller_game PRIVATE
     characters/npcs/banquero.cpp
 
     # Criaturas
-    criaturas/criatura.cpp
-    criaturas/goblin.cpp
-    criaturas/esqueleto.cpp
-    criaturas/zombie.cpp
-    criaturas/arana.cpp
-    criaturas/orco.cpp
-    criaturas/golem.cpp
+    characters/criaturas/criatura.cpp
+    characters/criaturas/goblin.cpp
+    characters/criaturas/esqueleto.cpp
+    characters/criaturas/zombie.cpp
+    characters/criaturas/arana.cpp
+    characters/criaturas/orco.cpp
+    characters/criaturas/golem.cpp
 
     # Items
     items/item.cpp

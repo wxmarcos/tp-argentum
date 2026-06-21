@@ -34,4 +34,5 @@ public:
     void curar(int cantidad);
     virtual void morir();
     virtual void revivir(int vidaInicial);
+    virtual bool esCriatura() const { return false; }
 };
