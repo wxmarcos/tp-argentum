@@ -85,8 +85,7 @@ int Formulas::calcularOroMax(int nivel, double coeficiente, double exponente) {
     return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
 int Formulas::calcularOroDropNPC(int vidaMaxNPC) {
-    double r = 0.01 + (static_cast<double>(rand()) / RAND_MAX) *
-                          (0.2 - 0.01);  // Entre 0.01 y 0.2
+    double r = (static_cast<double>(rand()) / RAND_MAX) * 0.2;
     return static_cast<int>(r * vidaMaxNPC);
 }
 int Formulas::calcularOroExceso(int oro, int oroMax) {
