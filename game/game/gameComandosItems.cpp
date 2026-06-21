@@ -30,7 +30,7 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
     if (!moved) {
         push_unicast(
             snapshots,
-            Snapshot::error_message(nombre, "No se pudo mover"),
+            Snapshot::error_message(nombre, "Movimiento invalido"),
             playerId);
         return;
     }
