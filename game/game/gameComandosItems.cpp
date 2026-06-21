@@ -72,7 +72,7 @@ void Game::handleDropItem(const std::string& nombre, const Command& cmd,
     }
 }
 
-// ----------------- EQUIP ITEM -----------------
+// ----------------- EQUIP/UNEQUIP ITEM -----------------
 
 void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
                            std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId) {
@@ -93,6 +93,23 @@ void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
     }
     if (!slots[slot].has_value()) {
         push_unicast(snapshots, Snapshot::error_message(nombre, "Slot vacio"), playerId);
+        return;
+    }
+
+    const Item* itemPtr = slots[slot]->item.get();
+    if (jugador->getInventario().estaEquipado(itemPtr)) {
+        TipoItem tipo = itemPtr->getTipo();
+        if (tipo == TipoItem::ARMA || tipo == TipoItem::BACULO)
+            jugador->desequiparArma();
+        else if (tipo == TipoItem::ARMADURA)
+            jugador->desequiparArmadura();
+        else if (tipo == TipoItem::CASCO)
+            jugador->desequiparCasco();
+        else if (tipo == TipoItem::ESCUDO)
+            jugador->desequiparEscudo();
+
+        push_broadcast(snapshots, SnapshotFactory::player_stats_from_player(*jugador));
+        push_broadcast(snapshots, SnapshotFactory::player_inventory_from_player(*jugador));
         return;
     }
 
