@@ -223,7 +223,7 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
 }
 
 // ----------------- Sacerdote más cercano -----------------
-static constexpr float PENALIZACION_MAPA_DISTINTO = 200.0f;
+static constexpr float PENALIZACION_MAPA_DISTINTO = 50.0f;
 
 bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
                                         InfoNPC& destino,
