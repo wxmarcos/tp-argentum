@@ -23,6 +23,8 @@ map_name = "ciudad"
 3 = "ciudad"
 4 = "bosqueOscuro"
 5 = "mazmorraInfinita"
+6 = "orillaBosque"
+7 = "orillaBosqueOscuro"
 
 [audio]
 music_volume = 64

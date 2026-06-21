@@ -187,8 +187,8 @@ archivo_tmx = "assets/mapa/bosque.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = 3
-vecino_sur         = -1
-vecino_este        = 4
+vecino_sur         = 6
+vecino_este        = -1
 vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 10
@@ -203,7 +203,7 @@ archivo_tmx = "assets/mapa/mazmorra.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = -1
-vecino_sur         = 4
+vecino_sur         = -1
 vecino_este        = -1
 vecino_oeste       = 3
 es_zona_segura     = false
@@ -240,10 +240,10 @@ portales           = []
 archivo_tmx = "assets/mapa/bosqueOscuro.tmx"
 ancho              = 100
 alto               = 100
-vecino_norte       = 2
+vecino_norte       = 7
 vecino_sur         = -1
 vecino_este        = -1
-vecino_oeste       = 1
+vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 5
 criaturas_posibles = ["orco", "golem"]
@@ -271,6 +271,42 @@ comerciantes       = []
 banqueros          = []
 portales           = [ 
     { x = 89, y = 11, mapa_destino = 2, destino_x = 90, destino_y = 11 }
+]
+
+[mapas.6]
+archivo_tmx = "assets/mapa/orillaBosque.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = 1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 79, y = 42, mapa_destino = 7, destino_x = 78, destino_y = 17 }
+]
+
+[mapas.7]
+archivo_tmx = "assets/mapa/orillaBosqueOscuro.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = 4
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 78, y = 16, mapa_destino = 6, destino_x = 78, destino_y = 42 }
 ]
 
 [spawn]
