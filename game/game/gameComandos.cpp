@@ -670,6 +670,107 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
     return snapshots;
 }
 
+// ----------------- MOVE -----------------
+
+void Game::handleMover(const std::string& nombre, const Command& cmd,
+                       std::vector<OutgoingSnapshot>& snapshots,
+                       uint16_t playerId) {
+    Jugador* jugador = getJugador(nombre);
+    if (!jugador) {
+        push_unicast(
+            snapshots,
+            Snapshot::error_message(nombre, "Jugador inexistente"),
+            playerId);
+        return;
+    }
+
+    if (!puedeMoverAhora(nombre)) return;
+
+    int mapaAnterior = jugador->getMapaId();
+
+    bool moved = moverJugador(
+        nombre,
+        static_cast<Direccion>(cmd.get_direction()));
+
+    if (!moved) {
+        push_unicast(
+            snapshots,
+            Snapshot::error_message(nombre, "Movimiento invalido"),
+            playerId);
+
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_move(
+                nombre,
+                static_cast<uint16_t>(jugador->getMapaId()),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+        return;
+    }
+
+    int mapaActual = jugador->getMapaId();
+
+    if (mapaActual != mapaAnterior) {
+        // Que todos borren al jugador de su mapa viejo.
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_remove(nombre));
+
+        // Al jugador que cambió de mapa: actualizar mapa/posición local.
+        push_unicast(
+            snapshots,
+            Snapshot::map_change(
+                nombre,
+                static_cast<uint16_t>(mapaActual),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())),
+            playerId);
+
+        // Al jugador que cambió de mapa: asegurar stats/skin local.
+        push_unicast(
+            snapshots,
+            SnapshotFactory::player_stats_from_player(*jugador),
+            playerId);
+        // Al jugador que cambió de mapa: asegurar items local.
+        push_broadcast(
+            snapshots,
+            SnapshotFactory::player_inventory_from_player(*jugador));
+        // A los demás: aparece el jugador en el mapa nuevo.
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_created(
+                nombre,
+                static_cast<uint16_t>(mapaActual),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+
+        // A los demás: raza/clase para dibujarlo con skin correcta.
+        push_broadcast(
+            snapshots,
+            SnapshotFactory::player_stats_from_player(*jugador));
+
+        // Al jugador que entra al mapa nuevo:
+        // recibir jugadores, NPCs, criaturas e items ya existentes.
+        agregarReplayDeJugadores(snapshots, nombre, mapaActual, playerId);
+        agregarReplayNpcs(snapshots, mapaActual, playerId);
+        agregarReplayCriaturas(snapshots, mapaActual, playerId);
+        agregarReplayItems(snapshots, mapaActual, playerId);
+
+    } else {
+        push_broadcast(
+            snapshots,
+            Snapshot::entity_move(
+                nombre,
+                static_cast<uint16_t>(mapaActual),
+                static_cast<uint16_t>(jugador->getPosX()),
+                static_cast<uint16_t>(jugador->getPosY()),
+                static_cast<uint8_t>(jugador->getDireccion())));
+    }
+}
+
 // ----------------- NPC helpers -----------------
 
 bool Game::hayNPCCercano(const Jugador* jugador,
