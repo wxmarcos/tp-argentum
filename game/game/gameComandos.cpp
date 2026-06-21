@@ -483,11 +483,15 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 push_broadcast(snapshots, Snapshot::death_event(nombre));
                 push_broadcast(snapshots, Snapshot::entity_remove(nombre));
                 auto items = jugador->soltarTodosLosItems();
+                std::set<std::pair<int, int>> tilesUsados;
                 for (auto& item : items) {
                     std::string nombreItem = item.item->getNombre();
                     uint16_t cantidad = item.cantidad;
-                    mundo.tirarItem(jugador->getMapaId(), jugador->getPosX(),
-                                    jugador->getPosY(), std::move(item));
+                    auto [tx, ty] = buscarTileParaItem(
+                        jugador->getMapaId(),
+                        jugador->getPosX(), jugador->getPosY(), tilesUsados);
+                    mundo.tirarItem(jugador->getMapaId(), tx, ty,
+                                    std::move(item));
                     push_broadcast(
                         snapshots,
                         Snapshot::item_event(
@@ -495,17 +499,19 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                                 protocol::ItemEventAction::DROP),
                             jugador->getNombre(), nombreItem,
                             static_cast<uint16_t>(jugador->getMapaId()),
-                            static_cast<uint16_t>(jugador->getPosX()),
-                            static_cast<uint16_t>(jugador->getPosY()),
+                            static_cast<uint16_t>(tx),
+                            static_cast<uint16_t>(ty),
                             cantidad));
                 }
                 int oroExceso = Formulas::calcularOroExceso(
                     jugador->getOro(), jugador->getOroMax());
                 if (oroExceso > 0) {
                     jugador->gastarOro(oroExceso);
+                    auto [tx, ty] = buscarTileParaItem(
+                        jugador->getMapaId(),
+                        jugador->getPosX(), jugador->getPosY(), tilesUsados);
                     mundo.tirarItem(
-                        jugador->getMapaId(), jugador->getPosX(),
-                        jugador->getPosY(),
+                        jugador->getMapaId(), tx, ty,
                         SlotInventario(ItemFactory::crearOro(oroExceso)));
                     push_broadcast(
                         snapshots,
@@ -514,8 +520,8 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                                 protocol::ItemEventAction::DROP),
                             jugador->getNombre(), item_defs::ORO,
                             static_cast<uint16_t>(jugador->getMapaId()),
-                            static_cast<uint16_t>(jugador->getPosX()),
-                            static_cast<uint16_t>(jugador->getPosY()),
+                            static_cast<uint16_t>(tx),
+                            static_cast<uint16_t>(ty),
                             static_cast<uint16_t>(oroExceso)));
                 }
             }
