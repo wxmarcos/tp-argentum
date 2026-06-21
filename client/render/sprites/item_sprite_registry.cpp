@@ -47,11 +47,11 @@ void ItemSpriteRegistry::load_defs() {
                   arma_icono);
 
     register_item("Armadura de cuero",
-              "objetos/armaduras/armaduraCuero.png", {8, 225, 24, 31}, 5);
+              "objetos/armaduras/armaduraCuero.png", {7, 228, 17, 24}, 5);
     register_item("Armadura de placas",
-                "objetos/armaduras/armaduraPlacas.png", {0, 224, 24, 32}, 5);
+                "objetos/armaduras/armaduraPlacas.png", {5, 227, 23, 26}, 5);
     register_item("Tunica azul",
-                "objetos/armaduras/tunicaAzul.png", {0, 224, 31, 32}, 5);
+                "objetos/armaduras/tunicaAzul.png", {8, 226, 16, 28}, 5);
 
     register_item("Capucha",
                   "objetos/armaduras/capucha.png", {6, 8, 14, 20}, 5);
