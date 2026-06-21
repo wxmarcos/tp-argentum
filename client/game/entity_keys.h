@@ -27,6 +27,10 @@ inline constexpr std::string_view GOLEM       = "golem";
 inline constexpr std::string_view BANQUERO    = "banquero";
 inline constexpr std::string_view COMERCIANTE = "comerciante";
 inline constexpr std::string_view SACERDOTE   = "sacerdote";
+inline constexpr std::string_view ESQUELETO_HACHA = "esqueleto_hacha";
+inline constexpr std::string_view ARANA_BLANCA = "arana_blanca";
+inline constexpr std::string_view GOBLIN_JOROBADO = "goblin_jorobado";
+inline constexpr std::string_view GOLEM_DEMONIACO = "golem_demoniaco";
 
 // Estado especial
 inline constexpr std::string_view FANTASMA = "fantasma";
