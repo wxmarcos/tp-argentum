@@ -82,8 +82,8 @@ void TileCatalog::load_tsx(const std::filesystem::path& tsx_path,
     textures.try_load(key, png_abs.string());
     register_tiles(key, firstgid, columns, tilewidth, tileheight, tilecount);
 
-    std::cout << "[TileCatalog] " << tsx_path.filename()
-              << " firstgid=" << firstgid << " tiles=" << tilecount << "\n";
+    // std::cout << "[TileCatalog] " << tsx_path.filename()
+    //           << " firstgid=" << firstgid << " tiles=" << tilecount << "\n";
 }
 
 void TileCatalog::add_tileset(const std::filesystem::path& tsx_path,
@@ -91,7 +91,7 @@ void TileCatalog::add_tileset(const std::filesystem::path& tsx_path,
     load_tsx(tsx_path, firstgid);
 }
 
-void TileCatalog::add_inline_tileset(const std::string& name,
+void TileCatalog::add_inline_tileset([[maybe_unused]] const std::string& name,
                                      const std::filesystem::path& png_path,
                                      TileId firstgid, int columns,
                                      int tilewidth, int tileheight,
@@ -101,8 +101,8 @@ void TileCatalog::add_inline_tileset(const std::string& name,
     textures.try_load(key, png_path.string());
     register_tiles(key, firstgid, columns, tilewidth, tileheight, tilecount);
 
-    std::cout << "[TileCatalog] inline " << name << " firstgid=" << firstgid
-              << " tiles=" << tilecount << "\n";
+    // std::cout << "[TileCatalog] inline " << name << " firstgid=" << firstgid
+    //           << " tiles=" << tilecount << "\n";
 }
 
 SDL_Texture* TileCatalog::texture_for(TileId id) const {
