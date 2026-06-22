@@ -23,12 +23,6 @@ target_sources(taller_game PRIVATE
     characters/character.cpp
     characters/jugador.cpp
 
-    # NPCs
-    characters/npcs/npc.cpp
-    characters/npcs/sacerdote.cpp
-    characters/npcs/comerciante.cpp
-    characters/npcs/banquero.cpp
-
     # Criaturas
     characters/criaturas/criatura.cpp
     characters/criaturas/goblin.cpp
