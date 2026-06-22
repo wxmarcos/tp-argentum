@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <random>
 
 static std::mt19937& rng() {
@@ -386,8 +385,6 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
 
     if (Formulas::calcularEsquive(objetivo->getAgilidad(),
                                   config.getFormulaEsquiveUmbral())) {
-        std::cout << "[ESQUIVE] " << objetivo->getNombre()
-                  << " agi=" << objetivo->getAgilidad() << "\n";
         return 0;
     }
 
