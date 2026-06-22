@@ -18,7 +18,6 @@ void ClanSaver::save_all(const std::string& path,
     for (const auto& [nombre, clan] : clanes) {
         ClanRecord record = ClanRecordMapper::to_record(clan);
 
-        file.write(reinterpret_cast<const char*>(&record),
-                   sizeof(ClanRecord));
+        file.write(reinterpret_cast<const char*>(&record), sizeof(ClanRecord));
     }
 }

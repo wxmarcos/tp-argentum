@@ -12,7 +12,7 @@
 #include "render/texture_manager.h"
 
 class SpriteRegistry {
-    private:
+private:
     TextureManager textures;
     std::unordered_map<std::string, SpriteData> sprite_data;
     std::unordered_map<std::string, HeadData> head_data;
@@ -37,7 +37,7 @@ class SpriteRegistry {
 
     void load_armor_bodies();
 
-    public:
+public:
     SpriteRegistry(SDL_Renderer* renderer,
                    const std::filesystem::path& assets_root);
 
@@ -52,7 +52,7 @@ class SpriteRegistry {
     SDL_Texture* get_head_texture(const std::string& raza) const;
 
     SDL_Rect get_head_rect(const std::string& raza, int dir_idx) const;
-    
+
     bool has_head(const std::string& raza) const;
 
     SDL_Texture* get_helmet_texture(const std::string& casco_key) const;
@@ -62,7 +62,7 @@ class SpriteRegistry {
     bool has_helmet(const std::string& casco_key) const;
 
     int get_helmet_off_x(const std::string& helmet_key, int dir_idx) const;
-    
+
     int get_helmet_off_y(const std::string& helmet_key, int dir_idx) const;
 
     int get_helmet_scale(const std::string& helmet_key) const;

@@ -1,6 +1,6 @@
 #pragma once
-#include "game/config.h"
 #include "game/characters/criaturas/criatura.h"
+#include "game/config.h"
 
 class AranaBlanca: public Criatura {
 public:

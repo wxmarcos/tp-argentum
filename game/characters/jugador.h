@@ -50,7 +50,7 @@ public:
     Jugador(const std::string& nombre, int posX, int posY, const Raza* raza,
             const charClase* clase, int capacidadInventario = 30,
             double formulaExpCoef = 1000.0, double formulaExpExp = 1.8,
-            double formulaOroCoef = 100.0,  double formulaOroExp = 1.1);
+            double formulaOroCoef = 100.0, double formulaOroExp = 1.1);
 
     void restaurarEstado(int nivel, int vida, int vidaMax, int mana,
                          int manaMax, int experiencia, int oro,
@@ -135,4 +135,3 @@ public:
     void morir() override;
     void revivir(int vidaInicial) override;
 };
-    

@@ -19,8 +19,7 @@ ClanRecord ClanRecordMapper::to_record(const Clan& clan) {
     for (const auto& miembro : clan.getMiembros()) {
         if (record.miembros_count >= CLAN_MAX_MIEMBROS) break;
 
-        copy_string(record.miembros[record.miembros_count],
-                    CLAN_NICK_SIZE,
+        copy_string(record.miembros[record.miembros_count], CLAN_NICK_SIZE,
                     miembro);
 
         record.miembros_count++;
@@ -31,8 +30,7 @@ ClanRecord ClanRecordMapper::to_record(const Clan& clan) {
         if (record.solicitudes_count >= CLAN_MAX_SOLICITUDES) break;
 
         copy_string(record.solicitudes[record.solicitudes_count],
-                    CLAN_NICK_SIZE,
-                    solicitud);
+                    CLAN_NICK_SIZE, solicitud);
 
         record.solicitudes_count++;
     }
@@ -41,8 +39,7 @@ ClanRecord ClanRecordMapper::to_record(const Clan& clan) {
     for (const auto& baneado : clan.getBaneados()) {
         if (record.baneados_count >= CLAN_MAX_BANEADOS) break;
 
-        copy_string(record.baneados[record.baneados_count],
-                    CLAN_NICK_SIZE,
+        copy_string(record.baneados[record.baneados_count], CLAN_NICK_SIZE,
                     baneado);
 
         record.baneados_count++;

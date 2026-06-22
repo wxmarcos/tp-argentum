@@ -39,7 +39,7 @@ private:
                               TileCatalog& catalog);
 
     void parse_csv_layer(const std::string& csv, MapData& map,
-                        int layer_idx) const;
+                         int layer_idx) const;
 
     void parse_collision_layer(std::ifstream& f, MapData& map,
                                int tile_size) const;

@@ -9,8 +9,8 @@
 #include <string_view>
 
 #include "game/entity_keys.h"
-#include "render/colors.h"
 #include "render/asset_paths.h"
+#include "render/colors.h"
 
 static constexpr int OPTION_COUNT = 4;
 static constexpr size_t MAX_NICK_LEN = 16;
@@ -39,19 +39,14 @@ static constexpr float C_OPT_W[4] = {0.133f, 0.123f, 0.125f, 0.126f};
 static constexpr float C_JUGAR[4] = {0.375f, 0.725f, 0.25f, 0.10f};
 static constexpr float C_VOLVER[4] = {0.045f, 0.87f, 0.15f, 0.062f};
 
-
 MenuScreen::MenuScreen(SDL2pp::Renderer& renderer, const ClientConfig& config):
-        renderer(renderer),
-        config(config),
-        text(renderer.Get(),
-             (std::filesystem::current_path() / config.font_path)
-                 .lexically_normal(),
-             config.font_size),
-        tex_inicio(nullptr),
-        tex_login(nullptr),
-        tex_create(nullptr),
-        win_w(config.window_width),
-        win_h(config.window_height) {
+    renderer(renderer), config(config),
+    text(
+        renderer.Get(),
+        (std::filesystem::current_path() / config.font_path).lexically_normal(),
+        config.font_size),
+    tex_inicio(nullptr), tex_login(nullptr), tex_create(nullptr),
+    win_w(config.window_width), win_h(config.window_height) {
     tex_inicio = load_texture(assets::UI_INICIO);
     tex_login = load_texture(assets::UI_LOGIN);
     tex_create = load_texture(assets::UI_CREATE);
@@ -78,10 +73,9 @@ void MenuScreen::compute_layout() {
     win_h = config.window_height;
 
     auto frac = [&](const float f[4]) {
-        return SDL_Rect{static_cast<int>(f[0] * win_w),
-                        static_cast<int>(f[1] * win_h),
-                        static_cast<int>(f[2] * win_w),
-                        static_cast<int>(f[3] * win_h)};
+        return SDL_Rect{
+            static_cast<int>(f[0] * win_w), static_cast<int>(f[1] * win_h),
+            static_cast<int>(f[2] * win_w), static_cast<int>(f[3] * win_h)};
     };
 
     comenzar_rect = frac(COMENZAR);

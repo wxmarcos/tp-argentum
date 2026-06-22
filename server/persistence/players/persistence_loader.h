@@ -13,7 +13,6 @@ public:
         const std::string& path);
 
     static std::optional<PersistenceTask> load_player_by_nick(
-        const std::string& players_path,
-        const std::string& index_path,
+        const std::string& players_path, const std::string& index_path,
         const std::string& nick);
 };

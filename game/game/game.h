@@ -11,11 +11,11 @@
 #include "common/snapshot/snapshot.h"
 #include "common/snapshot/snapshot_outgoing.h"
 #include "game/banco/cuentaBanco.h"
+#include "game/characters/criaturas/criatura.h"
 #include "game/characters/jugador.h"
 #include "game/clan.h"
 #include "game/clases/charClase.h"
 #include "game/config.h"
-#include "game/characters/criaturas/criatura.h"
 #include "game/mundo.h"
 #include "game/razas/raza.h"
 #include "server/persistence/persistence_task.h"
@@ -134,8 +134,8 @@ private:
     void tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots);
     bool encontrarSacerdoteMasCercano(const Jugador* fantasma, InfoNPC& destino,
                                       float& distancia) const;
-    bool buscarPosicionLibreCerca(int mapaId, int x, int y,
-                              int& outX, int& outY) const;
+    bool buscarPosicionLibreCerca(int mapaId, int x, int y, int& outX,
+                                  int& outY) const;
     std::pair<int, int> buscarTileParaItem(
         int mapaId, int cx, int cy,
         std::set<std::pair<int, int>>& usados) const;
@@ -220,7 +220,8 @@ public:
     std::vector<PersistenceTask> build_persistence_tasks_for_command(
         const Command& cmd) const;
     std::vector<PersistenceTask> build_all_players_tasks() const;
-    PersistenceTask buildPlayerTask(const std::string& nombre,const Jugador& jugador) const;
+    PersistenceTask buildPlayerTask(const std::string& nombre,
+                                    const Jugador& jugador) const;
     bool command_changes_clans(const Command& cmd) const;
     std::map<std::string, Clan> getClanes() const;
 
@@ -245,5 +246,6 @@ public:
 
     // Mundo (game.cpp)
     const Mundo& getMundo() const;
-    void replay(std::vector<OutgoingSnapshot>& snapshots, const Command& cmd, uint16_t playerId);
+    void replay(std::vector<OutgoingSnapshot>& snapshots, const Command& cmd,
+                uint16_t playerId);
 };

@@ -5,7 +5,7 @@
 
 TileCatalog::TileCatalog(SDL_Renderer* renderer,
                          const std::filesystem::path& assets_root):
-        textures(renderer, assets_root) {}
+    textures(renderer, assets_root) {}
 
 std::string TileCatalog::attr(const std::string& line,
                               const std::string& name) const {
@@ -50,9 +50,8 @@ void TileCatalog::register_tiles(const std::string& key, TileId firstgid,
         int col = i % columns;
         int row = i / columns;
         TileId gid = static_cast<TileId>(firstgid + i);
-        tiles[gid] = TileDef{
-            key,
-            SDL_Rect{col * tilewidth, row * tileheight, tilewidth, tileheight}};
+        tiles[gid] = TileDef{key, SDL_Rect{col * tilewidth, row * tileheight,
+                                           tilewidth, tileheight}};
     }
 }
 
@@ -91,8 +90,7 @@ void TileCatalog::add_tileset(const std::filesystem::path& tsx_path,
     load_tsx(tsx_path, firstgid);
 }
 
-void TileCatalog::add_inline_tileset([[maybe_unused]] const std::string& name,
-                                     const std::filesystem::path& png_path,
+void TileCatalog::add_inline_tileset(const std::filesystem::path& png_path,
                                      TileId firstgid, int columns,
                                      int tilewidth, int tileheight,
                                      int tilecount) {
@@ -100,9 +98,6 @@ void TileCatalog::add_inline_tileset([[maybe_unused]] const std::string& name,
         std::filesystem::path(png_path).lexically_normal().string();
     textures.try_load(key, png_path.string());
     register_tiles(key, firstgid, columns, tilewidth, tileheight, tilecount);
-
-    // std::cout << "[TileCatalog] inline " << name << " firstgid=" << firstgid
-    //           << " tiles=" << tilecount << "\n";
 }
 
 SDL_Texture* TileCatalog::texture_for(TileId id) const {

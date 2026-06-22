@@ -1,12 +1,12 @@
 #ifndef CLIENT_RENDER_ITEM_SPRITE_REGISTRY_H
 #define CLIENT_RENDER_ITEM_SPRITE_REGISTRY_H
 
+#include <SDL2/SDL.h>
+
+#include <SDL2pp/SDL2pp.hh>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
 
 #include "config/client_config.h"
 
@@ -17,7 +17,7 @@ struct ItemSprite {
 };
 
 class ItemSpriteRegistry {
-    private:
+private:
     SDL2pp::Renderer& renderer;
     const ClientConfig& config;
 
@@ -28,11 +28,11 @@ class ItemSpriteRegistry {
     void load_defs();
 
     SDL_Texture* load_texture(const std::string& rel_path);
-    
-    void register_item(const std::string& name, const std::string& sheet,
-                    const SDL_Rect& src, int extra_pad = 0);
 
-    public:
+    void register_item(const std::string& name, const std::string& sheet,
+                       const SDL_Rect& src, int extra_pad = 0);
+
+public:
     ItemSpriteRegistry(SDL2pp::Renderer& renderer, const ClientConfig& config);
 
     ~ItemSpriteRegistry();

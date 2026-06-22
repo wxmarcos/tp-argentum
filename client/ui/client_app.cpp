@@ -1,19 +1,20 @@
 #include "ui/client_app.h"
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
+#include <SDL2pp/SDL2pp.hh>
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL_image.h>
 #include <exception>
 #include <filesystem>
 #include <iostream>
 #include <string>
 #include <utility>
 
-#include "audio/audio_manager.h"
 #include "audio/audio_assets.h"
+#include "audio/audio_manager.h"
 #include "common/command/command.h"
 #include "common/snapshot/snapshot.h"
 #include "game/client_game_state.h"
@@ -24,8 +25,8 @@
 #include "render/asset_paths.h"
 #include "render/hud_renderer.h"
 #include "render/world_renderer.h"
-#include "ui/menu_screen.h"
 #include "ui/console.h"
+#include "ui/menu_screen.h"
 
 using SDL2pp::Renderer;
 using SDL2pp::SDL;
@@ -75,9 +76,9 @@ int ClientApp::run() {
 }
 
 void ClientApp::setup_window_icon(Window& window) const {
-    const auto icon_path = (std::filesystem::current_path() /
-                            config.assets_path / assets::UI_ICON)
-                               .lexically_normal();
+    const auto icon_path =
+        (std::filesystem::current_path() / config.assets_path / assets::UI_ICON)
+            .lexically_normal();
     if (SDL_Surface* icon = IMG_Load(icon_path.string().c_str())) {
         SDL_SetWindowIcon(window.Get(), icon);
         SDL_FreeSurface(icon);
@@ -85,10 +86,9 @@ void ClientApp::setup_window_icon(Window& window) const {
 }
 
 SDL_Cursor* ClientApp::setup_cursor() const {
-    const auto cur_path =
-        (std::filesystem::current_path() / config.assets_path /
-         std::string(assets::UI_CURSOR))
-            .lexically_normal();
+    const auto cur_path = (std::filesystem::current_path() /
+                           config.assets_path / std::string(assets::UI_CURSOR))
+                              .lexically_normal();
     SDL_Cursor* cursor = nullptr;
     if (SDL_Surface* surf = IMG_Load(cur_path.string().c_str())) {
         cursor = SDL_CreateColorCursor(surf, 0, 0);
@@ -119,8 +119,7 @@ bool ClientApp::login_loop(MenuScreen& menu, Renderer& renderer,
         if (rl == MenuResult::BACK) return true;
 
         try {
-            ServerConnection connection(config.server_host,
-                                        config.server_port);
+            ServerConnection connection(config.server_host, config.server_port);
             ClientGameState state(nick, config.map_width, config.map_height);
 
             ConnectResult cr = connect_and_login(menu, connection, state, nick);
@@ -219,8 +218,8 @@ void ClientApp::main_loop(ServerConnection& connection, InputHandler& input,
         const Uint32 delta_ms = now - last_ticks;
         last_ticks = now;
 
-        running = process_input(connection, input, world, hud, state, console,
-                                audio);
+        running =
+            process_input(connection, input, world, hud, state, console, audio);
         if (running) {
             running = process_updates(connection, state);
         }
@@ -265,8 +264,7 @@ bool ClientApp::process_input(ServerConnection& connection,
 
         if (event.type == SDL_MOUSEWHEEL) {
             hud.scroll_chat(event.wheel.y,
-                            static_cast<int>(
-                                state.get_chat_messages().size()));
+                            static_cast<int>(state.get_chat_messages().size()));
             continue;
         }
 
@@ -330,10 +328,9 @@ void ClientApp::submit_console(Console& console, ServerConnection& connection,
     }
     const size_t end = line.find_first_of(" \t", start);
     std::string head = line.substr(start, end - start);
-    std::transform(head.begin(), head.end(), head.begin(),
-                   [](unsigned char c) {
-                       return static_cast<char>(std::tolower(c));
-                   });
+    std::transform(head.begin(), head.end(), head.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
     if (head == "/equipar") {
         audio.play_effect(audio_assets::KEY_EQUIP);
     } else if (head == "/tirar") {
@@ -396,14 +393,14 @@ void ClientApp::load_audio(AudioManager& audio) {
     audio.load_effect(audio_assets::KEY_LEVELUP, audio_assets::PATH_LEVELUP);
     audio.load_effect(audio_assets::KEY_EQUIP, audio_assets::PATH_EQUIP);
     audio.load_effect(audio_assets::KEY_DROP, audio_assets::PATH_DROP);
-    audio.load_effect(audio_assets::KEY_HEAL,   audio_assets::PATH_HEAL);
+    audio.load_effect(audio_assets::KEY_HEAL, audio_assets::PATH_HEAL);
     audio.load_effect(audio_assets::KEY_REVIVE, audio_assets::PATH_REVIVE);
-    audio.load_effect(audio_assets::KEY_STAFF,  audio_assets::PATH_STAFF);
+    audio.load_effect(audio_assets::KEY_STAFF, audio_assets::PATH_STAFF);
     audio.load_effect(audio_assets::KEY_STAFF2, audio_assets::PATH_STAFF2);
     audio.load_effect(audio_assets::KEY_SHOOT, audio_assets::PATH_SHOOT);
     audio.load_effect(audio_assets::KEY_DODGE, audio_assets::PATH_DODGE);
     audio.load_effect(audio_assets::KEY_SEND_MSG, audio_assets::PATH_SEND_MSG);
-    audio.load_effect(audio_assets::KEY_RECV_MSG, audio_assets::PATH_RECV_MSG); 
+    audio.load_effect(audio_assets::KEY_RECV_MSG, audio_assets::PATH_RECV_MSG);
 }
 
 void ClientApp::play_event_sounds(AudioManager& audio,
@@ -461,9 +458,8 @@ void ClientApp::play_event_sounds(AudioManager& audio,
 void ClientApp::update_audio(AudioManager& audio, ClientGameState& state) {
     play_event_sounds(audio, state);
 
-    const bool meditating_now =
-        state.has_local_position() &&
-        state.is_meditating(state.get_local_nick());
+    const bool meditating_now = state.has_local_position() &&
+                                state.is_meditating(state.get_local_nick());
     if (meditating_now && !was_meditating) {
         audio.play_effect(audio_assets::KEY_MEDITATE);
     }
@@ -473,7 +469,8 @@ void ClientApp::update_audio(AudioManager& audio, ClientGameState& state) {
         const int x = state.get_local_x();
         const int y = state.get_local_y();
         if (prev_x >= 0 && (x != prev_x || y != prev_y)) {
-            audio.play_effect(audio_assets::KEY_STEP, audio_assets::STEP_VOLUME);
+            audio.play_effect(audio_assets::KEY_STEP,
+                              audio_assets::STEP_VOLUME);
         }
         prev_x = x;
         prev_y = y;

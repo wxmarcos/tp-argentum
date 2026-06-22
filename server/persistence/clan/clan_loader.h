@@ -1,8 +1,9 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <unordered_map>
-#include <map>
+
 #include "game/clan.h"
 
 class ClanLoader {

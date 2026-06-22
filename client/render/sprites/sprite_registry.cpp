@@ -9,7 +9,7 @@
 
 SpriteRegistry::SpriteRegistry(SDL_Renderer* renderer,
                                const std::filesystem::path& assets_root):
-        textures(renderer, assets_root) {
+    textures(renderer, assets_root) {
     load_all();
 }
 
@@ -160,12 +160,12 @@ bool SpriteRegistry::has_head(const std::string& raza) const {
 }
 
 SDL_Texture* SpriteRegistry::get_helmet_texture(
-        const std::string& helmet_key) const {
+    const std::string& helmet_key) const {
     return textures.get_or_null("head_" + helmet_key);
 }
 
 SDL_Rect SpriteRegistry::get_helmet_rect(const std::string& helmet_key,
-                                        int dir_idx) const {
+                                         int dir_idx) const {
     auto it = head_data.find(helmet_key);
     if (it == head_data.end()) return SDL_Rect{0, 0, 8, 8};
     return it->second.head_rects[dir_idx % 4];

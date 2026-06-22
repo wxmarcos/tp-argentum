@@ -2,6 +2,7 @@
 #define CLIENT_UI_MENU_SCREEN_H
 
 #include <SDL2/SDL.h>
+
 #include <SDL2pp/SDL2pp.hh>
 #include <array>
 #include <string>
@@ -12,7 +13,7 @@
 #include "ui/menu_result.h"
 
 class MenuScreen {
-    private:
+private:
     SDL2pp::Renderer& renderer;
     const ClientConfig& config;
     TextRenderer text;
@@ -54,10 +55,9 @@ class MenuScreen {
 
     static bool in_rect(const SDL_Rect& r, int x, int y);
 
-    public:
+public:
     MenuScreen(SDL2pp::Renderer& renderer, const ClientConfig& config);
     ~MenuScreen();
-
 
     MenuScreen(const MenuScreen&) = delete;
     MenuScreen& operator=(const MenuScreen&) = delete;
@@ -65,7 +65,7 @@ class MenuScreen {
     MenuResult run_inicio();
 
     MenuResult run_login(std::string& nick, const std::string& error_msg = "");
-    
+
     MenuResult run_create(std::string& raza, std::string& clase);
 };
 

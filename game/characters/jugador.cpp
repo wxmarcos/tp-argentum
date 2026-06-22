@@ -9,9 +9,9 @@
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
                  const Raza* raza, const charClase* clase,
-                 int capacidadInventario,
-                 double formulaExpCoef, double formulaExpExp,
-                 double formulaOroCoef, double formulaOroExp):
+                 int capacidadInventario, double formulaExpCoef,
+                 double formulaExpExp, double formulaOroCoef,
+                 double formulaOroExp):
     Character(nombre, posX, posY, 1),
     raza(raza), clase(clase), constitucion(raza->getConstitucionBase()),
     inteligencia(raza->getInteligenciaBase()), fuerza(raza->getFuerzaBase()),
@@ -117,7 +117,9 @@ void Jugador::perderExperiencia(int cantidad) {
 
 // ----------------------- Oro -----------------------
 int Jugador::getOro() const { return oro; }
-int Jugador::getOroMax() const { return Formulas::calcularOroMax(nivel, formulaOroCoef, formulaOroExp); }
+int Jugador::getOroMax() const {
+    return Formulas::calcularOroMax(nivel, formulaOroCoef, formulaOroExp);
+}
 
 void Jugador::agregarOro(int cantidad) {
     if (cantidad <= 0) return;
