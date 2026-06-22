@@ -210,12 +210,12 @@ LoadedMap TmxLoader::load(const std::filesystem::path& tmx_path,
     auto map =
         std::make_unique<MapData>(map_w, map_h, std::max(1, layer_count));
 
-    std::cout << "[TmxLoader] Mapa " << map_w << "x" << map_h
-              << " capas=" << layer_count << "\n";
+    // std::cout << "[TmxLoader] Mapa " << map_w << "x" << map_h
+    //           << " capas=" << layer_count << "\n";
 
     parse_body(f, tmx_dir, *catalog, *map, tile_size);
 
-    std::cout << "[TmxLoader] Cargado: " << tmx_path.filename() << "\n";
+    // std::cout << "[TmxLoader] Cargado: " << tmx_path.filename() << "\n";
 
     return LoadedMap{std::move(catalog), std::move(map)};
 }

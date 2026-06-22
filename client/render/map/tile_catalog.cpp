@@ -81,8 +81,8 @@ void TileCatalog::load_tsx(const std::filesystem::path& tsx_path,
     textures.try_load(key, png_abs.string());
     register_tiles(key, firstgid, columns, tilewidth, tileheight, tilecount);
 
-    std::cout << "[TileCatalog] " << tsx_path.filename()
-              << " firstgid=" << firstgid << " tiles=" << tilecount << "\n";
+    // std::cout << "[TileCatalog] " << tsx_path.filename()
+    //           << " firstgid=" << firstgid << " tiles=" << tilecount << "\n";
 }
 
 void TileCatalog::add_tileset(const std::filesystem::path& tsx_path,

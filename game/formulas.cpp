@@ -36,9 +36,9 @@ int Formulas::calcularDanio(int fuerza, int danioMin, int danioMax) {
     return fuerza * tirada;
 }
 
-bool Formulas::calcularEsquive(int agilidad) {
+bool Formulas::calcularEsquive(int agilidad, double umbral) {
     double r = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    return std::pow(r, agilidad) < 0.001;
+    return std::pow(r, agilidad) < umbral;
 }
 
 bool Formulas::calcularCritico(int porcentaje) {
@@ -63,16 +63,17 @@ int Formulas::calcularLimiteExp(int nivel, double coeficiente,
                                 double exponente) {
     return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
-int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio) {
+int Formulas::calcularExpAtaque(int danio, int nivelOtro, int nivelPropio,
+                                int nivelOffset) {
     if (nivelPropio <= 0) return 0;
-    int factor = std::max(nivelOtro - nivelPropio + 10, 0);
+    int factor = std::max(nivelOtro - nivelPropio + nivelOffset, 0);
     return danio * factor;
 }
-int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro,
-                               int nivelPropio) {
+int Formulas::calcularExpMatar(int vidaMaxOtro, int nivelOtro, int nivelPropio,
+                               int nivelOffset, double factorExp) {
     if (nivelPropio <= 0) return 0;
-    int factor = std::max(nivelOtro - nivelPropio + 10, 0);
-    double r = (static_cast<double>(rand()) / RAND_MAX) * 0.1;
+    int factor = std::max(nivelOtro - nivelPropio + nivelOffset, 0);
+    double r = (static_cast<double>(rand()) / RAND_MAX) * factorExp;
     return static_cast<int>(r * vidaMaxOtro * factor);
 }
 
@@ -84,9 +85,10 @@ int Formulas::calcularExpPerdida(int expActual, int porcentaje) {
 int Formulas::calcularOroMax(int nivel, double coeficiente, double exponente) {
     return static_cast<int>(coeficiente * std::pow(nivel, exponente));
 }
-int Formulas::calcularOroDropNPC(int vidaMaxNPC) {
-    double r = (static_cast<double>(rand()) / RAND_MAX) * 0.2;
-    return static_cast<int>(r * vidaMaxNPC);
+int Formulas::calcularOroDropNPC(int vidaMaxNPC, int divisor) {
+    if (divisor <= 0) return 0;
+    double r = static_cast<double>(rand()) / RAND_MAX;
+    return static_cast<int>(r * vidaMaxNPC / divisor);
 }
 int Formulas::calcularOroExceso(int oro, int oroMax) {
     if (oro <= oroMax) return 0;

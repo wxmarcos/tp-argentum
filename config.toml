@@ -88,7 +88,10 @@ exp_coeficiente         = 1000.0  # LimiteExp = coef * nivel^exp
 exp_exponente           = 1.8
 oro_max_coeficiente     = 100.0   # OroMax = coef * nivel^exp
 oro_max_exponente       = 1.1
-oro_drop_npc_divisor    = 10      # OroDropNPC = vidaMaxNPC / divisor
+oro_drop_npc_divisor    = 10      # OroDropNPC = rand(0,1) * vidaMaxNPC / divisor
+esquive_umbral          = 0.001   # umbral para calcularEsquive: pow(r, agi) < umbral
+exp_nivel_offset        = 10      # offset en factor de exp: max(nivelOtro - nivelPropio + offset, 0)
+exp_matar_factor        = 0.1     # factor aleatorio de exp al matar: rand(0,1) * factor * vidaMax * nivelFactor
 
 # -----------------------------------------------------------------------------
 # IA de criaturas
@@ -237,7 +240,8 @@ vecino_este        = -1
 vecino_oeste       = 3
 es_zona_segura     = false
 poblacion_max      = 8
-criaturas_posibles = ["orco", "golem", "esqueleto"]
+criaturas_posibles = ["orco", "golem", "esqueleto", "esqueleto_hacha", 
+                      "arana_blanca", "goblin_jorobado"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
@@ -274,8 +278,9 @@ vecino_sur         = -1
 vecino_este        = -1
 vecino_oeste       = -1
 es_zona_segura     = false
-poblacion_max      = 5
-criaturas_posibles = ["orco", "golem"]
+poblacion_max      = 40
+criaturas_posibles = ["orco", "golem", "esqueleto_hacha", "goblin_jorobado", 
+                      "golem_demoniaco"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
@@ -294,7 +299,9 @@ vecino_este        = -1
 vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 100
-criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco", "golem"]
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco", "golem",
+                      "esqueleto_hacha", "arana_blanca", "goblin_jorobado", 
+                      "golem_demoniaco"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
@@ -312,7 +319,7 @@ vecino_este        = -1
 vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 100
-criaturas_posibles = ["goblin", "esqueleto", "zombie"]
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana_blanca", "goblin_jorobado",]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []

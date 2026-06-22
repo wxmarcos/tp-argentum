@@ -121,7 +121,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
     // 0.80–0.87: oro (8%)
     if (r < 0.88) {
-        int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax());
+        int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax(),
+            config.getFormulaOroDropNPCDivisor());
         std::string nombreItem = item_defs::ORO;
 
         mundo.tirarItem(mx, px, py,
@@ -260,14 +261,15 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     objetivo->recibirDanio(danioFinal);
 
     atacante->ganarExperiencia(Formulas::calcularExpAtaque(
-        danioFinal, objetivo->getNivel(), atacante->getNivel()));
+        danioFinal, objetivo->getNivel(), atacante->getNivel(),
+        config.getFormulaExpNivelOffset()));
 
     resultado.objetivoMurio = !objetivo->estaVivo();
 
     if (resultado.objetivoMurio) {
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
-            objetivo->getVidaMax(), objetivo->getNivel(),
-            atacante->getNivel()));
+            objetivo->getVidaMax(), objetivo->getNivel(), atacante->getNivel(),
+            config.getFormulaExpNivelOffset(), config.getFormulaExpMatarFactor()));
     }
 
     return resultado;
@@ -340,7 +342,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
 
     if (!resultado.fueCritico)
         resultado.fueEsquivado =
-            Formulas::calcularEsquive(objetivo->getAgilidad());
+            Formulas::calcularEsquive(objetivo->getAgilidad(),
+                                      config.getFormulaEsquiveUmbral());
 
     if (resultado.fueEsquivado) {
         resultado.danioAplicado = 0;
@@ -367,7 +370,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
     objetivo->recibirDanio(danioFinal);
 
     atacante->ganarExperiencia(Formulas::calcularExpAtaque(
-        danioFinal, objetivo->getNivel(), atacante->getNivel()));
+        danioFinal, objetivo->getNivel(), atacante->getNivel(),
+        config.getFormulaExpNivelOffset()));
 
     resultado.objetivoMurio = !objetivo->estaVivo();
     if (resultado.objetivoMurio) {
@@ -375,8 +379,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
             objetivo->getExperiencia(),
             config.getFormulaExpPenalidadPorcentaje()));
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
-            objetivo->getVidaMax(), objetivo->getNivel(),
-            atacante->getNivel()));
+            objetivo->getVidaMax(), objetivo->getNivel(), atacante->getNivel(),
+            config.getFormulaExpNivelOffset(), config.getFormulaExpMatarFactor()));
     }
 
     return resultado;
@@ -388,7 +392,10 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
     if (!atacante || !objetivo) return 0;
     if (!atacante->estaVivo() || !objetivo->estaVivo()) return 0;
 
-    if (Formulas::calcularEsquive(objetivo->getAgilidad())) {
+    if (Formulas::calcularEsquive(objetivo->getAgilidad(),
+                                  config.getFormulaEsquiveUmbral())) {
+        std::cout << "[ESQUIVE] " << objetivo->getNombre()
+                  << " agi=" << objetivo->getAgilidad() << "\n";
         return 0;
     }
 
