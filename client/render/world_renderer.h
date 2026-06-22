@@ -119,7 +119,8 @@ class WorldRenderer {
                        int cam_offset_y);
 
     void draw_name(const std::string& nick, int world_x, int world_y,
-                   int cam_offset_x, int cam_offset_y);
+                   int cam_offset_x, int cam_offset_y,
+                   const std::string& raza = "");
     
     void draw_floor_items(const ClientGameState& state, int cam_offset_x,
                           int cam_offset_y);
