@@ -12,8 +12,6 @@ std::map<std::string, Clan> ClanLoader::load_all(const std::string& path) {
     std::ifstream file(path, std::ios::binary);
 
     if (!file.is_open()) {
-        std::cout << "[ClanLoader] no existe " << path
-                  << ", iniciando sin clanes persistidos\n";
         return clanes;
     }
 
@@ -26,8 +24,6 @@ std::map<std::string, Clan> ClanLoader::load_all(const std::string& path) {
             clanes.emplace(clan.getNombre(), std::move(clan));
         }
     }
-
-    std::cout << "[ClanLoader] clanes cargados=" << clanes.size() << "\n";
 
     return clanes;
 }

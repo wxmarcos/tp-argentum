@@ -37,8 +37,6 @@ static std::string extraerObjectGroupColision(const std::string& xml) {
 }
 
 void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
-    std::cout << "[TmxLoader] leyendo colisiones por objetos: "
-              << rutaTmx << "\n";
 
     std::string xml = leerArchivo(rutaTmx);
     std::string objectGroup = extraerObjectGroupColision(xml);
@@ -98,10 +96,4 @@ void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
         objetos++;
     }
 
-    std::cout << "[TmxLoader] objectgroup Colision: objetos="
-              << objetos
-              << " tiles_bloqueados="
-              << tilesBloqueados
-              << "\n";
-    
 }
