@@ -25,6 +25,7 @@ private:
     Game game;
 
     void enqueue_persistence_tasks(const Command& cmd);
+    void enqueue_all_persistence_tasks();
     void dispatch_snapshot(const OutgoingSnapshot& out);
 
     void broadcast_snapshot(const Snapshot& snapshot);

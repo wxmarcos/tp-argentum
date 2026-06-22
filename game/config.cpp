@@ -205,6 +205,10 @@ float Config::getSpawnIntervalo() const {
     return static_cast<float>(impl->get<double>("ia.intervalo_spawn", 30.0));
 }
 
+float Config::getPersistenciaIntervalo() const {
+    return static_cast<float>(impl->get<double>("ia.intervalo_persistencia", 60.0));
+}
+
 float Config::getVelocidadResurreccion() const {
     return static_cast<float>(
         impl->get<double>("ia.velocidad_resurreccion", 0.5));
