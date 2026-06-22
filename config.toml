@@ -335,7 +335,8 @@ sacerdotes         = []
 comerciantes       = []
 banqueros          = []
 portales           = [ 
-    { x = 78, y = 16, mapa_destino = 6, destino_x = 78, destino_y = 42 }
+    { x = 78, y = 16, mapa_destino = 6, destino_x = 78, destino_y = 42 },
+    { x = 77, y = 74, mapa_destino = 4, destino_x = 93, destino_y = 9 }
 ]
 
 [spawn]

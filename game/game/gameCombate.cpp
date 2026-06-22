@@ -389,8 +389,6 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
     if (!atacante->estaVivo() || !objetivo->estaVivo()) return 0;
 
     if (Formulas::calcularEsquive(objetivo->getAgilidad())) {
-        std::cout << "[ESQUIVE] " << objetivo->getNombre()
-                  << " agi=" << objetivo->getAgilidad() << "\n";
         return 0;
     }
 
