@@ -98,6 +98,11 @@ public:
 
     std::vector<ConfigMapa> getMapas() const;
 
+    // PvP
+    int getPvpNivelMinimo() const;
+    int getPvpDiferenciaNivelMax() const;
+    double getPvpBonusClaPorComp() const;
+
     // Drops de criaturas
     double getDropUmbralNada() const;
     double getDropUmbralOro() const;

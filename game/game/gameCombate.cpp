@@ -24,8 +24,11 @@ static std::mt19937& rng() {
 // ----------------- Combate PvP/PvE -----------------
 
 bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
-    if (atacante->getNivel() <= 12 || objetivo->getNivel() <= 12) return false;
-    if (std::abs(atacante->getNivel() - objetivo->getNivel()) > 10)
+    int nivelMin = config.getPvpNivelMinimo();
+    if (atacante->getNivel() <= nivelMin || objetivo->getNivel() <= nivelMin)
+        return false;
+    if (std::abs(atacante->getNivel() - objetivo->getNivel()) >
+        config.getPvpDiferenciaNivelMax())
         return false;
 
     // Zona segura
@@ -196,7 +199,6 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    // 0.95–1.00: escudo (5%)
     auto item = crearEscudo();
     std::string nombreItem = item->getNombre();
 
@@ -353,7 +355,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
     int compDefensor = contarCompanerosClanEnMapa(objetivo);
-    defensa = static_cast<int>(defensa * (1.0 + compDefensor * 0.05));
+    defensa = static_cast<int>(
+        defensa * (1.0 + compDefensor * config.getPvpBonusClaPorComp()));
 
     int danioFinal = std::max(0, d.valor - defensa);
     resultado.danioAplicado = danioFinal;
@@ -405,7 +408,8 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
 
     // Bonus grupal de clan del defensor
     int comp = contarCompanerosClanEnMapa(objetivo);
-    defensa = static_cast<int>(defensa * (1.0 + comp * 0.05));
+    defensa = static_cast<int>(defensa *
+                               (1.0 + comp * config.getPvpBonusClaPorComp()));
 
     int danioFinal = std::max(0, danio - defensa);
 

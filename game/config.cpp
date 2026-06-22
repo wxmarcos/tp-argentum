@@ -227,6 +227,18 @@ float Config::getVelocidadResurreccion() const {
         impl->get<double>("ia.velocidad_resurreccion", 0.5));
 }
 
+// ----------------- PvP -----------------
+
+int Config::getPvpNivelMinimo() const {
+    return static_cast<int>(impl->get<int64_t>("pvp.nivel_minimo", 12));
+}
+int Config::getPvpDiferenciaNivelMax() const {
+    return static_cast<int>(impl->get<int64_t>("pvp.diferencia_nivel_max", 10));
+}
+double Config::getPvpBonusClaPorComp() const {
+    return impl->get<double>("pvp.bonus_clan_por_comp", 0.05);
+}
+
 // ----------------- Drops de criaturas -----------------
 
 double Config::getDropUmbralNada() const {

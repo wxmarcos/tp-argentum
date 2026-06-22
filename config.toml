@@ -94,6 +94,14 @@ exp_nivel_offset        = 10      # offset en factor de exp: max(nivelOtro - niv
 exp_matar_factor        = 0.1     # factor aleatorio de exp al matar: rand(0,1) * factor * vidaMax * nivelFactor
 
 # -----------------------------------------------------------------------------
+# Combate PvP
+# -----------------------------------------------------------------------------
+[pvp]
+nivel_minimo        = 12
+diferencia_nivel_max = 10
+bonus_clan_por_comp = 0.05
+
+# -----------------------------------------------------------------------------
 # Drops de criaturas (umbrales acumulativos sobre r ∈ [0,1))
 # -----------------------------------------------------------------------------
 [drops]
