@@ -168,12 +168,12 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     if (j->getClanNombre() == clanNom) {
                         auto itId = nick_to_player_id.find(nick);
                         if (itId != nick_to_player_id.end()) {
-                            push_unicast(
-                                snapshots,
-                                Snapshot::chat_message("Sistema", nick,
-                                                       "Tu compañero " + nombre +
-                                                           " salió de Argentum"),
-                                itId->second);
+                            push_unicast(snapshots,
+                                         Snapshot::chat_message(
+                                             "Sistema", nick,
+                                             "Tu compañero " + nombre +
+                                                 " salió de Argentum"),
+                                         itId->second);
                         }
                     }
                 }

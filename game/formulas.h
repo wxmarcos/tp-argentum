@@ -26,7 +26,8 @@ public:
                                int escudoMax, int cascoMin, int cascoMax);
 
     // Experiencia
-    static int calcularLimiteExp(int nivel, double coeficiente, double exponente);
+    static int calcularLimiteExp(int nivel, double coeficiente,
+                                 double exponente);
     static int calcularExpAtaque(int danio, int nivelOtro, int nivelPropio,
                                  int nivelOffset);
     static int calcularExpMatar(int vidaMaxOtro, int nivelOtro, int nivelPropio,

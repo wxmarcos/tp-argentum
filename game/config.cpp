@@ -236,7 +236,8 @@ int Config::getClanMaxMiembros() const {
 // ----------------- Mundo -----------------
 
 int Config::getMoveCooldownMs() const {
-    return static_cast<int>(impl->get<int64_t>("mundo.movimiento_cooldown_ms", 150));
+    return static_cast<int>(
+        impl->get<int64_t>("mundo.movimiento_cooldown_ms", 150));
 }
 
 int Config::getMaxRadioDrop() const {
@@ -244,7 +245,8 @@ int Config::getMaxRadioDrop() const {
 }
 
 float Config::getPenalizacionMapaDistinto() const {
-    return static_cast<float>(impl->get<double>("mundo.penalizacion_mapa_distinto", 50.0));
+    return static_cast<float>(
+        impl->get<double>("mundo.penalizacion_mapa_distinto", 50.0));
 }
 
 // ----------------- Precio de items -----------------

@@ -121,8 +121,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
     // 0.80–0.87: oro (8%)
     if (r < 0.88) {
-        int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax(),
-            config.getFormulaOroDropNPCDivisor());
+        int cantidad = Formulas::calcularOroDropNPC(
+            criatura->getVidaMax(), config.getFormulaOroDropNPCDivisor());
         std::string nombreItem = item_defs::ORO;
 
         mundo.tirarItem(mx, px, py,
@@ -269,7 +269,8 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     if (resultado.objetivoMurio) {
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
             objetivo->getVidaMax(), objetivo->getNivel(), atacante->getNivel(),
-            config.getFormulaExpNivelOffset(), config.getFormulaExpMatarFactor()));
+            config.getFormulaExpNivelOffset(),
+            config.getFormulaExpMatarFactor()));
     }
 
     return resultado;
@@ -341,9 +342,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
     danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
 
     if (!resultado.fueCritico)
-        resultado.fueEsquivado =
-            Formulas::calcularEsquive(objetivo->getAgilidad(),
-                                      config.getFormulaEsquiveUmbral());
+        resultado.fueEsquivado = Formulas::calcularEsquive(
+            objetivo->getAgilidad(), config.getFormulaEsquiveUmbral());
 
     if (resultado.fueEsquivado) {
         resultado.danioAplicado = 0;
@@ -380,7 +380,8 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
             config.getFormulaExpPenalidadPorcentaje()));
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
             objetivo->getVidaMax(), objetivo->getNivel(), atacante->getNivel(),
-            config.getFormulaExpNivelOffset(), config.getFormulaExpMatarFactor()));
+            config.getFormulaExpNivelOffset(),
+            config.getFormulaExpMatarFactor()));
     }
 
     return resultado;
