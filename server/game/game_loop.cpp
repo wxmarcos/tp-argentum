@@ -21,6 +21,9 @@ void GameLoop::run() {
 
     const float dt = 1.0f / static_cast<float>(ticks_per_second);
 
+    const float intervalo_persistencia = config.getPersistenciaIntervalo();
+    float tiempo_desde_persist = 0.0f;
+
     while (should_keep_running()) {
         auto tick_start = std::chrono::steady_clock::now();
 
@@ -60,6 +63,12 @@ void GameLoop::run() {
             dispatch_snapshot(out);
         }
 
+        tiempo_desde_persist += dt;
+        if (tiempo_desde_persist >= intervalo_persistencia) {
+            enqueue_all_persistence_tasks();
+            tiempo_desde_persist = 0.0f;
+        }
+
         auto tick_end = std::chrono::steady_clock::now();
         auto elapsed = tick_end - tick_start;
 
@@ -83,6 +92,16 @@ void GameLoop::enqueue_persistence_tasks(const Command& cmd) {
         persistence_queue.push(
             PersistenceJob::clans_job(game.getClanes()));
     }
+}
+
+void GameLoop::enqueue_all_persistence_tasks() {
+    std::vector<PersistenceTask> tasks = game.build_all_players_tasks();
+
+    for (const PersistenceTask& task : tasks) {
+        persistence_queue.push(PersistenceJob::player_job(task));
+    }
+
+    persistence_queue.push(PersistenceJob::clans_job(game.getClanes()));
 }
 
 void GameLoop::dispatch_snapshot(const OutgoingSnapshot& out) {
