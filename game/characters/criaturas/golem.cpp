@@ -1,4 +1,4 @@
-#include "criaturas/golem.h"
+#include "game/characters/criaturas/golem.h"
 
 Golem::Golem(const Config& config, int posX, int posY):
     Criatura(

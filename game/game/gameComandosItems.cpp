@@ -5,98 +5,6 @@
 #include "game/items/item_defs.h"
 #include "game/snapshot_factory.h"
 
-// ----------------- MOVE -----------------
-
-void Game::handleMover(const std::string& nombre, const Command& cmd,
-                       std::vector<OutgoingSnapshot>& snapshots,
-                       uint16_t playerId) {
-    Jugador* jugador = getJugador(nombre);
-    if (!jugador) {
-        push_unicast(
-            snapshots,
-            Snapshot::error_message(nombre, "Jugador inexistente"),
-            playerId);
-        return;
-    }
-
-    if (!puedeMoverAhora(nombre)) return;
-
-    int mapaAnterior = jugador->getMapaId();
-
-    bool moved = moverJugador(
-        nombre,
-        static_cast<Direccion>(cmd.get_direction()));
-
-    if (!moved) {
-        push_unicast(
-            snapshots,
-            Snapshot::error_message(nombre, "No se pudo mover"),
-            playerId);
-        return;
-    }
-
-    int mapaActual = jugador->getMapaId();
-
-    if (mapaActual != mapaAnterior) {
-        // Que todos borren al jugador de su mapa viejo.
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_remove(nombre));
-
-        // Al jugador que cambió de mapa: actualizar mapa/posición local.
-        push_unicast(
-            snapshots,
-            Snapshot::map_change(
-                nombre,
-                static_cast<uint16_t>(mapaActual),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())),
-            playerId);
-
-        // Al jugador que cambió de mapa: asegurar stats/skin local.
-        push_unicast(
-            snapshots,
-            SnapshotFactory::player_stats_from_player(*jugador),
-            playerId);
-        // Al jugador que cambió de mapa: asegurar items local.
-        push_broadcast(
-            snapshots,
-            SnapshotFactory::player_inventory_from_player(*jugador));
-        // A los demás: aparece el jugador en el mapa nuevo.
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_created(
-                nombre,
-                static_cast<uint16_t>(mapaActual),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
-
-        // A los demás: raza/clase para dibujarlo con skin correcta.
-        push_broadcast(
-            snapshots,
-            SnapshotFactory::player_stats_from_player(*jugador));
-
-        // Al jugador que entra al mapa nuevo:
-        // recibir jugadores, NPCs, criaturas e items ya existentes.
-        agregarReplayDeJugadores(snapshots, nombre, mapaActual, playerId);
-        agregarReplayNpcs(snapshots, mapaActual, playerId);
-        agregarReplayCriaturas(snapshots, mapaActual, playerId);
-        agregarReplayItems(snapshots, mapaActual, playerId);
-
-    } else {
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_move(
-                nombre,
-                static_cast<uint16_t>(mapaActual),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
-    }
-}
-
 // ----------------- PICK ITEM -----------------
 
 void Game::handlePickItem(const std::string& nombre, const Command& cmd,
@@ -108,8 +16,10 @@ void Game::handlePickItem(const std::string& nombre, const Command& cmd,
         tomarItem(nombre, static_cast<int>(cmd.get_item_id()));
 
     if (!resultado.exito) {
-        push_unicast(snapshots, 
-            Snapshot::error_message(nombre, "No hay item para recoger"), playerId);
+        const std::string msg = resultado.itemNombre.empty()
+            ? "No hay item para recoger"
+            : "Tu inventario está lleno";
+        push_unicast(snapshots, Snapshot::error_message(nombre, msg), playerId);
         return;
     }
 
@@ -162,7 +72,7 @@ void Game::handleDropItem(const std::string& nombre, const Command& cmd,
     }
 }
 
-// ----------------- EQUIP ITEM -----------------
+// ----------------- EQUIP/UNEQUIP ITEM -----------------
 
 void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
                            std::vector<OutgoingSnapshot>& snapshots, uint16_t playerId) {
@@ -183,6 +93,23 @@ void Game::handleEquipItem(const std::string& nombre, const Command& cmd,
     }
     if (!slots[slot].has_value()) {
         push_unicast(snapshots, Snapshot::error_message(nombre, "Slot vacio"), playerId);
+        return;
+    }
+
+    const Item* itemPtr = slots[slot]->item.get();
+    if (jugador->getInventario().estaEquipado(itemPtr)) {
+        TipoItem tipo = itemPtr->getTipo();
+        if (tipo == TipoItem::ARMA || tipo == TipoItem::BACULO)
+            jugador->desequiparArma();
+        else if (tipo == TipoItem::ARMADURA)
+            jugador->desequiparArmadura();
+        else if (tipo == TipoItem::CASCO)
+            jugador->desequiparCasco();
+        else if (tipo == TipoItem::ESCUDO)
+            jugador->desequiparEscudo();
+
+        push_broadcast(snapshots, SnapshotFactory::player_stats_from_player(*jugador));
+        push_broadcast(snapshots, SnapshotFactory::player_inventory_from_player(*jugador));
         return;
     }
 
@@ -250,15 +177,14 @@ ResultadoTomarItem Game::tomarItem(const std::string& nombre, int indice) {
         return resultado;
     }
 
-    std::optional<int> slot_inventario =
-        jugador->agarrarItem(std::move(slot_piso->item), slot_piso->cantidad);
-
-    if (!slot_inventario.has_value()) {
+    auto slot = jugador->agarrarItem(std::move(slot_piso->item),
+                                     slot_piso->cantidad);
+    if (!slot.has_value()) {
         mundo.tirarItem(mapaId, x, y, std::move(*slot_piso));
         return resultado;
     }
 
     resultado.exito = true;
-    resultado.slotInventario = *slot_inventario;
+    resultado.slotInventario = *slot;
     return resultado;
 }

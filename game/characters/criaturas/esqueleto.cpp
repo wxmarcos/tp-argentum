@@ -1,4 +1,4 @@
-#include "criaturas/esqueleto.h"
+#include "game/characters/criaturas/esqueleto.h"
 
 Esqueleto::Esqueleto(const Config& config, int posX, int posY):
     Criatura("Esqueleto", posX, posY, config.getCriaturaVidaMax("esqueleto"),

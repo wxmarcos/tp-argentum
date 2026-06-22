@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <limits>
+#include <set>
 
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
@@ -122,20 +123,28 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
                 push_broadcast(snapshots,
                     Snapshot::entity_remove(objetivo->getNombre()));
 
+                objetivo->perderExperiencia(Formulas::calcularExpPerdida(
+                    objetivo->getExperiencia(),
+                    config.getFormulaExpPenalidadPorcentaje()));
+
                 auto items = objetivo->soltarTodosLosItems();
+                std::set<std::pair<int, int>> tilesUsados;
                 for (auto& item : items) {
                     std::string nombreItem = item.item->getNombre();
                     uint16_t cantidad = item.cantidad;
+                    auto [tx, ty] = buscarTileParaItem(
+                        objetivo->getMapaId(),
+                        objetivo->getPosX(), objetivo->getPosY(), tilesUsados);
 
-                    mundo.tirarItem(objetivo->getMapaId(), objetivo->getPosX(),
-                                    objetivo->getPosY(), std::move(item));
+                    mundo.tirarItem(objetivo->getMapaId(), tx, ty,
+                                    std::move(item));
 
                     push_broadcast(snapshots, Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                         objetivo->getNombre(), nombreItem,
                         static_cast<uint16_t>(objetivo->getMapaId()),
-                        static_cast<uint16_t>(objetivo->getPosX()),
-                        static_cast<uint16_t>(objetivo->getPosY()), cantidad));
+                        static_cast<uint16_t>(tx),
+                        static_cast<uint16_t>(ty), cantidad));
                     push_unicast(snapshots,
                         SnapshotFactory::player_inventory_from_player(*objetivo),
                         itObjetivoId->second);
@@ -146,18 +155,20 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
 
                 if (oroExceso > 0) {
                     objetivo->gastarOro(oroExceso);
+                    auto [tx, ty] = buscarTileParaItem(
+                        objetivo->getMapaId(),
+                        objetivo->getPosX(), objetivo->getPosY(), tilesUsados);
 
                     mundo.tirarItem(
-                        objetivo->getMapaId(), objetivo->getPosX(),
-                        objetivo->getPosY(),
+                        objetivo->getMapaId(), tx, ty,
                         SlotInventario(ItemFactory::crearOro(oroExceso)));
 
                     push_broadcast(snapshots, Snapshot::item_event(
                         static_cast<uint8_t>(protocol::ItemEventAction::DROP),
                         objetivo->getNombre(), item_defs::ORO,
                         static_cast<uint16_t>(objetivo->getMapaId()),
-                        static_cast<uint16_t>(objetivo->getPosX()),
-                        static_cast<uint16_t>(objetivo->getPosY()),
+                        static_cast<uint16_t>(tx),
+                        static_cast<uint16_t>(ty),
                         static_cast<uint16_t>(oroExceso)));
                 }
             }
@@ -216,6 +227,7 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
 }
 
 // ----------------- Sacerdote más cercano -----------------
+static constexpr float PENALIZACION_MAPA_DISTINTO = 50.0f;
 
 bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
                                         InfoNPC& destino,
@@ -227,6 +239,11 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
         float dx = static_cast<float>(s.x - fantasma->getPosX());
         float dy = static_cast<float>(s.y - fantasma->getPosY());
         float dist = std::sqrt(dx * dx + dy * dy);
+
+        if (s.mapaId != fantasma->getMapaId()) {
+            dist += PENALIZACION_MAPA_DISTINTO;
+        }
+
         if (dist < distMin) {
             distMin = dist;
             destino = s;
@@ -237,6 +254,34 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
     distancia = distMin;
     return encontrado;
 }
+
+static constexpr int MAX_RADIO_DROP = 8;
+
+std::pair<int, int> Game::buscarTileParaItem(
+    int mapaId, int cx, int cy,
+    std::set<std::pair<int, int>>& usados) const {
+    const Mapa* mapa = mundo.getMapa(mapaId);
+    if (!mapa) return {cx, cy};
+
+    for (int r = 0; r <= MAX_RADIO_DROP; ++r) {
+        for (int dx = -r; dx <= r; ++dx) {
+            for (int dy = -r; dy <= r; ++dy) {
+                if (std::abs(dx) != r && std::abs(dy) != r) continue;
+                int nx = cx + dx;
+                int ny = cy + dy;
+                if (!mapa->esPosicionValida(nx, ny)) continue;
+                if (!mapa->esTransitable(nx, ny)) continue;
+                std::pair<int, int> tile{nx, ny};
+                if (usados.count(tile)) continue;
+                if (mapa->hayItemEnPosicion(nx, ny)) continue;
+                usados.insert(tile);
+                return tile;
+            }
+        }
+    }
+    return {cx, cy};
+}
+
 bool Game::buscarPosicionLibreCerca(int mapaId, int x, int y,
                                     int& outX, int& outY) const {
     const Mapa* mapa = mundo.getMapa(mapaId);

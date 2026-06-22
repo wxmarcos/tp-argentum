@@ -51,8 +51,14 @@ void Game::handleBuyItem(const std::string& nombre, const Command& cmd,
         return;
     }
 
+    if (jugador->getInventario().estaLleno()) {
+        push_unicast(snapshots,
+            Snapshot::error_message(nombre, "Tu inventario está lleno"), playerId);
+        return;
+    }
+
     if (!jugador->gastarOro(precio)) {
-        push_unicast(snapshots, 
+        push_unicast(snapshots,
             Snapshot::error_message(nombre, "No tenes suficiente oro"), playerId);
         return;
     }
