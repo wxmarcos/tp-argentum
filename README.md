@@ -199,7 +199,9 @@ Los comandos se escriben abriendo la consola con **Enter**. El número de `<slot
 | `/comprar <objeto>` | Comerciante / Sacerdote | Compra el objeto indicado por su nombre. |
 | `/vender <slot>` | Comerciante | Vende el objeto del slot indicado. |
 | `/depositar <slot>` | Banquero | Deposita en el banco el objeto del slot indicado. |
+| `/depositar oro <cantidad>` | Banquero | Deposita la cantidad de oro indicada en el banco. |
 | `/retirar <slot>` | Banquero | Retira del banco el objeto indicado. |
+| `/retirar oro <cantidad>` | Banquero | Retira la cantidad de oro indicada del banco. |
 
 > Para interactuar con un NPC, el personaje debe estar cerca de él.
 
