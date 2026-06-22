@@ -15,9 +15,9 @@
 #include "common/queue.h"
 #include "game/config.h"
 #include "game/game_loop.h"
+#include "persistence/persistence_job.h"
 #include "persistence/persistence_task.h"
 #include "persistence/persistence_worker.h"
-#include "persistence/persistence_job.h"
 class Server {
 private:
     MonitorClients clients;

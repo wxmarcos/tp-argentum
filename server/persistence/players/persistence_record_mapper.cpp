@@ -115,8 +115,8 @@ PersistenceTask PersistenceRecordMapper::from_record(
     }
 
     task.banco_oro = record.banco_oro;
-    const uint32_t bank_count =
-        std::min<uint32_t>(record.banco_items_count, PERSISTENCE_MAX_BANK_ITEMS);
+    const uint32_t bank_count = std::min<uint32_t>(record.banco_items_count,
+                                                   PERSISTENCE_MAX_BANK_ITEMS);
 
     for (uint32_t i = 0; i < bank_count; ++i) {
         PersistenceInventoryItem item;

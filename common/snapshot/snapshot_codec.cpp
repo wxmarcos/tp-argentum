@@ -52,9 +52,8 @@ static uint16_t player_stats_payload_size(const Snapshot& snapshot) {
         sizeof(uint16_t) + sizeof(uint8_t) + sizeof(uint16_t) +
         sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
         sizeof(uint16_t) + sizeof(uint32_t) + sizeof(uint32_t) +
-        sizeof(uint32_t) +
-        sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint16_t) +
-        sizeof(uint16_t));
+        sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint16_t) +
+        sizeof(uint16_t) + sizeof(uint16_t));
 }
 
 static uint16_t item_event_payload_size(const Snapshot& snapshot) {

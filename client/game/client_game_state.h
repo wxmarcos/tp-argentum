@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "common/protocol_defs.h"
-#include "protocol/game_update.h"
 #include "game/floating_kind.h"
+#include "protocol/game_update.h"
 #include "render/effects/effect_spawn.h"
 
 struct PlayerStats {

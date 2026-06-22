@@ -404,7 +404,7 @@ SpriteData make_esqueleto_hacha_sprite_data() {
     d.frame_rects[DIR_WEST][1] = {77, 201, 40, 92};
     d.frame_rects[DIR_WEST][2] = {191, 196, 50, 97};
     d.frame_rects[DIR_WEST][3] = {268, 200, 40, 93};
-    
+
     return d;
 }
 
@@ -558,9 +558,7 @@ SpriteData make_sacerdote_sprite_data() {
     return d;
 }
 
-SpriteData make_standard_sprite_data() {
-    return make_humano_sprite_data();
-}
+SpriteData make_standard_sprite_data() { return make_humano_sprite_data(); }
 
 HeadData make_humano_head_data() {
     HeadData d;
@@ -727,6 +725,6 @@ HeadData make_casco_sombrero_data() {
     d.off_y[DIR_WEST] = -13;
     d.off_x[DIR_EAST] = 3;
     d.off_x[DIR_WEST] = -3;
-    
+
     return d;
 }

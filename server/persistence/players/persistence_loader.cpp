@@ -36,10 +36,8 @@ std::unordered_map<std::string, uint64_t> PersistenceLoader::load_index(
     return index;
 }
 std::optional<PersistenceTask> PersistenceLoader::load_player_by_nick(
-    const std::string& players_path,
-    const std::string& index_path,
+    const std::string& players_path, const std::string& index_path,
     const std::string& nick) {
-
     auto index = load_index(index_path);
 
     auto it = index.find(nick);
@@ -62,7 +60,6 @@ std::optional<PersistenceTask> PersistenceLoader::load_player_by_nick(
     }
 
     PersistenceTask task = PersistenceRecordMapper::from_record(record);
-
 
     return task;
 }

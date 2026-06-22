@@ -1,13 +1,14 @@
 #include "render/hud_renderer.h"
 
+#include <SDL2/SDL_image.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <string>
-#include <SDL2/SDL_image.h>
 
-#include "render/colors.h"
 #include "render/asset_paths.h"
+#include "render/colors.h"
 
 static constexpr Uint32 TOAST_MS = 4000;
 static constexpr int TOAST_PAD = 8;
@@ -39,9 +40,9 @@ static constexpr int QTY_PAD = 2;
 static constexpr SDL_Color BAR_TRACK{40, 40, 40, 220};
 
 SDL_Texture* HudRenderer::load_texture(const std::string& rel_path) const {
-    const auto full = (std::filesystem::current_path() /
-                       config.assets_path / rel_path)
-                          .lexically_normal();
+    const auto full =
+        (std::filesystem::current_path() / config.assets_path / rel_path)
+            .lexically_normal();
     SDL_Texture* tex = nullptr;
     if (SDL_Surface* surf = IMG_Load(full.string().c_str())) {
         tex = SDL_CreateTextureFromSurface(renderer.Get(), surf);
@@ -52,17 +53,17 @@ SDL_Texture* HudRenderer::load_texture(const std::string& rel_path) const {
 
 HudRenderer::HudRenderer(SDL2pp::Renderer& renderer,
                          const ClientConfig& config):
-        renderer(renderer),
-        config(config),
-        text(renderer.Get(),
-             (std::filesystem::current_path() / config.font_path)
-                 .lexically_normal(),
-             config.font_size),
-        chat_text(renderer.Get(),
-                  (std::filesystem::current_path() / config.font_path)
-                      .lexically_normal(),
-                  CHAT_FONT_SIZE),
-        item_sprites(renderer, config) {
+    renderer(renderer),
+    config(config),
+    text(
+        renderer.Get(),
+        (std::filesystem::current_path() / config.font_path).lexically_normal(),
+        config.font_size),
+    chat_text(
+        renderer.Get(),
+        (std::filesystem::current_path() / config.font_path).lexically_normal(),
+        CHAT_FONT_SIZE),
+    item_sprites(renderer, config) {
     hud_bg = load_texture(std::string(assets::HUD_BG));
     slot_frame = load_texture(std::string(assets::INV_SLOT_FRAME));
     frame_tex = load_texture(std::string(assets::UI_MARCO));
@@ -90,8 +91,9 @@ void HudRenderer::draw_panel() {
         renderer.FillRect(SDL2pp::Rect(panel_x, 0, panel_w, h));
     }
 
-    renderer.SetDrawColor(colors::HUD_PANEL_BORDER.r, colors::HUD_PANEL_BORDER.g,
-                          colors::HUD_PANEL_BORDER.b, colors::HUD_PANEL_BORDER.a);
+    renderer.SetDrawColor(
+        colors::HUD_PANEL_BORDER.r, colors::HUD_PANEL_BORDER.g,
+        colors::HUD_PANEL_BORDER.b, colors::HUD_PANEL_BORDER.a);
     renderer.FillRect(SDL2pp::Rect(panel_x, 0, PANEL_BORDER_W, h));
 }
 
@@ -126,18 +128,18 @@ void HudRenderer::draw_vitals(const PlayerStats& s, int x, int w, int& y) {
         s.vida_max > 0 ? static_cast<float>(s.vida) / s.vida_max : 0.0f;
     draw_bar(x, y, w, BAR_H, vida_ratio, colors::HEALTH_BAR);
     int ty = y + (BAR_H - text.line_height()) / 2;
-    text.draw("Vida " + std::to_string(s.vida) + "/" +
-                  std::to_string(s.vida_max),
-              x + BAR_TEXT_PAD, ty, colors::WHITE);
+    text.draw(
+        "Vida " + std::to_string(s.vida) + "/" + std::to_string(s.vida_max),
+        x + BAR_TEXT_PAD, ty, colors::WHITE);
     y += BAR_H + BAR_GAP;
 
     const float mana_ratio =
         s.mana_max > 0 ? static_cast<float>(s.mana) / s.mana_max : 0.0f;
     draw_bar(x, y, w, BAR_H, mana_ratio, colors::MANA_BAR);
     ty = y + (BAR_H - text.line_height()) / 2;
-    text.draw("Mana " + std::to_string(s.mana) + "/" +
-                  std::to_string(s.mana_max),
-              x + BAR_TEXT_PAD, ty, colors::WHITE);
+    text.draw(
+        "Mana " + std::to_string(s.mana) + "/" + std::to_string(s.mana_max),
+        x + BAR_TEXT_PAD, ty, colors::WHITE);
     y += BAR_H + SECTION_GAP;
 }
 
@@ -158,10 +160,9 @@ void HudRenderer::draw_inventory_slot(const InventorySlotView& slot, int index,
     } else {
         renderer.SetDrawColor(SLOT_BG.r, SLOT_BG.g, SLOT_BG.b, SLOT_BG.a);
         renderer.FillRect(SDL2pp::Rect(cx, cy, cell, cell));
-        renderer.SetDrawColor(colors::HUD_PANEL_BORDER.r,
-                              colors::HUD_PANEL_BORDER.g,
-                              colors::HUD_PANEL_BORDER.b,
-                              colors::HUD_PANEL_BORDER.a);
+        renderer.SetDrawColor(
+            colors::HUD_PANEL_BORDER.r, colors::HUD_PANEL_BORDER.g,
+            colors::HUD_PANEL_BORDER.b, colors::HUD_PANEL_BORDER.a);
         renderer.DrawRect(SDL2pp::Rect(cx, cy, cell, cell));
     }
 
@@ -209,8 +210,8 @@ void HudRenderer::draw_inventory_section(const ClientGameState& state, int x,
     for (size_t i = 0; i < slots.size(); ++i) {
         const int col = static_cast<int>(i) % cols;
         const int row = static_cast<int>(i) / cols;
-        draw_inventory_slot(slots[i], static_cast<int>(i),
-                            x + col * step, y + row * step, INV_CELL);
+        draw_inventory_slot(slots[i], static_cast<int>(i), x + col * step,
+                            y + row * step, INV_CELL);
     }
 }
 
@@ -254,8 +255,7 @@ void HudRenderer::draw_chat_panel(const ClientGameState& state,
     const bool open = console.is_open();
 
     const int chat_line_h = chat_text.line_height() + CHAT_LINE_GAP;
-    const int shown =
-        std::min(static_cast<int>(msgs.size()), CHAT_MAX_LINES);
+    const int shown = std::min(static_cast<int>(msgs.size()), CHAT_MAX_LINES);
     const int input_rows = open ? 1 : 0;
     const int total_rows = std::max(1, shown + input_rows);
 
@@ -268,10 +268,9 @@ void HudRenderer::draw_chat_panel(const ClientGameState& state,
     renderer.SetDrawColor(colors::CHAT_BG.r, colors::CHAT_BG.g,
                           colors::CHAT_BG.b, colors::CHAT_BG.a);
     renderer.FillRect(SDL2pp::Rect(panel_x, box_y, panel_w, box_h));
-    renderer.SetDrawColor(colors::HUD_PANEL_BORDER.r,
-                          colors::HUD_PANEL_BORDER.g,
-                          colors::HUD_PANEL_BORDER.b,
-                          colors::HUD_PANEL_BORDER.a);
+    renderer.SetDrawColor(
+        colors::HUD_PANEL_BORDER.r, colors::HUD_PANEL_BORDER.g,
+        colors::HUD_PANEL_BORDER.b, colors::HUD_PANEL_BORDER.a);
     renderer.DrawRect(SDL2pp::Rect(panel_x, box_y, panel_w, box_h));
     renderer.SetDrawBlendMode(SDL_BLENDMODE_NONE);
 
@@ -298,8 +297,8 @@ void HudRenderer::draw_chat_panel(const ClientGameState& state,
     }
 
     if (open) {
-        chat_text.draw("> " + console.current() + "_",
-                       panel_x + CHAT_PAD, ly, colors::ITEM_EQUIPPED);
+        chat_text.draw("> " + console.current() + "_", panel_x + CHAT_PAD, ly,
+                       colors::ITEM_EQUIPPED);
     }
 }
 
@@ -365,5 +364,5 @@ void HudRenderer::render(const ClientGameState& state, const Console& console) {
 HudRenderer::~HudRenderer() {
     if (hud_bg) SDL_DestroyTexture(hud_bg);
     if (slot_frame) SDL_DestroyTexture(slot_frame);
-    if (frame_tex) SDL_DestroyTexture(frame_tex);   
+    if (frame_tex) SDL_DestroyTexture(frame_tex);
 }

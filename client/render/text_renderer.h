@@ -9,10 +9,10 @@
 #include <unordered_map>
 
 struct CachedText {
-        SDL_Texture* tex = nullptr;
-        int w = 0;
-        int h = 0;
-    };
+    SDL_Texture* tex = nullptr;
+    int w = 0;
+    int h = 0;
+};
 
 class TextRenderer {
 private:
@@ -27,8 +27,8 @@ private:
     const CachedText* get_or_build(const std::string& text, SDL_Color color);
 
 public:
-    TextRenderer(SDL_Renderer* renderer,
-                 const std::filesystem::path& font_path, int pt_size);
+    TextRenderer(SDL_Renderer* renderer, const std::filesystem::path& font_path,
+                 int pt_size);
 
     ~TextRenderer();
 
@@ -43,9 +43,8 @@ public:
                        SDL_Color color, Uint8 alpha = 255);
 
     int line_height() const;
-    
-    void size_text(const std::string& text, int& w, int& h) const;
 
+    void size_text(const std::string& text, int& w, int& h) const;
 };
 
 #endif

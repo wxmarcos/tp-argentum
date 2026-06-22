@@ -60,14 +60,10 @@ const std::vector<std::string>& Clan::getSolicitudes() const {
     return solicitudes;
 }
 
-void Clan::banear(const std::string& nombre) {
-    baneados.insert(nombre);
-}
+void Clan::banear(const std::string& nombre) { baneados.insert(nombre); }
 
 bool Clan::esBaneado(const std::string& nombre) const {
     return baneados.count(nombre) > 0;
 }
 
-const std::set<std::string>& Clan::getBaneados() const {
-    return baneados;
-}
+const std::set<std::string>& Clan::getBaneados() const { return baneados; }

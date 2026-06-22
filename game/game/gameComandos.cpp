@@ -22,12 +22,11 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
     if (cmd.get_type() == protocol::ClientOpcode::LOGIN) {
         Jugador* jugador = getJugador(cmd.get_nick());
         if (nick_to_player_id.find(cmd.get_nick()) != nick_to_player_id.end()) {
-            push_unicast(
-                snapshots,
-                Snapshot::error_message(
-                    cmd.get_nick(),
-                    "Login fallido: la cuenta ya esta conectada"),
-                playerId);
+            push_unicast(snapshots,
+                         Snapshot::error_message(
+                             cmd.get_nick(),
+                             "Login fallido: la cuenta ya esta conectada"),
+                         playerId);
             return snapshots;
         }
         if (!jugador) {
@@ -70,7 +69,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
-                
+
         push_broadcast(snapshots,
                        SnapshotFactory::player_stats_from_player(*jugador));
 
@@ -129,29 +128,25 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
 
         push_unicast(
             snapshots,
-            Snapshot::map_change(
-                cmd.get_nick(),
-                static_cast<uint16_t>(jugador->getMapaId()),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())),
+            Snapshot::map_change(cmd.get_nick(),
+                                 static_cast<uint16_t>(jugador->getMapaId()),
+                                 static_cast<uint16_t>(jugador->getPosX()),
+                                 static_cast<uint16_t>(jugador->getPosY()),
+                                 static_cast<uint8_t>(jugador->getDireccion())),
             playerId);
 
-        push_unicast(
-            snapshots,
-            SnapshotFactory::player_stats_from_player(*jugador),
-            playerId);
+        push_unicast(snapshots,
+                     SnapshotFactory::player_stats_from_player(*jugador),
+                     playerId);
 
-        push_unicast(
-            snapshots,
-            SnapshotFactory::player_inventory_from_player(*jugador),
-            playerId);
+        push_unicast(snapshots,
+                     SnapshotFactory::player_inventory_from_player(*jugador),
+                     playerId);
 
         push_broadcast(
             snapshots,
             Snapshot::entity_created(
-                cmd.get_nick(),
-                static_cast<uint16_t>(jugador->getMapaId()),
+                cmd.get_nick(), static_cast<uint16_t>(jugador->getMapaId()),
                 static_cast<uint16_t>(jugador->getPosX()),
                 static_cast<uint16_t>(jugador->getPosY()),
                 static_cast<uint8_t>(jugador->getDireccion())));
@@ -305,14 +300,12 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             ResultadoAtaque resultado = atacar(nombre, objetivo);
 
             if (!resultado.exito) {
-                const std::string msg = resultado.fueraDeRango
-                    ? "Estas demasiado lejos para atacar"
-                    : "Ataque invalido";
+                const std::string msg =
+                    resultado.fueraDeRango ? "Estas demasiado lejos para atacar"
+                                           : "Ataque invalido";
 
-                push_unicast(
-                    snapshots,
-                    Snapshot::error_message(nombre, msg),
-                    playerId);
+                push_unicast(snapshots, Snapshot::error_message(nombre, msg),
+                             playerId);
 
                 break;
             }
@@ -376,8 +369,8 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                         std::string nombreItem = item.item->getNombre();
                         uint16_t cantidad = item.cantidad;
                         auto [tx, ty] = buscarTileParaItem(
-                            victima->getMapaId(),
-                            victima->getPosX(), victima->getPosY(), tilesUsados);
+                            victima->getMapaId(), victima->getPosX(),
+                            victima->getPosY(), tilesUsados);
                         mundo.tirarItem(victima->getMapaId(), tx, ty,
                                         std::move(item));
                         push_broadcast(
@@ -388,8 +381,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                                 victima->getNombre(), nombreItem,
                                 static_cast<uint16_t>(victima->getMapaId()),
                                 static_cast<uint16_t>(tx),
-                                static_cast<uint16_t>(ty),
-                                cantidad));
+                                static_cast<uint16_t>(ty), cantidad));
                     }
 
                     int oroExceso = Formulas::calcularOroExceso(
@@ -397,8 +389,8 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     if (oroExceso > 0) {
                         victima->gastarOro(oroExceso);
                         auto [tx, ty] = buscarTileParaItem(
-                            victima->getMapaId(),
-                            victima->getPosX(), victima->getPosY(), tilesUsados);
+                            victima->getMapaId(), victima->getPosX(),
+                            victima->getPosY(), tilesUsados);
                         mundo.tirarItem(
                             victima->getMapaId(), tx, ty,
                             SlotInventario(ItemFactory::crearOro(oroExceso)));
@@ -500,8 +492,8 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     std::string nombreItem = item.item->getNombre();
                     uint16_t cantidad = item.cantidad;
                     auto [tx, ty] = buscarTileParaItem(
-                        jugador->getMapaId(),
-                        jugador->getPosX(), jugador->getPosY(), tilesUsados);
+                        jugador->getMapaId(), jugador->getPosX(),
+                        jugador->getPosY(), tilesUsados);
                     mundo.tirarItem(jugador->getMapaId(), tx, ty,
                                     std::move(item));
                     push_broadcast(
@@ -512,16 +504,15 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                             jugador->getNombre(), nombreItem,
                             static_cast<uint16_t>(jugador->getMapaId()),
                             static_cast<uint16_t>(tx),
-                            static_cast<uint16_t>(ty),
-                            cantidad));
+                            static_cast<uint16_t>(ty), cantidad));
                 }
                 int oroExceso = Formulas::calcularOroExceso(
                     jugador->getOro(), jugador->getOroMax());
                 if (oroExceso > 0) {
                     jugador->gastarOro(oroExceso);
                     auto [tx, ty] = buscarTileParaItem(
-                        jugador->getMapaId(),
-                        jugador->getPosX(), jugador->getPosY(), tilesUsados);
+                        jugador->getMapaId(), jugador->getPosX(),
+                        jugador->getPosY(), tilesUsados);
                     mundo.tirarItem(
                         jugador->getMapaId(), tx, ty,
                         SlotInventario(ItemFactory::crearOro(oroExceso)));
@@ -539,7 +530,10 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             }
             push_broadcast(snapshots,
                            SnapshotFactory::player_stats_from_player(*jugador));
-            push_unicast(snapshots,SnapshotFactory::player_inventory_from_player(*jugador), playerId);
+            push_unicast(
+                snapshots,
+                SnapshotFactory::player_inventory_from_player(*jugador),
+                playerId);
             break;
         }
         case protocol::ClientOpcode::CHEAT_RESURRECT: {
@@ -567,8 +561,9 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 break;
             }
             if (jugador->estaResucitando()) {
-                push_unicast(snapshots, Snapshot::error_message(
-                                              nombre, "Ya estas resucitando"),
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(nombre, "Ya estas resucitando"),
                     playerId);
                 break;
             }
@@ -586,17 +581,23 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             int resY = destino.y;
 
             if (!buscarPosicionLibreCerca(destino.mapaId, destino.x, destino.y,
-                                        resX, resY)) {
-                push_unicast(snapshots,
-                            Snapshot::error_message(
-                                nombre, "No hay espacio libre cerca del sacerdote"),
-                            playerId);
+                                          resX, resY)) {
+                push_unicast(
+                    snapshots,
+                    Snapshot::error_message(
+                        nombre, "No hay espacio libre cerca del sacerdote"),
+                    playerId);
                 break;
             }
 
             jugador->iniciarResurreccion(tiempo, destino.mapaId, resX, resY);
-            push_unicast(snapshots, Snapshot::chat_message("Sistema", nombre,
-                "Resucitando en " + std::to_string((int)tiempo) + " segundos"),playerId);
+            push_unicast(
+                snapshots,
+                Snapshot::chat_message(
+                    "Sistema", nombre,
+                    "Resucitando en " +
+                        std::to_string(static_cast<int>(tiempo)) + " segundos"),
+                playerId);
             break;
         }
 
@@ -695,10 +696,9 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
                        uint16_t playerId) {
     Jugador* jugador = getJugador(nombre);
     if (!jugador) {
-        push_unicast(
-            snapshots,
-            Snapshot::error_message(nombre, "Jugador inexistente"),
-            playerId);
+        push_unicast(snapshots,
+                     Snapshot::error_message(nombre, "Jugador inexistente"),
+                     playerId);
         return;
     }
 
@@ -706,24 +706,20 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
 
     int mapaAnterior = jugador->getMapaId();
 
-    bool moved = moverJugador(
-        nombre,
-        static_cast<Direccion>(cmd.get_direction()));
+    bool moved =
+        moverJugador(nombre, static_cast<Direccion>(cmd.get_direction()));
 
     if (!moved) {
-        push_unicast(
-            snapshots,
-            Snapshot::error_message(nombre, "Movimiento invalido"),
-            playerId);
+        push_unicast(snapshots,
+                     Snapshot::error_message(nombre, "Movimiento invalido"),
+                     playerId);
 
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_move(
-                nombre,
-                static_cast<uint16_t>(jugador->getMapaId()),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(snapshots,
+                       Snapshot::entity_move(
+                           nombre, static_cast<uint16_t>(jugador->getMapaId()),
+                           static_cast<uint16_t>(jugador->getPosX()),
+                           static_cast<uint16_t>(jugador->getPosY()),
+                           static_cast<uint8_t>(jugador->getDireccion())));
         return;
     }
 
@@ -731,44 +727,35 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
 
     if (mapaActual != mapaAnterior) {
         // Que todos borren al jugador de su mapa viejo.
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_remove(nombre));
+        push_broadcast(snapshots, Snapshot::entity_remove(nombre));
 
         // Al jugador que cambió de mapa: actualizar mapa/posición local.
         push_unicast(
             snapshots,
-            Snapshot::map_change(
-                nombre,
-                static_cast<uint16_t>(mapaActual),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())),
+            Snapshot::map_change(nombre, static_cast<uint16_t>(mapaActual),
+                                 static_cast<uint16_t>(jugador->getPosX()),
+                                 static_cast<uint16_t>(jugador->getPosY()),
+                                 static_cast<uint8_t>(jugador->getDireccion())),
             playerId);
 
         // Al jugador que cambió de mapa: asegurar stats/skin local.
-        push_unicast(
-            snapshots,
-            SnapshotFactory::player_stats_from_player(*jugador),
-            playerId);
+        push_unicast(snapshots,
+                     SnapshotFactory::player_stats_from_player(*jugador),
+                     playerId);
         // Al jugador que cambió de mapa: asegurar items local.
-        push_broadcast(
-            snapshots,
-            SnapshotFactory::player_inventory_from_player(*jugador));
+        push_broadcast(snapshots,
+                       SnapshotFactory::player_inventory_from_player(*jugador));
         // A los demás: aparece el jugador en el mapa nuevo.
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_created(
-                nombre,
-                static_cast<uint16_t>(mapaActual),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(snapshots,
+                       Snapshot::entity_created(
+                           nombre, static_cast<uint16_t>(mapaActual),
+                           static_cast<uint16_t>(jugador->getPosX()),
+                           static_cast<uint16_t>(jugador->getPosY()),
+                           static_cast<uint8_t>(jugador->getDireccion())));
 
         // A los demás: raza/clase para dibujarlo con skin correcta.
-        push_broadcast(
-            snapshots,
-            SnapshotFactory::player_stats_from_player(*jugador));
+        push_broadcast(snapshots,
+                       SnapshotFactory::player_stats_from_player(*jugador));
 
         // Al jugador que entra al mapa nuevo:
         // recibir jugadores, NPCs, criaturas e items ya existentes.
@@ -778,14 +765,12 @@ void Game::handleMover(const std::string& nombre, const Command& cmd,
         agregarReplayItems(snapshots, mapaActual, playerId);
 
     } else {
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_move(
-                nombre,
-                static_cast<uint16_t>(mapaActual),
-                static_cast<uint16_t>(jugador->getPosX()),
-                static_cast<uint16_t>(jugador->getPosY()),
-                static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(snapshots,
+                       Snapshot::entity_move(
+                           nombre, static_cast<uint16_t>(mapaActual),
+                           static_cast<uint16_t>(jugador->getPosX()),
+                           static_cast<uint16_t>(jugador->getPosY()),
+                           static_cast<uint8_t>(jugador->getDireccion())));
     }
 }
 
@@ -803,8 +788,7 @@ bool Game::hayNPCCercano(const Jugador* jugador,
 }
 
 // ----------------- Replay Helper -----------------
-void Game::replay(std::vector<OutgoingSnapshot>& snapshots,
-                  const Command& cmd,
+void Game::replay(std::vector<OutgoingSnapshot>& snapshots, const Command& cmd,
                   uint16_t playerId) {
     const std::string& nick = cmd.get_nick();
     Jugador* jugador = getJugador(nick);

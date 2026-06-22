@@ -20,8 +20,7 @@ std::string TmxLoader::attr(const std::string& line,
 }
 
 void TmxLoader::read_map_header(const std::filesystem::path& tmx_path,
-                                int& map_w, int& map_h,
-                                int& tile_size) const {
+                                int& map_w, int& map_h, int& tile_size) const {
     std::ifstream f(tmx_path);
     std::string line;
     while (std::getline(f, line)) {
@@ -139,7 +138,7 @@ void TmxLoader::parse_inline_tileset(std::ifstream& f, const std::string& line,
 
     std::filesystem::path png = (tmx_dir / src).lexically_normal();
     catalog.add_inline_tileset(
-        png.stem().string(), png, static_cast<TileId>(std::stoi(fg)),
+        png, static_cast<TileId>(std::stoi(fg)),
         cols.empty() ? 1 : std::stoi(cols), tw.empty() ? 32 : std::stoi(tw),
         th.empty() ? 32 : std::stoi(th), tc.empty() ? 1 : std::stoi(tc));
 }
@@ -211,12 +210,12 @@ LoadedMap TmxLoader::load(const std::filesystem::path& tmx_path,
     auto map =
         std::make_unique<MapData>(map_w, map_h, std::max(1, layer_count));
 
-    std::cout << "[TmxLoader] Mapa " << map_w << "x" << map_h
-              << " capas=" << layer_count << "\n";
+    // std::cout << "[TmxLoader] Mapa " << map_w << "x" << map_h
+    //           << " capas=" << layer_count << "\n";
 
     parse_body(f, tmx_dir, *catalog, *map, tile_size);
 
-    std::cout << "[TmxLoader] Cargado: " << tmx_path.filename() << "\n";
+    // std::cout << "[TmxLoader] Cargado: " << tmx_path.filename() << "\n";
 
     return LoadedMap{std::move(catalog), std::move(map)};
 }

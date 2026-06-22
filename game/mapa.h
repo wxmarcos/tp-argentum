@@ -63,7 +63,7 @@ public:
     const std::vector<SlotInventario>* getItemsEnPosicion(int x, int y) const;
     bool hayItemEnPosicion(int x, int y) const;
     const std::map<std::pair<int, int>, std::vector<SlotInventario>>&
-        getItemsEnPiso() const;
+    getItemsEnPiso() const;
 
     void registrarPortal(int x, int y, int mapaDestinoId, int destinoX,
                          int destinoY);

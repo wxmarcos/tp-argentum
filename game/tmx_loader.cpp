@@ -37,7 +37,6 @@ static std::string extraerObjectGroupColision(const std::string& xml) {
 }
 
 void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
-
     std::string xml = leerArchivo(rutaTmx);
     std::string objectGroup = extraerObjectGroupColision(xml);
 
@@ -73,7 +72,7 @@ void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
 
         int tileXInicio = static_cast<int>(std::floor(x / TILE_SIZE));
         int tileYInicio = static_cast<int>(std::floor(y / TILE_SIZE));
-        
+
         int tileXFin = static_cast<int>(std::floor((x + w - 1) / TILE_SIZE));
         int tileYFin = static_cast<int>(std::floor((y + h - 1) / TILE_SIZE));
 
@@ -82,9 +81,8 @@ void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
                 double centroX = tx * TILE_SIZE + TILE_SIZE / 2.0;
                 double centroY = ty * TILE_SIZE + TILE_SIZE / 2.0;
 
-                bool centroDentro =
-                    centroX >= x && centroX <= x + w &&
-                    centroY >= y && centroY <= y + h;
+                bool centroDentro = centroX >= x && centroX <= x + w &&
+                                    centroY >= y && centroY <= y + h;
 
                 if (centroDentro && mapa.esPosicionValida(tx, ty)) {
                     mapa.setTile(tx, ty, TipoTile::PARED, false);
@@ -95,5 +93,4 @@ void TmxLoader::cargarColisiones(const std::string& rutaTmx, Mapa& mapa) {
 
         objetos++;
     }
-
 }

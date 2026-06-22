@@ -18,7 +18,8 @@ public:
     void add(std::unique_ptr<ClientHandler> client);
     void remove_finished();
     void send_to(uint16_t player_id, const Snapshot& snapshot);
-    void send_to_many(const std::vector<uint16_t>& player_ids,const Snapshot& snapshot);
+    void send_to_many(const std::vector<uint16_t>& player_ids,
+                      const Snapshot& snapshot);
     void broadcast(const Snapshot& snapshot);
 
     void stop_all();

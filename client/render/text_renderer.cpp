@@ -8,19 +8,17 @@ int TextRenderer::ttf_refcount = 0;
 
 std::string TextRenderer::cache_key(const std::string& text, SDL_Color c) {
     std::ostringstream key;
-    key << std::hex << std::setfill('0')
-        << std::setw(2) << static_cast<int>(c.r)
-        << std::setw(2) << static_cast<int>(c.g)
-        << std::setw(2) << static_cast<int>(c.b)
-        << std::setw(2) << static_cast<int>(c.a)
-        << text;
+    key << std::hex << std::setfill('0') << std::setw(2)
+        << static_cast<int>(c.r) << std::setw(2) << static_cast<int>(c.g)
+        << std::setw(2) << static_cast<int>(c.b) << std::setw(2)
+        << static_cast<int>(c.a) << text;
     return key.str();
 }
 
 TextRenderer::TextRenderer(SDL_Renderer* renderer,
-                           const std::filesystem::path& font_path,
-                           int pt_size):
-    renderer(renderer), font(nullptr) {
+                           const std::filesystem::path& font_path, int pt_size):
+    renderer(renderer),
+    font(nullptr) {
     if (ttf_refcount == 0) {
         if (TTF_Init() != 0) {
             std::cerr << "[TextRenderer] TTF_Init fallo: " << TTF_GetError()
@@ -32,8 +30,8 @@ TextRenderer::TextRenderer(SDL_Renderer* renderer,
 
     font = TTF_OpenFont(font_path.string().c_str(), pt_size);
     if (!font) {
-        std::cerr << "[TextRenderer] No se pudo cargar la fuente: "
-                  << font_path << " (" << TTF_GetError() << ")\n";
+        std::cerr << "[TextRenderer] No se pudo cargar la fuente: " << font_path
+                  << " (" << TTF_GetError() << ")\n";
     }
 }
 
@@ -60,8 +58,8 @@ TextRenderer::~TextRenderer() {
 
 bool TextRenderer::ok() const { return font != nullptr; }
 
-const CachedText* TextRenderer::get_or_build(
-    const std::string& text, SDL_Color color) {
+const CachedText* TextRenderer::get_or_build(const std::string& text,
+                                             SDL_Color color) {
     if (!font || text.empty()) {
         return nullptr;
     }
