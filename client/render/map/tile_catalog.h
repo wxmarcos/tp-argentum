@@ -39,8 +39,7 @@ public:
 
     void add_tileset(const std::filesystem::path& tsx_path, TileId firstgid);
 
-    void add_inline_tileset(const std::string& name,
-                            const std::filesystem::path& png_path,
+    void add_inline_tileset(const std::filesystem::path& png_path,
                             TileId firstgid, int columns, int tilewidth,
                             int tileheight, int tilecount);
 

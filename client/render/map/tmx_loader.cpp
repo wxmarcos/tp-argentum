@@ -138,7 +138,7 @@ void TmxLoader::parse_inline_tileset(std::ifstream& f, const std::string& line,
 
     std::filesystem::path png = (tmx_dir / src).lexically_normal();
     catalog.add_inline_tileset(
-        png.stem().string(), png, static_cast<TileId>(std::stoi(fg)),
+        png, static_cast<TileId>(std::stoi(fg)),
         cols.empty() ? 1 : std::stoi(cols), tw.empty() ? 32 : std::stoi(tw),
         th.empty() ? 32 : std::stoi(th), tc.empty() ? 1 : std::stoi(tc));
 }
