@@ -226,6 +226,26 @@ float Config::getVelocidadResurreccion() const {
         impl->get<double>("ia.velocidad_resurreccion", 0.5));
 }
 
+// ----------------- Clan -----------------
+
+int Config::getClanMaxMiembros() const {
+    return static_cast<int>(impl->get<int64_t>("clan.max_miembros", 16));
+}
+
+// ----------------- Mundo -----------------
+
+int Config::getMoveCooldownMs() const {
+    return static_cast<int>(impl->get<int64_t>("mundo.movimiento_cooldown_ms", 150));
+}
+
+int Config::getMaxRadioDrop() const {
+    return static_cast<int>(impl->get<int64_t>("mundo.max_radio_drop", 8));
+}
+
+float Config::getPenalizacionMapaDistinto() const {
+    return static_cast<float>(impl->get<double>("mundo.penalizacion_mapa_distinto", 50.0));
+}
+
 // ----------------- Precio de items -----------------
 
 int Config::getPrecioItem(const std::string& nombre) const {

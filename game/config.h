@@ -98,6 +98,14 @@ public:
 
     std::vector<ConfigMapa> getMapas() const;
 
+    // Clan
+    int getClanMaxMiembros() const;
+
+    // Mundo
+    int getMoveCooldownMs() const;
+    int getMaxRadioDrop() const;
+    float getPenalizacionMapaDistinto() const;
+
     // Precio de items
     int getPrecioItem(const std::string& nombre) const;
 

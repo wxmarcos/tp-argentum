@@ -227,13 +227,13 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
 }
 
 // ----------------- Sacerdote más cercano -----------------
-static constexpr float PENALIZACION_MAPA_DISTINTO = 50.0f;
 
 bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
                                         InfoNPC& destino,
                                         float& distancia) const {
     bool encontrado = false;
     float distMin = std::numeric_limits<float>::max();
+    const float penalizacion = config.getPenalizacionMapaDistinto();
 
     for (const auto& s : sacerdotes) {
         float dx = static_cast<float>(s.x - fantasma->getPosX());
@@ -241,7 +241,7 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
         float dist = std::sqrt(dx * dx + dy * dy);
 
         if (s.mapaId != fantasma->getMapaId()) {
-            dist += PENALIZACION_MAPA_DISTINTO;
+            dist += penalizacion;
         }
 
         if (dist < distMin) {
@@ -255,15 +255,14 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
     return encontrado;
 }
 
-static constexpr int MAX_RADIO_DROP = 8;
-
 std::pair<int, int> Game::buscarTileParaItem(
     int mapaId, int cx, int cy,
     std::set<std::pair<int, int>>& usados) const {
     const Mapa* mapa = mundo.getMapa(mapaId);
     if (!mapa) return {cx, cy};
 
-    for (int r = 0; r <= MAX_RADIO_DROP; ++r) {
+    const int maxRadioDrop = config.getMaxRadioDrop();
+    for (int r = 0; r <= maxRadioDrop; ++r) {
         for (int dx = -r; dx <= r; ++dx) {
             for (int dy = -r; dy <= r; ++dy) {
                 if (std::abs(dx) != r && std::abs(dy) != r) continue;

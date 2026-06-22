@@ -106,7 +106,7 @@ std::string Game::to_lower(const std::string& str) const {
     return text;
 }
 bool Game::puedeMoverAhora(const std::string& nombre) {
-    static constexpr int MOVE_COOLDOWN_MS = 150;
+    const int moveCooldownMs = config.getMoveCooldownMs();
 
     const auto now = std::chrono::steady_clock::now();
 
@@ -117,7 +117,7 @@ bool Game::puedeMoverAhora(const std::string& nombre) {
             std::chrono::duration_cast<std::chrono::milliseconds>(now -
                                                                   it->second);
 
-        if (elapsed.count() < MOVE_COOLDOWN_MS) {
+        if (elapsed.count() < moveCooldownMs) {
             return false;
         }
     }

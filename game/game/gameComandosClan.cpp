@@ -78,7 +78,7 @@ void Game::handleClanJoin(const std::string& nombre, const Command& cmd,
             nombre, "Ya tienes una solicitud pendiente en ese clan"), playerId);
         return;
     }
-    if (static_cast<int>(clan.getMiembros().size()) >= Clan::MAX_MIEMBROS) {
+    if (static_cast<int>(clan.getMiembros().size()) >= config.getClanMaxMiembros()) {
         push_unicast(snapshots, Snapshot::error_message(
             nombre, "El clan ya tiene el maximo de miembros"), playerId);
         return;
@@ -174,7 +174,7 @@ void Game::handleClanAccept(const std::string& nombre, const Command& cmd,
             nombre, "No hay solicitud pendiente de " + nickSol), playerId);
         return;
     }
-    if (static_cast<int>(clan.getMiembros().size()) >= Clan::MAX_MIEMBROS) {
+    if (static_cast<int>(clan.getMiembros().size()) >= config.getClanMaxMiembros()) {
         push_unicast(snapshots, Snapshot::error_message(
             nombre, "El clan ya tiene el maximo de miembros"), playerId);
         return;

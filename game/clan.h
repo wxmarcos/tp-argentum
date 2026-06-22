@@ -4,9 +4,6 @@
 #include <vector>
 
 class Clan {
-public:
-    static constexpr int MAX_MIEMBROS = 16;
-
 private:
     std::string nombre;
     std::string fundador;
