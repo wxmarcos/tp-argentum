@@ -1,4 +1,4 @@
-#include "criaturas/arana.h"
+#include "game/characters/criaturas/arana.h"
 
 Arana::Arana(const Config& config, int posX, int posY):
     Criatura(

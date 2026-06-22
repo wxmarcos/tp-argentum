@@ -61,6 +61,7 @@ public:
     void tirarItem(int x, int y, SlotInventario slot);
     std::optional<SlotInventario> tomarItemEnPosicion(int x, int y, int indice);
     const std::vector<SlotInventario>* getItemsEnPosicion(int x, int y) const;
+    bool hayItemEnPosicion(int x, int y) const;
     const std::map<std::pair<int, int>, std::vector<SlotInventario>>&
         getItemsEnPiso() const;
 

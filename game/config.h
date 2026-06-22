@@ -49,6 +49,7 @@ public:
     float getCriaturaCooldownMovimiento() const;
     float getCriaturaCooldownAtaque() const;
     float getSpawnIntervalo() const;
+    float getPersistenciaIntervalo() const;
     float getVelocidadResurreccion() const;
 
     // Criaturas

@@ -32,6 +32,10 @@ void Game::handleClanCreate(const std::string& nombre, const Command& cmd,
         return;
     }
 
+    for (auto& [nom, c] : clanes) {
+        c.rechazarSolicitud(nombre);
+    }
+
     clanes.emplace(clanNom, Clan(clanNom, nombre));
     j->setClanNombre(clanNom);
     push_broadcast(snapshots, Snapshot::chat_message(
@@ -174,16 +178,34 @@ void Game::handleClanAccept(const std::string& nombre, const Command& cmd,
         return;
     }
 
-    clan.aprobarSolicitud(nickSol);
     Jugador* ingresante = getJugador(nickSol);
+    if (ingresante && ingresante->estaEnClan()) {
+        clan.rechazarSolicitud(nickSol);
+        push_unicast(snapshots, Snapshot::error_message(
+            nombre, nickSol + " ya pertenece a otro clan"), playerId);
+        return;
+    }
+
+    clan.aprobarSolicitud(nickSol);
+
+    for (auto& [nom, c] : clanes) {
+        if (nom != j->getClanNombre()) {
+            c.rechazarSolicitud(nickSol);
+        }
+    }
+
     if (ingresante) {
         ingresante->setClanNombre(j->getClanNombre());
-        push_unicast(snapshots, Snapshot::chat_message(
-            "Sistema", nickSol,
-            "Tu solicitud al clan '" + j->getClanNombre() + "' fue aceptada!"), playerId);
+        auto itId = nick_to_player_id.find(nickSol);
+        if (itId != nick_to_player_id.end()) {
+            push_unicast(snapshots, Snapshot::chat_message(
+                "Sistema", nickSol,
+                "Tu solicitud al clan '" + j->getClanNombre() + "' fue aceptada!"),
+                itId->second);
+        }
     }
     push_broadcast(snapshots, Snapshot::chat_message(
-        "Sistema", nombre, nickSol + " ahora es miembro del clan."));
+        "Sistema", nombre, nickSol + " ahora es miembro del clan"));
 
 }
 
@@ -215,12 +237,16 @@ void Game::handleClanReject(const std::string& nombre, const Command& cmd,
 
     Jugador* solicitante = getJugador(nickSol);
     if (solicitante) {
-        push_broadcast(snapshots, Snapshot::chat_message(
-            "Sistema", nickSol,
-            "Tu solicitud al clan '" + j->getClanNombre() + "' fue rechazada."));
+        auto itId = nick_to_player_id.find(nickSol);
+        if (itId != nick_to_player_id.end()) {
+            push_unicast(snapshots, Snapshot::chat_message(
+                "Sistema", nickSol,
+                "Tu solicitud al clan '" + j->getClanNombre() + "' fue rechazada"),
+                itId->second);
+        }
     }
     push_broadcast(snapshots, Snapshot::chat_message(
-        "Sistema", nombre, "Solicitud de " + nickSol + " rechazada."));
+        "Sistema", nombre, "Solicitud de " + nickSol + " rechazada"));
 }
 
 // ----------------- CLAN BAN / KICK -----------------
@@ -262,14 +288,15 @@ void Game::handleClanBanKick(const std::string& nombre, const Command& cmd,
     Jugador* expulsado = getJugador(nickTarget);
     if (expulsado) {
         expulsado->setClanNombre("");
-        const std::string razon = esBan ? "expulsado con ban" : "expulsado";
+        const std::string razon = esBan
+            ? "baneado del clan '" + j->getClanNombre() + "'. No podras reingresar"
+            : "expulsado del clan '" + j->getClanNombre() + "'";
         push_broadcast(snapshots, Snapshot::chat_message(
-            "Sistema", nickTarget,
-            "Fuiste " + razon + " del clan '" + j->getClanNombre() + "'."));
+            "Sistema", nickTarget, "Fuiste " + razon));
     }
     const std::string accion = esBan ? "baneado" : "expulsado";
     push_broadcast(snapshots, Snapshot::chat_message(
-        "Sistema", nombre, nickTarget + " fue " + accion + " del clan."));
+        "Sistema", nombre, nickTarget + " fue " + accion + " del clan"));
 
 }
 
@@ -301,5 +328,5 @@ void Game::handleClanLeave(const std::string& nombre,
     std::string clanNom = j->getClanNombre();
     j->setClanNombre("");
     push_broadcast(snapshots, Snapshot::chat_message(
-        "Sistema", nombre, "Abandonaste el clan '" + clanNom + "'."));
+        "Sistema", nombre, "Abandonaste el clan '" + clanNom + "'"));
 }

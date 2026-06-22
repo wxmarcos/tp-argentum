@@ -1,4 +1,4 @@
-#include "criaturas/zombie.h"
+#include "game/characters/criaturas/zombie.h"
 
 Zombie::Zombie(const Config& config, int posX, int posY):
     Criatura(

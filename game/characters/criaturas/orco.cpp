@@ -1,4 +1,4 @@
-#include "criaturas/orco.h"
+#include "game/characters/criaturas/orco.h"
 
 Orco::Orco(const Config& config, int posX, int posY):
     Criatura(

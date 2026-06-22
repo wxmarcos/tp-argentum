@@ -138,7 +138,8 @@ bool Mundo::moverPersonaje(Character* personaje, Direccion dir) {
     auto [entradaX, entradaY] = posicionEntrada(*mapaVecino, dir, posActual);
 
     if (!mapaVecino->esTransitable(entradaX, entradaY) ||
-        mapaVecino->estaOcupada(entradaX, entradaY)) {
+        mapaVecino->estaOcupada(entradaX, entradaY) ||
+        (personaje->esCriatura() && mapaVecino->esZonaSegura())) {
         return false;
     }
 

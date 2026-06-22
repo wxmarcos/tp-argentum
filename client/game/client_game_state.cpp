@@ -25,7 +25,8 @@ bool ClientGameState::classify_creature(const std::string& nick,
     static const std::unordered_set<std::string_view> KNOWN_TYPES = {
         keys::GOBLIN, keys::ESQUELETO, keys::ZOMBIE, keys::ARANA,
         keys::ORCO, keys::GOLEM, keys::BANQUERO, keys::COMERCIANTE,
-        keys::SACERDOTE};
+        keys::SACERDOTE, keys::ESQUELETO_HACHA, keys::ARANA_BLANCA,
+        keys::GOBLIN_JOROBADO, keys::GOLEM_DEMONIACO};
 
     const auto sep = nick.rfind('_');
     if (sep == std::string::npos || sep == 0 || sep + 1 >= nick.size()) {
@@ -209,6 +210,10 @@ void ClientGameState::apply_player_stats(const Snapshot& snapshot) {
         if (resolve_entity_pos(nick, x, y)) {
             effect_spawns.push_back({x, y, EffectKind::Resucitar});
         }
+    }
+
+    if (snapshot.get_vida() == 0) {
+        dead_entities.insert(nick);
     }
 
     if (nick == local_nick) {

@@ -11,13 +11,14 @@
 
 #include "game/entity_keys.h"
 #include "render/colors.h"
+#include "render/sprites/head_adjuster.h"
 
-static constexpr int ANIM_FRAMES = 4;
 static constexpr int ANIM_MS_FRAME = 150;
 static constexpr Uint32 DEATH_ANIM_MS = 900;
 
-static constexpr int CHARACTER_HEIGHT_TILES = 2;
 static constexpr int PLACEHOLDER_PAD = 3;
+static constexpr int NAME_LIFT_TALL = 11;
+static constexpr int NAME_LIFT_SHORT = 1;
 static constexpr uint32_t FLOATING_TEXT_LIFETIME_MS = 1000;
 static constexpr float FLOATING_TEXT_RISE_PX = 24.0f;
 static constexpr float EFFECT_HEIGHT_TILES = 2.6f;
@@ -40,7 +41,7 @@ WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
              config.font_size),
         item_sprites(renderer, config),
         weapon_sprites(renderer, config),
-        local_anim(ANIM_FRAMES, ANIM_MS_FRAME) {
+        local_anim(WALK_FRAME_COUNT, ANIM_MS_FRAME) {
     load_map(config.map_name);
     load_effects();
 }
@@ -97,11 +98,15 @@ int WorldRenderer::head_scale_pct(const std::string& raza) const {
 
 int WorldRenderer::creature_scale_pct(const std::string& type) const {
     if (type == keys::GOLEM) return 170;
+    if (type == keys::GOLEM_DEMONIACO) return 170;
     if (type == keys::ORCO) return 150;
     if (type == keys::ARANA) return 130;
+    if (type == keys::ARANA_BLANCA) return 110;
     if (type == keys::ESQUELETO) return 110;
+    if (type == keys::ESQUELETO_HACHA) return 130;
     if (type == keys::ZOMBIE) return 105;
     if (type == keys::GOBLIN) return 90;
+    if (type == keys::GOBLIN_JOROBADO) return 95;
     return 100;
 }
 
@@ -296,7 +301,10 @@ void WorldRenderer::draw_head(const std::string& sprite_key,
     const int neck = registry.get_head_neck(sprite_key) * body_scale / 100;
     const int head_bottom = body_top + neck;
 
-    SDL_Rect dst{px + (ts - head_w) / 2, head_bottom - head_h, head_w, head_h};
+    const HeadAdjust adj = HeadAdjuster::head(raza, sprite_key, dir_idx);
+
+    SDL_Rect dst{px + (ts - head_w) / 2 + adj.dx,
+                 head_bottom - head_h + adj.dy, head_w, head_h};
     SDL_RenderCopy(renderer.Get(), head_tex, &src, &dst);
 }
 
@@ -312,7 +320,8 @@ void WorldRenderer::draw_helmet(const std::string& helmet_key,
     const int head_scale = head_scale_pct(raza);
     SDL_Rect src = registry.get_helmet_rect(helmet_key, dir_idx);
 
-    const int helmet_scale = registry.get_helmet_scale(helmet_key);
+    const int helmet_scale = registry.get_helmet_scale(helmet_key)
+                             * HeadAdjuster::helmet_scale_pct(raza, helmet_key) / 100;
     const int helmet_h = (((ts * 7) / 8) * body_scale / 100)
                          * head_scale / 100 * helmet_scale / 100;
     const int helmet_w = src.h > 0 ? (src.w * helmet_h) / src.h : ts / 2;
@@ -323,8 +332,12 @@ void WorldRenderer::draw_helmet(const std::string& helmet_key,
     const int off_x = registry.get_helmet_off_x(helmet_key, dir_idx);
     const int off_y = registry.get_helmet_off_y(helmet_key, dir_idx);
 
-    SDL_Rect dst{px + (ts - helmet_w) / 2 + off_x,
-                 head_bottom - helmet_h + off_y, helmet_w, helmet_h};
+    const HeadAdjust adj = HeadAdjuster::head(raza, sprite_key, dir_idx);
+    const HeadAdjust hadj = HeadAdjuster::helmet(raza, helmet_key, dir_idx);
+
+    SDL_Rect dst{px + (ts - helmet_w) / 2 + off_x + adj.dx + hadj.dx,
+                 head_bottom - helmet_h + off_y + adj.dy + hadj.dy,
+                 helmet_w, helmet_h};
     SDL_RenderCopy(renderer.Get(), helmet_tex, &src, &dst);
 }
 
@@ -359,11 +372,11 @@ void WorldRenderer::draw_character(int world_x, int world_y,
     }
 
     if (!weapon_name.empty()) {
-        draw_weapon(weapon_name, dir_idx, px, body_top, body_h);
+        draw_weapon(weapon_name, dir_idx, frame, px, body_top, body_h);
     }
 
     if (!shield_name.empty() && dir_idx == DIR_SOUTH) {
-        draw_weapon(shield_name, dir_idx, px, body_top, body_h);
+        draw_weapon(shield_name, dir_idx, frame, px, body_top, body_h);
     }
 }
 
@@ -443,13 +456,18 @@ void WorldRenderer::draw_creature(int world_x, int world_y,
 }
 
 void WorldRenderer::draw_name(const std::string& nick, int world_x,
-                              int world_y, int cam_offset_x, int cam_offset_y) {
+                              int world_y, int cam_offset_x, int cam_offset_y,
+                              const std::string& raza) {
     if (!text.ok() || nick.empty()) {
         return;
     }
     const int ts = config.tile_size;
+    const int lift = (raza == keys::ENANO || raza == keys::GNOMO)
+                         ? NAME_LIFT_SHORT
+                         : NAME_LIFT_TALL;
     const int center_x = cam_offset_x + world_x * ts + ts / 2;
-    const int top_y = cam_offset_y + world_y * ts - ts - text.line_height();
+    const int top_y =
+        cam_offset_y + world_y * ts - ts - text.line_height() - lift;
 
     text.draw_centered(nick, center_x + 1, top_y + 1, colors::BLACK);
     text.draw_centered(nick, center_x, top_y, colors::WHITE);
@@ -512,7 +530,7 @@ bool WorldRenderer::is_shield(const std::string& item) const {
 }
 
 void WorldRenderer::draw_weapon(const std::string& weapon_name, int dir_idx,
-                                int px, int body_top, int body_h) {
+                                int frame, int px, int body_top, int body_h) {
     if (dir_idx == DIR_NORTH) {
         return;
     }
@@ -520,13 +538,14 @@ void WorldRenderer::draw_weapon(const std::string& weapon_name, int dir_idx,
     if (!w || !w->tex) {
         return;
     }
-    const SDL_Rect& src = w->rects[dir_idx];
+    const int f = frame % WALK_FRAME_COUNT;
+    const SDL_Rect& src = w->rects[dir_idx][f];
     const WeaponDirAdjust& adj = w->adjust[dir_idx];
     const int draw_h = src.h * body_h / WEAPON_REF_H;
     const int draw_w = src.w * body_h / WEAPON_REF_H;
     const int cx = px + config.tile_size / 2;
-    const SDL_Rect dst{cx + adj.off_x - draw_w / 2,
-                       body_top + adj.off_y, draw_w, draw_h};
+    const SDL_Rect dst{cx + adj.off_x - draw_w / 2, body_top + adj.off_y,
+                       draw_w, draw_h};
     const SDL_RendererFlip flip =
         adj.flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
     SDL_RenderCopyEx(renderer.Get(), w->tex, &src, &dst, 0.0, nullptr, flip);
@@ -589,7 +608,7 @@ void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
     }
 
     draw_name(nick, state.get_local_x(), state.get_local_y(), cam_offset_x,
-              cam_offset_y);
+              cam_offset_y, local_raza);
 }
 
 void WorldRenderer::draw_others(const ClientGameState& state,
@@ -597,7 +616,7 @@ void WorldRenderer::draw_others(const ClientGameState& state,
                                 int cam_offset_y) {
     for (const auto& [nick, pv] : state.get_others()) {
         auto [it, inserted] =
-            other_anims.try_emplace(nick, ANIM_FRAMES, ANIM_MS_FRAME);
+            other_anims.try_emplace(nick, WALK_FRAME_COUNT, ANIM_MS_FRAME);
         it->second.update(delta_ms, pv.direction, pv.moved);
 
         const std::string clase =
@@ -616,7 +635,7 @@ void WorldRenderer::draw_others(const ClientGameState& state,
             draw_meditation_effect(pv.x, pv.y, cam_offset_x, cam_offset_y);
         }
 
-        draw_name(pv.nick, pv.x, pv.y, cam_offset_x, cam_offset_y);
+        draw_name(pv.nick, pv.x, pv.y, cam_offset_x, cam_offset_y, raza);
     }
 
     for (auto it = other_anims.begin(); it != other_anims.end();) {
@@ -633,7 +652,7 @@ void WorldRenderer::draw_all_creatures(const ClientGameState& state,
                                        int cam_offset_y) {
     for (const auto& [key, cv] : state.get_creatures()) {
         auto [it, inserted] =
-            creature_anims.try_emplace(key, ANIM_FRAMES, ANIM_MS_FRAME);
+            creature_anims.try_emplace(key, WALK_FRAME_COUNT, ANIM_MS_FRAME);
         it->second.update(delta_ms, cv.direction, cv.moved);
 
         draw_creature(cv.x, cv.y, cv.direction, cv.type,

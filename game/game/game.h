@@ -2,6 +2,7 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -14,7 +15,7 @@
 #include "game/clan.h"
 #include "game/clases/charClase.h"
 #include "game/config.h"
-#include "game/criaturas/criatura.h"
+#include "game/characters/criaturas/criatura.h"
 #include "game/mundo.h"
 #include "game/razas/raza.h"
 #include "server/persistence/persistence_task.h"
@@ -135,6 +136,9 @@ private:
                                       float& distancia) const;
     bool buscarPosicionLibreCerca(int mapaId, int x, int y,
                               int& outX, int& outY) const;
+    std::pair<int, int> buscarTileParaItem(
+        int mapaId, int cx, int cy,
+        std::set<std::pair<int, int>>& usados) const;
     void tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots);
 
     // ---- Helpers de comandos (game_commands.cpp) ----

@@ -98,6 +98,7 @@ rango_deteccion_criaturas = 15
 cooldown_movimiento_criatura = 2.0  # segundos entre movimientos de criaturas
 cooldown_ataque_criatura = 2.0      # segundos entre ataques de criaturas
 intervalo_spawn = 30.0  # segundos entre spawns de criaturas
+intervalo_persistencia = 60.0  # segundos entre persistencias periódicas
 velocidad_resurreccion = 5
 
 # -----------------------------------------------------------------------------
@@ -109,6 +110,13 @@ nivel     = 1
 danio_min = 2
 danio_max = 5
 fuerza    = 1
+
+[criaturas.goblin_jorobado]
+vida_max  = 70
+nivel     = 2
+danio_min = 3
+danio_max = 7
+fuerza    = 1
  
 [criaturas.esqueleto]
 vida_max  = 60
@@ -116,6 +124,13 @@ nivel     = 2
 danio_min = 3
 danio_max = 7
 fuerza    = 1
+
+[criaturas.esqueleto_hacha]
+vida_max  = 90
+nivel     = 3
+danio_min = 5
+danio_max = 10
+fuerza    = 2
  
 [criaturas.zombie]
 vida_max  = 80
@@ -129,6 +144,13 @@ vida_max  = 40
 nivel     = 1
 danio_min = 1
 danio_max = 4
+fuerza    = 1
+
+[criaturas.arana_blanca]
+vida_max  = 55
+nivel     = 2
+danio_min = 2
+danio_max = 6
 fuerza    = 1
  
 [criaturas.orco]
@@ -144,6 +166,13 @@ nivel     = 5
 danio_min = 8
 danio_max = 20
 fuerza    = 3
+
+[criaturas.golem_demoniaco]
+vida_max  = 350
+nivel     = 7
+danio_min = 12
+danio_max = 28
+fuerza    = 4
 
 # -----------------------------------------------------------------------------
 # Comercio — precios de compra (lo que paga el jugador)
@@ -187,8 +216,8 @@ archivo_tmx = "assets/mapa/bosque.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = 3
-vecino_sur         = -1
-vecino_este        = 4
+vecino_sur         = 6
+vecino_este        = -1
 vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 10
@@ -203,7 +232,7 @@ archivo_tmx = "assets/mapa/mazmorra.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = -1
-vecino_sur         = 4
+vecino_sur         = -1
 vecino_este        = -1
 vecino_oeste       = 3
 es_zona_segura     = false
@@ -212,7 +241,13 @@ criaturas_posibles = ["orco", "golem", "esqueleto"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
-portales           = []
+portales           = [
+    { x = 92, y = 11, mapa_destino = 5, destino_x = 50, destino_y = 48 },
+    { x = 66, y = 64, mapa_destino = 2, destino_x = 9,  destino_y = 32 },
+    { x = 7,  y = 32, mapa_destino = 2, destino_x = 68, destino_y = 64 },
+    { x = 18, y = 61, mapa_destino = 2, destino_x = 85, destino_y = 37 },
+    { x = 87, y = 37, mapa_destino = 2, destino_x = 20, destino_y = 61 }
+]
 
 [mapas.3]
 archivo_tmx = "assets/mapa/ciudad.tmx"
@@ -234,17 +269,74 @@ portales           = []
 archivo_tmx = "assets/mapa/bosqueOscuro.tmx"
 ancho              = 100
 alto               = 100
-vecino_norte       = 2
+vecino_norte       = 7
 vecino_sur         = -1
 vecino_este        = -1
-vecino_oeste       = 1
+vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 5
 criaturas_posibles = ["orco", "golem"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
-portales           = []
+portales           = [ 
+    { x = 98, y = 16, mapa_destino = 4, destino_x = 89, destino_y = 66 },
+    { x = 91, y = 66, mapa_destino = 4, destino_x = 96, destino_y = 16 }
+]
+
+[mapas.5]
+archivo_tmx = "assets/mapa/mazmorraInfinita.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco", "golem"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 89, y = 11, mapa_destino = 2, destino_x = 90, destino_y = 11 }
+]
+
+[mapas.6]
+archivo_tmx = "assets/mapa/orillaBosque.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = 1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 79, y = 42, mapa_destino = 7, destino_x = 78, destino_y = 17 }
+]
+
+[mapas.7]
+archivo_tmx = "assets/mapa/orillaBosqueOscuro.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = 4
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 78, y = 16, mapa_destino = 6, destino_x = 78, destino_y = 42 }
+]
 
 [spawn]
 mapa_id = 3
