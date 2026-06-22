@@ -11,9 +11,13 @@
 #include "game/clases/mago.h"
 #include "game/clases/paladin.h"
 #include "game/characters/criaturas/arana.h"
+#include "game/characters/criaturas/aranaBlanca.h"
 #include "game/characters/criaturas/esqueleto.h"
+#include "game/characters/criaturas/esqueletoHacha.h"
 #include "game/characters/criaturas/goblin.h"
+#include "game/characters/criaturas/goblinJorobado.h"
 #include "game/characters/criaturas/golem.h"
+#include "game/characters/criaturas/golemDemoniaco.h"
 #include "game/characters/criaturas/orco.h"
 #include "game/characters/criaturas/zombie.h"
 #include "game/formulas.h"
@@ -486,12 +490,20 @@ std::string Game::agregarCriatura(const std::string& tipo, int mapaId, int posX,
     std::unique_ptr<Criatura> criatura;
     if (tipo == "goblin")
         criatura = std::make_unique<Goblin>(config, posX, posY);
+    else if (tipo == "goblin_jorobado")
+        criatura = std::make_unique<GoblinJorobado>(config, posX, posY);
     else if (tipo == "esqueleto")
         criatura = std::make_unique<Esqueleto>(config, posX, posY);
+    else if (tipo == "esqueleto_hacha")
+        criatura = std::make_unique<EsqueletoHacha>(config, posX, posY);
     else if (tipo == "arana")
         criatura = std::make_unique<Arana>(config, posX, posY);
+    else if (tipo == "arana_blanca")
+        criatura = std::make_unique<AranaBlanca>(config, posX, posY);
     else if (tipo == "golem")
         criatura = std::make_unique<Golem>(config, posX, posY);
+    else if (tipo == "golem_demoniaco")
+        criatura = std::make_unique<GolemDemoniaco>(config, posX, posY);
     else if (tipo == "orco")
         criatura = std::make_unique<Orco>(config, posX, posY);
     else if (tipo == "zombie")
