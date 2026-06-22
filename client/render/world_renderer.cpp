@@ -1,13 +1,13 @@
 #include "render/world_renderer.h"
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
 #include <map>
 #include <string>
-
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
 #include "game/entity_keys.h"
 #include "render/colors.h"
@@ -27,21 +27,20 @@ static constexpr SDL_Color PLACEHOLDER_BODY{80, 160, 255, 255};
 static constexpr SDL_Color CHECKER_LIGHT{40, 58, 40, 255};
 static constexpr SDL_Color CHECKER_DARK{30, 46, 30, 255};
 
-static constexpr int WEAPON_REF_H = 48;  // alto del personaje en el sheet del arma
+static constexpr int WEAPON_REF_H =
+    48;  // alto del personaje en el sheet del arma
 
 WorldRenderer::WorldRenderer(SDL2pp::Renderer& renderer,
                              const ClientConfig& config):
-        renderer(renderer),
-        config(config),
-        registry(renderer.Get(),
-                 std::filesystem::current_path() / config.assets_path),
-        text(renderer.Get(),
-             (std::filesystem::current_path() / config.font_path)
-                 .lexically_normal(),
-             config.font_size),
-        item_sprites(renderer, config),
-        weapon_sprites(renderer, config),
-        local_anim(WALK_FRAME_COUNT, ANIM_MS_FRAME) {
+    renderer(renderer),
+    config(config), registry(renderer.Get(), std::filesystem::current_path() /
+                                                 config.assets_path),
+    text(
+        renderer.Get(),
+        (std::filesystem::current_path() / config.font_path).lexically_normal(),
+        config.font_size),
+    item_sprites(renderer, config), weapon_sprites(renderer, config),
+    local_anim(WALK_FRAME_COUNT, ANIM_MS_FRAME) {
     load_map(config.map_name);
     load_effects();
 }
@@ -77,10 +76,14 @@ void WorldRenderer::update_loaded_map(const ClientGameState& state) {
 
 int WorldRenderer::dir_to_idx(protocol::Direction dir) {
     switch (dir) {
-        case protocol::Direction::SOUTH: return DIR_SOUTH;
-        case protocol::Direction::NORTH: return DIR_NORTH;
-        case protocol::Direction::EAST: return DIR_EAST;
-        case protocol::Direction::WEST: return DIR_WEST;
+        case protocol::Direction::SOUTH:
+            return DIR_SOUTH;
+        case protocol::Direction::NORTH:
+            return DIR_NORTH;
+        case protocol::Direction::EAST:
+            return DIR_EAST;
+        case protocol::Direction::WEST:
+            return DIR_WEST;
     }
     return DIR_SOUTH;
 }
@@ -234,8 +237,7 @@ void WorldRenderer::blit_tile(SDL_Texture* tex, const SDL_Rect& src,
             sdl_flip =
                 static_cast<SDL_RendererFlip>(sdl_flip | SDL_FLIP_VERTICAL);
     }
-    SDL_RenderCopyEx(renderer.Get(), tex, &src, &dst, angle, nullptr,
-                     sdl_flip);
+    SDL_RenderCopyEx(renderer.Get(), tex, &src, &dst, angle, nullptr, sdl_flip);
 }
 
 void WorldRenderer::draw_map_layer(int layer, int cam_offset_x,
@@ -303,8 +305,8 @@ void WorldRenderer::draw_head(const std::string& sprite_key,
 
     const HeadAdjust adj = HeadAdjuster::head(raza, sprite_key, dir_idx);
 
-    SDL_Rect dst{px + (ts - head_w) / 2 + adj.dx,
-                 head_bottom - head_h + adj.dy, head_w, head_h};
+    SDL_Rect dst{px + (ts - head_w) / 2 + adj.dx, head_bottom - head_h + adj.dy,
+                 head_w, head_h};
     SDL_RenderCopy(renderer.Get(), head_tex, &src, &dst);
 }
 
@@ -320,10 +322,11 @@ void WorldRenderer::draw_helmet(const std::string& helmet_key,
     const int head_scale = head_scale_pct(raza);
     SDL_Rect src = registry.get_helmet_rect(helmet_key, dir_idx);
 
-    const int helmet_scale = registry.get_helmet_scale(helmet_key)
-                             * HeadAdjuster::helmet_scale_pct(raza, helmet_key) / 100;
-    const int helmet_h = (((ts * 7) / 8) * body_scale / 100)
-                         * head_scale / 100 * helmet_scale / 100;
+    const int helmet_scale = registry.get_helmet_scale(helmet_key) *
+                             HeadAdjuster::helmet_scale_pct(raza, helmet_key) /
+                             100;
+    const int helmet_h = (((ts * 7) / 8) * body_scale / 100) * head_scale /
+                         100 * helmet_scale / 100;
     const int helmet_w = src.h > 0 ? (src.w * helmet_h) / src.h : ts / 2;
 
     const int neck = registry.get_head_neck(sprite_key) * body_scale / 100;
@@ -336,19 +339,16 @@ void WorldRenderer::draw_helmet(const std::string& helmet_key,
     const HeadAdjust hadj = HeadAdjuster::helmet(raza, helmet_key, dir_idx);
 
     SDL_Rect dst{px + (ts - helmet_w) / 2 + off_x + adj.dx + hadj.dx,
-                 head_bottom - helmet_h + off_y + adj.dy + hadj.dy,
-                 helmet_w, helmet_h};
+                 head_bottom - helmet_h + off_y + adj.dy + hadj.dy, helmet_w,
+                 helmet_h};
     SDL_RenderCopy(renderer.Get(), helmet_tex, &src, &dst);
 }
 
-void WorldRenderer::draw_character(int world_x, int world_y,
-                                   protocol::Direction dir,
-                                   const std::string& sprite_key,
-                                   const std::string& raza, int frame,
-                                   int cam_offset_x, int cam_offset_y,
-                                   const std::string& weapon_name,
-                                   const std::string& helmet_key,
-                                   const std::string& shield_name) {
+void WorldRenderer::draw_character(
+    int world_x, int world_y, protocol::Direction dir,
+    const std::string& sprite_key, const std::string& raza, int frame,
+    int cam_offset_x, int cam_offset_y, const std::string& weapon_name,
+    const std::string& helmet_key, const std::string& shield_name) {
     const int ts = config.tile_size;
     const int px = cam_offset_x + world_x * ts;
     const int py = cam_offset_y + world_y * ts;
@@ -368,7 +368,7 @@ void WorldRenderer::draw_character(int world_x, int world_y,
 
     if (!helmet_key.empty()) {
         draw_helmet(helmet_key, raza, sprite_key, dir_idx, px, body_top,
-                   body_scale);
+                    body_scale);
     }
 
     if (!weapon_name.empty()) {
@@ -402,9 +402,8 @@ void WorldRenderer::draw_ghost(int world_x, int world_y,
     SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
 }
 
-void WorldRenderer::draw_player(const std::string& nick, bool dead,
-                                int world_x, int world_y,
-                                protocol::Direction dir,
+void WorldRenderer::draw_player(const std::string& nick, bool dead, int world_x,
+                                int world_y, protocol::Direction dir,
                                 const std::string& sprite_key,
                                 const std::string& raza, int frame,
                                 int cam_offset_x, int cam_offset_y,
@@ -455,8 +454,8 @@ void WorldRenderer::draw_creature(int world_x, int world_y,
     SDL_RenderCopy(renderer.Get(), tex, &src, &dst);
 }
 
-void WorldRenderer::draw_name(const std::string& nick, int world_x,
-                              int world_y, int cam_offset_x, int cam_offset_y,
+void WorldRenderer::draw_name(const std::string& nick, int world_x, int world_y,
+                              int cam_offset_x, int cam_offset_y,
                               const std::string& raza) {
     if (!text.ok() || nick.empty()) {
         return;
@@ -582,8 +581,7 @@ void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
     if (!state.has_local_position()) {
         return;
     }
-    local_anim.update(delta_ms, state.get_local_dir(),
-                      state.get_local_moved());
+    local_anim.update(delta_ms, state.get_local_dir(), state.get_local_moved());
 
     std::string local_clase = config.character_clase;
     std::string local_raza = config.character_raza;
@@ -611,9 +609,8 @@ void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
               cam_offset_y, local_raza);
 }
 
-void WorldRenderer::draw_others(const ClientGameState& state,
-                                uint32_t delta_ms, int cam_offset_x,
-                                int cam_offset_y) {
+void WorldRenderer::draw_others(const ClientGameState& state, uint32_t delta_ms,
+                                int cam_offset_x, int cam_offset_y) {
     for (const auto& [nick, pv] : state.get_others()) {
         auto [it, inserted] =
             other_anims.try_emplace(nick, WALK_FRAME_COUNT, ANIM_MS_FRAME);
@@ -627,8 +624,7 @@ void WorldRenderer::draw_others(const ClientGameState& state,
         draw_player(nick, state.is_dead(nick), pv.x, pv.y, pv.direction,
                     body_key_for(pv.inventory, clase), raza,
                     it->second.current_frame(), cam_offset_x, cam_offset_y,
-                    weapon_name_for(pv.inventory),
-                    helmet_key_for(pv.inventory),
+                    weapon_name_for(pv.inventory), helmet_key_for(pv.inventory),
                     shield_name_for(pv.inventory));
 
         if (state.is_meditating(nick)) {
@@ -830,7 +826,7 @@ void WorldRenderer::render(const ClientGameState& state, uint32_t delta_ms) {
     compute_camera(state, cam_offset_x, cam_offset_y);
 
     draw_layers(cam_offset_x, cam_offset_y);
-    draw_floor_items(state, cam_offset_x, cam_offset_y);    
+    draw_floor_items(state, cam_offset_x, cam_offset_y);
     draw_local(state, delta_ms, cam_offset_x, cam_offset_y);
     draw_others(state, delta_ms, cam_offset_x, cam_offset_y);
     draw_all_creatures(state, delta_ms, cam_offset_x, cam_offset_y);

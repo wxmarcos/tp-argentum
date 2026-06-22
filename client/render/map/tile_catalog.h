@@ -1,12 +1,12 @@
 #ifndef CLIENT_RENDER_TILE_CATALOG_H
 #define CLIENT_RENDER_TILE_CATALOG_H
 
+#include <SDL2/SDL.h>
+
 #include <cstdint>
 #include <filesystem>
 #include <string>
 #include <unordered_map>
-
-#include <SDL2/SDL.h>
 
 #include "render/texture_manager.h"
 
@@ -18,7 +18,7 @@ struct TileDef {
 };
 
 class TileCatalog {
-    private:
+private:
     TextureManager textures;
     std::unordered_map<TileId, TileDef> tiles;
 
@@ -30,10 +30,10 @@ class TileCatalog {
 
     void register_tiles(const std::string& key, TileId firstgid, int columns,
                         int tilewidth, int tileheight, int tilecount);
-                        
+
     std::string attr(const std::string& line, const std::string& name) const;
 
-    public:
+public:
     TileCatalog(SDL_Renderer* renderer,
                 const std::filesystem::path& assets_root);
 

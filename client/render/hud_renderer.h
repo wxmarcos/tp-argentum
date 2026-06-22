@@ -1,21 +1,21 @@
 #ifndef CLIENT_RENDER_HUD_RENDERER_H
 #define CLIENT_RENDER_HUD_RENDERER_H
 
+#include <SDL2/SDL.h>
+
+#include <SDL2pp/SDL2pp.hh>
 #include <cstddef>
 #include <cstdint>
 #include <string>
 
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
-
 #include "config/client_config.h"
 #include "game/client_game_state.h"
-#include "render/text_renderer.h"
 #include "render/sprites/item_sprite_registry.h"
+#include "render/text_renderer.h"
 #include "ui/console.h"
 
 class HudRenderer {
-    private:
+private:
     SDL2pp::Renderer& renderer;
     SDL_Texture* hud_bg = nullptr;
     SDL_Texture* slot_frame = nullptr;
@@ -31,7 +31,7 @@ class HudRenderer {
     ItemSpriteRegistry item_sprites;
 
     SDL_Texture* load_texture(const std::string& rel_path) const;
-    
+
     void draw_panel();
 
     void draw_bar(int x, int y, int w, int h, float ratio, SDL_Color fill);
@@ -49,13 +49,13 @@ class HudRenderer {
                                 int y);
 
     void draw_inventory_slot(const InventorySlotView& slot, int index, int cx,
-                         int cy, int cell);
+                             int cy, int cell);
 
     void draw_chat_panel(const ClientGameState& state, const Console& console);
 
     void draw_frame();
 
-    public:
+public:
     uint32_t last_error_seq = 0;
     Uint32 error_shown_at = 0;
 

@@ -2,8 +2,8 @@
 #define CLIENT_RENDER_MAP_DATA_H
 
 #include <cstdint>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "render/map/tile_catalog.h"
 
@@ -11,7 +11,7 @@
 // Cada celda (x, y, capa) tiene un TileId.
 // TileId=0 significa celda vacia (no dibujar).
 class MapData {
-    private:
+private:
     int width;
     int height;
     int layer_count;
@@ -25,7 +25,7 @@ class MapData {
     // Grilla de colision: true = bloqueado.
     std::vector<bool> collision;
 
-    public:
+public:
     MapData(int width, int height, int layer_count);
 
     void set(int x, int y, int layer, TileId id);

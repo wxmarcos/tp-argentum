@@ -4,15 +4,15 @@
 #include <string>
 
 class Console {
-    private:
+private:
     bool open_ = false;
     std::string input_;
 
-    public:
+public:
     bool is_open() const;
 
     void open();
-    
+
     void close();
 
     void append(const std::string& text);

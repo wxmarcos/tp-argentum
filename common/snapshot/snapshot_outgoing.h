@@ -6,11 +6,7 @@
 
 #include "common/snapshot/snapshot.h"
 
-enum class DeliveryType {
-    BROADCAST,
-    UNICAST,
-    MULTICAST
-};
+enum class DeliveryType { BROADCAST, UNICAST, MULTICAST };
 
 struct OutgoingSnapshot {
     Snapshot snapshot;

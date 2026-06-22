@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+
 #include "server/persistence/clan/clan_record.h"
 #include "server/persistence/clan/clan_record_mapper.h"
 

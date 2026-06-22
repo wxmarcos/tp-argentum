@@ -1,5 +1,3 @@
-#include "game/game.h"
-
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -9,6 +7,7 @@
 
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
+#include "game/game.h"
 #include "game/items/inventario.h"
 #include "game/items/itemFactory.h"
 #include "game/items/item_defs.h"
@@ -44,9 +43,10 @@ void Game::spawnCriaturas(std::vector<OutgoingSnapshot>& snapshots) {
                 std::string id = agregarCriatura(tipo, mapaId, x, y);
 
                 if (!id.empty()) {
-                    push_broadcast(snapshots, Snapshot::entity_created(
-                        id, mapaId, static_cast<uint16_t>(x),
-                        static_cast<uint16_t>(y), 2));
+                    push_broadcast(snapshots,
+                                   Snapshot::entity_created(
+                                       id, mapaId, static_cast<uint16_t>(x),
+                                       static_cast<uint16_t>(y), 2));
                 }
 
                 break;
@@ -101,27 +101,29 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
             criatura->resetearCooldownAtaque();
 
             if (danio == 0) {
-                push_broadcast(snapshots,
-                    Snapshot::dodge_event(id, objetivo->getNombre()));
+                push_broadcast(snapshots, Snapshot::dodge_event(
+                                              id, objetivo->getNombre()));
             } else {
-                push_broadcast(snapshots, Snapshot::damage_event(
-                    id, objetivo->getNombre(), static_cast<uint16_t>(danio),
-                    false));
+                push_broadcast(snapshots,
+                               Snapshot::damage_event(
+                                   id, objetivo->getNombre(),
+                                   static_cast<uint16_t>(danio), false));
             }
 
             auto itObjetivoId = nick_to_player_id.find(objetivo->getNombre());
             if (itObjetivoId != nick_to_player_id.end()) {
-                push_unicast(snapshots,
+                push_unicast(
+                    snapshots,
                     SnapshotFactory::player_stats_from_player(*objetivo),
                     itObjetivoId->second);
             }
 
             if (!objetivo->estaVivo()) {
                 push_broadcast(snapshots,
-                    Snapshot::death_event(objetivo->getNombre()));
+                               Snapshot::death_event(objetivo->getNombre()));
 
                 push_broadcast(snapshots,
-                    Snapshot::entity_remove(objetivo->getNombre()));
+                               Snapshot::entity_remove(objetivo->getNombre()));
 
                 objetivo->perderExperiencia(Formulas::calcularExpPerdida(
                     objetivo->getExperiencia(),
@@ -133,21 +135,25 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
                     std::string nombreItem = item.item->getNombre();
                     uint16_t cantidad = item.cantidad;
                     auto [tx, ty] = buscarTileParaItem(
-                        objetivo->getMapaId(),
-                        objetivo->getPosX(), objetivo->getPosY(), tilesUsados);
+                        objetivo->getMapaId(), objetivo->getPosX(),
+                        objetivo->getPosY(), tilesUsados);
 
                     mundo.tirarItem(objetivo->getMapaId(), tx, ty,
                                     std::move(item));
 
-                    push_broadcast(snapshots, Snapshot::item_event(
-                        static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                        objetivo->getNombre(), nombreItem,
-                        static_cast<uint16_t>(objetivo->getMapaId()),
-                        static_cast<uint16_t>(tx),
-                        static_cast<uint16_t>(ty), cantidad));
+                    push_broadcast(
+                        snapshots,
+                        Snapshot::item_event(
+                            static_cast<uint8_t>(
+                                protocol::ItemEventAction::DROP),
+                            objetivo->getNombre(), nombreItem,
+                            static_cast<uint16_t>(objetivo->getMapaId()),
+                            static_cast<uint16_t>(tx),
+                            static_cast<uint16_t>(ty), cantidad));
                     push_unicast(snapshots,
-                        SnapshotFactory::player_inventory_from_player(*objetivo),
-                        itObjetivoId->second);
+                                 SnapshotFactory::player_inventory_from_player(
+                                     *objetivo),
+                                 itObjetivoId->second);
                 }
 
                 int oroExceso = Formulas::calcularOroExceso(
@@ -156,20 +162,23 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
                 if (oroExceso > 0) {
                     objetivo->gastarOro(oroExceso);
                     auto [tx, ty] = buscarTileParaItem(
-                        objetivo->getMapaId(),
-                        objetivo->getPosX(), objetivo->getPosY(), tilesUsados);
+                        objetivo->getMapaId(), objetivo->getPosX(),
+                        objetivo->getPosY(), tilesUsados);
 
                     mundo.tirarItem(
                         objetivo->getMapaId(), tx, ty,
                         SlotInventario(ItemFactory::crearOro(oroExceso)));
 
-                    push_broadcast(snapshots, Snapshot::item_event(
-                        static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                        objetivo->getNombre(), item_defs::ORO,
-                        static_cast<uint16_t>(objetivo->getMapaId()),
-                        static_cast<uint16_t>(tx),
-                        static_cast<uint16_t>(ty),
-                        static_cast<uint16_t>(oroExceso)));
+                    push_broadcast(
+                        snapshots,
+                        Snapshot::item_event(
+                            static_cast<uint8_t>(
+                                protocol::ItemEventAction::DROP),
+                            objetivo->getNombre(), item_defs::ORO,
+                            static_cast<uint16_t>(objetivo->getMapaId()),
+                            static_cast<uint16_t>(tx),
+                            static_cast<uint16_t>(ty),
+                            static_cast<uint16_t>(oroExceso)));
                 }
             }
 
@@ -212,11 +221,12 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
 
             criatura->resetearCooldownMovimiento();
 
-            push_broadcast(snapshots, Snapshot::entity_move(
-                id, criatura->getMapaId(),
-                static_cast<uint16_t>(criatura->getPosX()),
-                static_cast<uint16_t>(criatura->getPosY()),
-                static_cast<uint8_t>(criatura->getDireccion())));
+            push_broadcast(snapshots,
+                           Snapshot::entity_move(
+                               id, criatura->getMapaId(),
+                               static_cast<uint16_t>(criatura->getPosX()),
+                               static_cast<uint16_t>(criatura->getPosY()),
+                               static_cast<uint8_t>(criatura->getDireccion())));
         }
     }
 
@@ -258,8 +268,7 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
 static constexpr int MAX_RADIO_DROP = 8;
 
 std::pair<int, int> Game::buscarTileParaItem(
-    int mapaId, int cx, int cy,
-    std::set<std::pair<int, int>>& usados) const {
+    int mapaId, int cx, int cy, std::set<std::pair<int, int>>& usados) const {
     const Mapa* mapa = mundo.getMapa(mapaId);
     if (!mapa) return {cx, cy};
 
@@ -282,15 +291,13 @@ std::pair<int, int> Game::buscarTileParaItem(
     return {cx, cy};
 }
 
-bool Game::buscarPosicionLibreCerca(int mapaId, int x, int y,
-                                    int& outX, int& outY) const {
+bool Game::buscarPosicionLibreCerca(int mapaId, int x, int y, int& outX,
+                                    int& outY) const {
     const Mapa* mapa = mundo.getMapa(mapaId);
     if (!mapa) return false;
 
-    static const int dirs[8][2] = {
-        {0, 1}, {1, 0}, {0, -1}, {-1, 0},
-        {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-    };
+    static const int dirs[8][2] = {{0, 1}, {1, 0},  {0, -1}, {-1, 0},
+                                   {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
     for (const auto& d : dirs) {
         int nx = x + d[0];
@@ -337,36 +344,32 @@ void Game::tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots) {
             const uint16_t playerId = itId->second;
 
             if (mapaAnterior != destinoMapa) {
-                push_unicast(
-                    snapshots,
-                    Snapshot::map_change(
-                        nombre,
-                        static_cast<uint16_t>(destinoMapa),
-                        static_cast<uint16_t>(destinoX),
-                        static_cast<uint16_t>(destinoY),
-                        static_cast<uint8_t>(jugador->getDireccion())),
-                    playerId);
+                push_unicast(snapshots,
+                             Snapshot::map_change(
+                                 nombre, static_cast<uint16_t>(destinoMapa),
+                                 static_cast<uint16_t>(destinoX),
+                                 static_cast<uint16_t>(destinoY),
+                                 static_cast<uint8_t>(jugador->getDireccion())),
+                             playerId);
 
-                agregarReplayDeJugadores(snapshots, nombre, destinoMapa, playerId);
+                agregarReplayDeJugadores(snapshots, nombre, destinoMapa,
+                                         playerId);
                 agregarReplayNpcs(snapshots, destinoMapa, playerId);
                 agregarReplayCriaturas(snapshots, destinoMapa, playerId);
                 agregarReplayItems(snapshots, destinoMapa, playerId);
             } else {
-                push_unicast(
-                    snapshots,
-                    Snapshot::entity_move(
-                        nombre,
-                        static_cast<uint16_t>(destinoMapa),
-                        static_cast<uint16_t>(destinoX),
-                        static_cast<uint16_t>(destinoY),
-                        static_cast<uint8_t>(jugador->getDireccion())),
-                    playerId);
+                push_unicast(snapshots,
+                             Snapshot::entity_move(
+                                 nombre, static_cast<uint16_t>(destinoMapa),
+                                 static_cast<uint16_t>(destinoX),
+                                 static_cast<uint16_t>(destinoY),
+                                 static_cast<uint8_t>(jugador->getDireccion())),
+                             playerId);
             }
 
-            push_unicast(
-                snapshots,
-                SnapshotFactory::player_stats_from_player(*jugador),
-                playerId);
+            push_unicast(snapshots,
+                         SnapshotFactory::player_stats_from_player(*jugador),
+                         playerId);
 
             push_unicast(
                 snapshots,
@@ -378,13 +381,11 @@ void Game::tickResucitando(float dt, std::vector<OutgoingSnapshot>& snapshots) {
             push_broadcast(snapshots, Snapshot::entity_remove(nombre));
         }
 
-        push_broadcast(
-            snapshots,
-            Snapshot::entity_created(
-                nombre,
-                static_cast<uint16_t>(destinoMapa),
-                static_cast<uint16_t>(destinoX),
-                static_cast<uint16_t>(destinoY),
-                static_cast<uint8_t>(jugador->getDireccion())));
+        push_broadcast(snapshots,
+                       Snapshot::entity_created(
+                           nombre, static_cast<uint16_t>(destinoMapa),
+                           static_cast<uint16_t>(destinoX),
+                           static_cast<uint16_t>(destinoY),
+                           static_cast<uint8_t>(jugador->getDireccion())));
     }
 }

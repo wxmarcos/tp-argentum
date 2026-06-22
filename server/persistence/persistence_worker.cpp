@@ -22,8 +22,7 @@ static void copy_string(char* dest, std::size_t size, const std::string& src) {
 }
 
 static void append_index_record(const std::filesystem::path& index_path,
-                                const std::string& nick,
-                                uint64_t offset) {
+                                const std::string& nick, uint64_t offset) {
     std::ofstream out(index_path, std::ios::binary | std::ios::app);
 
     if (!out) {
@@ -47,8 +46,7 @@ static void write_player_record_at(const std::filesystem::path& players_path,
         return;
     }
 
-    PersistencePlayerRecord record =
-        PersistenceRecordMapper::to_record(task);
+    PersistencePlayerRecord record = PersistenceRecordMapper::to_record(task);
 
     file.seekp(static_cast<std::streamoff>(offset), std::ios::beg);
     file.write(reinterpret_cast<const char*>(&record), sizeof(record));
@@ -75,8 +73,7 @@ static uint64_t append_player_record(const std::filesystem::path& players_path,
 
     uint64_t offset = static_cast<uint64_t>(file.tellp());
 
-    PersistencePlayerRecord record =
-        PersistenceRecordMapper::to_record(task);
+    PersistencePlayerRecord record = PersistenceRecordMapper::to_record(task);
 
     file.write(reinterpret_cast<const char*>(&record), sizeof(record));
 

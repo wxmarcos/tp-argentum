@@ -1,12 +1,12 @@
 #ifndef CLIENT_RENDER_SPRITES_WEAPON_SPRITE_REGISTRY_H
 #define CLIENT_RENDER_SPRITES_WEAPON_SPRITE_REGISTRY_H
 
+#include <SDL2/SDL.h>
+
+#include <SDL2pp/SDL2pp.hh>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
 
 #include "config/client_config.h"
 #include "render/sprites/sprite_constants.h"
@@ -24,7 +24,7 @@ struct WeaponSprite {
 };
 
 class WeaponSpriteRegistry {
-    private:
+private:
     SDL2pp::Renderer& renderer;
     const ClientConfig& config;
 
@@ -45,7 +45,7 @@ class WeaponSpriteRegistry {
                     const WeaponDirAdjust& n, const WeaponDirAdjust& e,
                     const WeaponDirAdjust& w);
 
-    public:
+public:
     WeaponSpriteRegistry(SDL2pp::Renderer& renderer,
                          const ClientConfig& config);
     ~WeaponSpriteRegistry();

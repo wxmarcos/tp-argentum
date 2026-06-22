@@ -20,8 +20,7 @@ std::string TmxLoader::attr(const std::string& line,
 }
 
 void TmxLoader::read_map_header(const std::filesystem::path& tmx_path,
-                                int& map_w, int& map_h,
-                                int& tile_size) const {
+                                int& map_w, int& map_h, int& tile_size) const {
     std::ifstream f(tmx_path);
     std::string line;
     while (std::getline(f, line)) {

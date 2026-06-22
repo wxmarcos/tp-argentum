@@ -206,7 +206,8 @@ float Config::getSpawnIntervalo() const {
 }
 
 float Config::getPersistenciaIntervalo() const {
-    return static_cast<float>(impl->get<double>("ia.intervalo_persistencia", 60.0));
+    return static_cast<float>(
+        impl->get<double>("ia.intervalo_persistencia", 60.0));
 }
 
 float Config::getVelocidadResurreccion() const {
@@ -222,8 +223,8 @@ int Config::getPrecioItem(const std::string& nombre) const {
         if (c == ' ')
             clave += '_';
         else
-            clave += static_cast<char>(
-                std::tolower(static_cast<unsigned char>(c)));
+            clave +=
+                static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     }
     return impl->get<int64_t>(clave, 0);
 }
@@ -306,12 +307,8 @@ int Config::getServerMaxClients() const {
 int Config::getSpawnMapaId() const {
     return impl->get<int64_t>("spawn.mapa_id", 3);
 }
-int Config::getSpawnX() const {
-    return impl->get<int64_t>("spawn.x", 50);
-}
-int Config::getSpawnY() const {
-    return impl->get<int64_t>("spawn.y", 89);
-}
+int Config::getSpawnX() const { return impl->get<int64_t>("spawn.x", 50); }
+int Config::getSpawnY() const { return impl->get<int64_t>("spawn.y", 89); }
 
 // ----------------- Rutas de Persistencia -----------------
 
@@ -320,12 +317,12 @@ std::string Config::getRutaJugadores() const {
 }
 
 std::string Config::getRutaIndiceJugadores() const {
-    return impl->get<std::string>("rutas.ruta_index_jugadores", "data/index.bin");
+    return impl->get<std::string>("rutas.ruta_index_jugadores",
+                                  "data/index.bin");
 }
 
 std::string Config::getRutaClanes() const {
-    return impl->get<std::string>("rutas.ruta_clanes",
-                                  "data/clanes.bin");
+    return impl->get<std::string>("rutas.ruta_clanes", "data/clanes.bin");
 }
 
 // ----------------- Mapas -----------------

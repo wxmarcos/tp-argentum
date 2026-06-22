@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <iostream>
 #include <string_view>
-
 #include <toml++/toml.hpp>
 
 namespace fs = std::filesystem;

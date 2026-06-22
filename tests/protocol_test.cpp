@@ -52,8 +52,10 @@ TEST(CommandCodec, CreateCharacter) {
 
 TEST(CommandCodec, CreateCharacterTodasLasRazasYClases) {
     const std::vector<std::pair<std::string, std::string>> combos = {
-        {"humano", "guerrero"}, {"elfo", "mago"},
-        {"enano", "clerigo"},   {"gnomo", "paladin"},
+        {"humano", "guerrero"},
+        {"elfo", "mago"},
+        {"enano", "clerigo"},
+        {"gnomo", "paladin"},
     };
     for (const auto& [raza, clase] : combos) {
         auto cmd = Command::create_character("Nick", raza, clase);
@@ -170,17 +172,15 @@ TEST(CommandCodec, PrivateMessage) {
 }
 
 TEST(CommandCodec, ComandosSinPayload) {
-    const std::vector<std::pair<
-        protocol::ClientOpcode,
-        Command>> comandos = {
-        {protocol::ClientOpcode::MEDITATE,         Command::meditate()},
-        {protocol::ClientOpcode::RESURRECT,        Command::resurrect()},
-        {protocol::ClientOpcode::HEAL,             Command::heal()},
-        {protocol::ClientOpcode::CHEAT_GOD,        Command::cheat_god()},
-        {protocol::ClientOpcode::CHEAT_MANA,       Command::cheat_mana()},
-        {protocol::ClientOpcode::CHEAT_DIE,        Command::cheat_die()},
-        {protocol::ClientOpcode::CHEAT_RESURRECT,  Command::cheat_resurrect()},
-        {protocol::ClientOpcode::DISCONNECT,       Command::disconnect()},
+    const std::vector<std::pair<protocol::ClientOpcode, Command>> comandos = {
+        {protocol::ClientOpcode::MEDITATE, Command::meditate()},
+        {protocol::ClientOpcode::RESURRECT, Command::resurrect()},
+        {protocol::ClientOpcode::HEAL, Command::heal()},
+        {protocol::ClientOpcode::CHEAT_GOD, Command::cheat_god()},
+        {protocol::ClientOpcode::CHEAT_MANA, Command::cheat_mana()},
+        {protocol::ClientOpcode::CHEAT_DIE, Command::cheat_die()},
+        {protocol::ClientOpcode::CHEAT_RESURRECT, Command::cheat_resurrect()},
+        {protocol::ClientOpcode::DISCONNECT, Command::disconnect()},
     };
 
     for (const auto& [opcode, cmd] : comandos) {
@@ -205,10 +205,9 @@ TEST(CommandCodec, PayloadExtraBytesLanzaExcepcion) {
 
 TEST(CommandCodec, OpcodeDesconocidoLanzaExcepcion) {
     std::vector<uint8_t> payload;
-    EXPECT_THROW(
-        parse_command_payload(payload,
-                              static_cast<protocol::ClientOpcode>(0x42), 1),
-        std::runtime_error);
+    EXPECT_THROW(parse_command_payload(
+                     payload, static_cast<protocol::ClientOpcode>(0x42), 1),
+                 std::runtime_error);
 }
 
 // ============================================================
@@ -288,13 +287,13 @@ TEST(Snapshot, ErrorMessage) {
 }
 
 TEST(Snapshot, PlayerStats) {
-    auto s = Snapshot::player_stats(
-        "Pedro", "humano", "guerrero",
-        /*mapa*/ 1, /*x*/ 10, /*y*/ 20, /*dir*/ 2,
-        /*nivel*/ 5, /*vida*/ 80, /*vida_max*/ 100,
-        /*mana*/ 30, /*mana_max*/ 50,
-        /*exp*/ 1500, /*exp_limite*/ 2000, /*oro*/ 200,
-        /*con*/ 10, /*int*/ 8, /*fue*/ 12, /*agi*/ 9);
+    auto s =
+        Snapshot::player_stats("Pedro", "humano", "guerrero",
+                               /*mapa*/ 1, /*x*/ 10, /*y*/ 20, /*dir*/ 2,
+                               /*nivel*/ 5, /*vida*/ 80, /*vida_max*/ 100,
+                               /*mana*/ 30, /*mana_max*/ 50,
+                               /*exp*/ 1500, /*exp_limite*/ 2000, /*oro*/ 200,
+                               /*con*/ 10, /*int*/ 8, /*fue*/ 12, /*agi*/ 9);
 
     EXPECT_TRUE(s.is_player_stats());
     EXPECT_EQ(s.get_nick(), "Pedro");
@@ -332,7 +331,7 @@ TEST(Snapshot, ChatMessage) {
 }
 
 TEST(Snapshot, MeditationStatus) {
-    auto s_on  = Snapshot::meditation_status("Pedro", true);
+    auto s_on = Snapshot::meditation_status("Pedro", true);
     auto s_off = Snapshot::meditation_status("Pedro", false);
 
     EXPECT_TRUE(s_on.is_meditation_status());
@@ -342,8 +341,8 @@ TEST(Snapshot, MeditationStatus) {
 
 TEST(Snapshot, ItemEventDrop) {
     auto s = Snapshot::item_event(
-        static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-        "goblin_0", "espada", 1, 5, 5, 1);
+        static_cast<uint8_t>(protocol::ItemEventAction::DROP), "goblin_0",
+        "espada", 1, 5, 5, 1);
 
     EXPECT_TRUE(s.is_item_event());
     EXPECT_EQ(s.get_item_action(),
@@ -354,8 +353,8 @@ TEST(Snapshot, ItemEventDrop) {
 
 TEST(Snapshot, ItemEventPick) {
     auto s = Snapshot::item_event(
-        static_cast<uint8_t>(protocol::ItemEventAction::PICK),
-        "Pedro", "oro", 1, 3, 3, 50);
+        static_cast<uint8_t>(protocol::ItemEventAction::PICK), "Pedro", "oro",
+        1, 3, 3, 50);
 
     EXPECT_EQ(s.get_item_action(),
               static_cast<uint8_t>(protocol::ItemEventAction::PICK));

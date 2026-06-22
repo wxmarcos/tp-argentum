@@ -34,7 +34,6 @@ private:
 
     void multicast_snapshot(const std::vector<uint16_t>& player_ids,
                             const Snapshot& snapshot);
-    void debug_snapshot(const OutgoingSnapshot& out) const;
 
 public:
     GameLoop(Queue<Command>& commands_queue,

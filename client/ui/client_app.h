@@ -2,6 +2,7 @@
 #define CLIENT_CLIENT_APP_H
 
 #include <SDL2/SDL.h>
+
 #include <string>
 
 #include "config/client_config.h"
@@ -11,7 +12,7 @@
 namespace SDL2pp {
 class Renderer;
 class Window;
-}
+}  // namespace SDL2pp
 
 class AudioManager;
 class ServerConnection;
@@ -24,7 +25,7 @@ class MenuScreen;
 class Console;
 
 class ClientApp {
-    private:
+private:
     ClientConfig config;
     CommandParser parser;
 
@@ -62,8 +63,9 @@ class ClientApp {
                        AudioManager& audio);
 
     void handle_console_event(const SDL_Event& event, Console& console,
-                              ServerConnection& connection, AudioManager& audio);
-                              
+                              ServerConnection& connection,
+                              AudioManager& audio);
+
     void submit_console(Console& console, ServerConnection& connection,
                         AudioManager& audio);
 
@@ -74,14 +76,14 @@ class ClientApp {
     bool process_updates(ServerConnection& connection, ClientGameState& state);
 
     int await_response(ServerConnection& connection, ClientGameState& state);
-    
+
     void load_audio(AudioManager& audio);
 
     void play_event_sounds(AudioManager& audio, const ClientGameState& state);
 
     void update_audio(AudioManager& audio, ClientGameState& state);
 
-    public:
+public:
     explicit ClientApp(ClientConfig config);
 
     int run();

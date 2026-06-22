@@ -5,7 +5,7 @@
 
 TileCatalog::TileCatalog(SDL_Renderer* renderer,
                          const std::filesystem::path& assets_root):
-        textures(renderer, assets_root) {}
+    textures(renderer, assets_root) {}
 
 std::string TileCatalog::attr(const std::string& line,
                               const std::string& name) const {
@@ -50,9 +50,8 @@ void TileCatalog::register_tiles(const std::string& key, TileId firstgid,
         int col = i % columns;
         int row = i / columns;
         TileId gid = static_cast<TileId>(firstgid + i);
-        tiles[gid] = TileDef{
-            key,
-            SDL_Rect{col * tilewidth, row * tileheight, tilewidth, tileheight}};
+        tiles[gid] = TileDef{key, SDL_Rect{col * tilewidth, row * tileheight,
+                                           tilewidth, tileheight}};
     }
 }
 

@@ -6,10 +6,7 @@
 #include "game/clan.h"
 #include "server/persistence/persistence_task.h"
 
-enum class PersistenceJobType {
-    PLAYER,
-    CLANS
-};
+enum class PersistenceJobType { PLAYER, CLANS };
 
 struct PersistenceJob {
     PersistenceJobType type;

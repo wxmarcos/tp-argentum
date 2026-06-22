@@ -31,13 +31,9 @@ std::optional<SlotInventario> CuentaBanco::retirarItem(int indice) {
     items.erase(items.begin() + indice);
     return resultado;
 }
-void CuentaBanco::setOro(int cantidad) {
-    oro = std::max(0, cantidad);
-}
+void CuentaBanco::setOro(int cantidad) { oro = std::max(0, cantidad); }
 
-void CuentaBanco::limpiarItems() {
-    items.clear();
-}
+void CuentaBanco::limpiarItems() { items.clear(); }
 
 const std::vector<SlotInventario>& CuentaBanco::getItems() const {
     return items;
