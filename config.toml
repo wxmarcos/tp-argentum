@@ -94,6 +94,16 @@ exp_nivel_offset        = 10      # offset en factor de exp: max(nivelOtro - niv
 exp_matar_factor        = 0.1     # factor aleatorio de exp al matar: rand(0,1) * factor * vidaMax * nivelFactor
 
 # -----------------------------------------------------------------------------
+# Drops de criaturas (umbrales acumulativos sobre r ∈ [0,1))
+# -----------------------------------------------------------------------------
+[drops]
+umbral_nada   = 0.80
+umbral_oro    = 0.88
+umbral_pocion = 0.89
+umbral_item   = 0.90
+umbral_arma   = 0.95
+
+# -----------------------------------------------------------------------------
 # Clan
 # -----------------------------------------------------------------------------
 [clan]

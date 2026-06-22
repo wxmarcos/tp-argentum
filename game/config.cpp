@@ -227,6 +227,24 @@ float Config::getVelocidadResurreccion() const {
         impl->get<double>("ia.velocidad_resurreccion", 0.5));
 }
 
+// ----------------- Drops de criaturas -----------------
+
+double Config::getDropUmbralNada() const {
+    return impl->get<double>("drops.umbral_nada", 0.80);
+}
+double Config::getDropUmbralOro() const {
+    return impl->get<double>("drops.umbral_oro", 0.88);
+}
+double Config::getDropUmbralPocion() const {
+    return impl->get<double>("drops.umbral_pocion", 0.89);
+}
+double Config::getDropUmbralItem() const {
+    return impl->get<double>("drops.umbral_item", 0.90);
+}
+double Config::getDropUmbralArma() const {
+    return impl->get<double>("drops.umbral_arma", 0.95);
+}
+
 // ----------------- Clan -----------------
 
 int Config::getClanMaxMiembros() const {

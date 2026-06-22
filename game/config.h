@@ -98,6 +98,13 @@ public:
 
     std::vector<ConfigMapa> getMapas() const;
 
+    // Drops de criaturas
+    double getDropUmbralNada() const;
+    double getDropUmbralOro() const;
+    double getDropUmbralPocion() const;
+    double getDropUmbralItem() const;
+    double getDropUmbralArma() const;
+
     // Clan
     int getClanMaxMiembros() const;
 

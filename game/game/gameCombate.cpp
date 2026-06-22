@@ -122,14 +122,13 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
                                 std::vector<OutgoingSnapshot>& snapshots) {
     double r = std::uniform_real_distribution<double>(0.0, 1.0)(rng());
 
-    if (r < 0.80) return;
+    if (r < config.getDropUmbralNada()) return;
 
     int mx = criatura->getMapaId();
     int px = criatura->getPosX();
     int py = criatura->getPosY();
 
-    // 0.80–0.87: oro (8%)
-    if (r < 0.88) {
+    if (r < config.getDropUmbralOro()) {
         int cantidad = Formulas::calcularOroDropNPC(
             criatura->getVidaMax(), config.getFormulaOroDropNPCDivisor());
         std::string nombreItem = item_defs::ORO;
@@ -147,8 +146,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    // 0.88: poción (1%)
-    if (r < 0.89) {
+    if (r < config.getDropUmbralPocion()) {
         bool esVida = std::uniform_int_distribution<int>(0, 1)(rng()) == 0;
         auto pocion = esVida ? ItemFactory::crearPocionDeVida()
                              : ItemFactory::crearPocionDeMana();
@@ -167,8 +165,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    // 0.89: item aleatorio (1%)
-    if (r < 0.90) {
+    if (r < config.getDropUmbralItem()) {
         auto item = crearItemAleatorio();
         std::string nombreItem = item->getNombre();
 
@@ -184,8 +181,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    // 0.90–0.94: arma (5%)
-    if (r < 0.95) {
+    if (r < config.getDropUmbralArma()) {
         auto item = crearArma();
         std::string nombreItem = item->getNombre();
 
