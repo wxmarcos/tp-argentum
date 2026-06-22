@@ -32,15 +32,15 @@ target_sources(taller_game PRIVATE
     # Criaturas
     characters/criaturas/criatura.cpp
     characters/criaturas/goblin.cpp
-    characters/criaturas/goblin_jorobado.cpp
+    characters/criaturas/goblinJorobado.cpp
     characters/criaturas/esqueleto.cpp
-    characters/criaturas/esqueleto_hacha.cpp
+    characters/criaturas/esqueletoHacha.cpp
     characters/criaturas/zombie.cpp
     characters/criaturas/arana.cpp
-    characters/criaturas/arana_blanca.cpp
+    characters/criaturas/aranaBlanca.cpp
     characters/criaturas/orco.cpp
     characters/criaturas/golem.cpp
-    characters/criaturas/golem_demoniaco.cpp
+    characters/criaturas/golemDemoniaco.cpp
 
     # Items
     items/item.cpp
