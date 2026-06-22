@@ -91,11 +91,15 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
             for (auto& [nick, j] : jugadores) {
                 if (nick == cmd.get_nick()) continue;
                 if (j->getClanNombre() == jugador->getClanNombre()) {
-                    push_broadcast(snapshots,
-                                   Snapshot::chat_message(
-                                       "Sistema", nick,
-                                       "Tu compañero " + cmd.get_nick() +
-                                           " entro a Argentum"));
+                    auto itId = nick_to_player_id.find(nick);
+                    if (itId != nick_to_player_id.end()) {
+                        push_unicast(snapshots,
+                                     Snapshot::chat_message(
+                                         "Sistema", nick,
+                                         "Tu compañero " + cmd.get_nick() +
+                                             " entró a Argentum"),
+                                     itId->second);
+                    }
                 }
             }
         }
@@ -167,11 +171,15 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                 for (auto& [nick, j] : jugadores) {
                     if (nick == nombre) continue;
                     if (j->getClanNombre() == clanNom) {
-                        push_broadcast(
-                            snapshots,
-                            Snapshot::chat_message("Sistema", nick,
-                                                   "Tu compañero " + nombre +
-                                                       " salio de Argentum"));
+                        auto itId = nick_to_player_id.find(nick);
+                        if (itId != nick_to_player_id.end()) {
+                            push_unicast(
+                                snapshots,
+                                Snapshot::chat_message("Sistema", nick,
+                                                       "Tu compañero " + nombre +
+                                                           " salió de Argentum"),
+                                itId->second);
+                        }
                     }
                 }
             }
@@ -328,13 +336,17 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                             if (nick == objetivo) continue;
                             if (j->getClanNombre() ==
                                 victima->getClanNombre()) {
-                                push_broadcast(
-                                    snapshots,
-                                    Snapshot::chat_message(
-                                        "Sistema", nick,
-                                        "Tu compañero " + objetivo +
-                                            " esta siendo atacado por " +
-                                            nombre));
+                                auto itId = nick_to_player_id.find(nick);
+                                if (itId != nick_to_player_id.end()) {
+                                    push_unicast(
+                                        snapshots,
+                                        Snapshot::chat_message(
+                                            "Sistema", nick,
+                                            "Tu compañero " + objetivo +
+                                                " esta siendo atacado por " +
+                                                nombre),
+                                        itId->second);
+                                }
                             }
                         }
                     }
