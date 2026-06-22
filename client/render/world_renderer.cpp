@@ -11,6 +11,7 @@
 
 #include "game/entity_keys.h"
 #include "render/colors.h"
+#include "render/sprites/head_adjuster.h"
 
 static constexpr int ANIM_MS_FRAME = 150;
 static constexpr Uint32 DEATH_ANIM_MS = 900;
@@ -298,7 +299,10 @@ void WorldRenderer::draw_head(const std::string& sprite_key,
     const int neck = registry.get_head_neck(sprite_key) * body_scale / 100;
     const int head_bottom = body_top + neck;
 
-    SDL_Rect dst{px + (ts - head_w) / 2, head_bottom - head_h, head_w, head_h};
+    const HeadAdjust adj = HeadAdjuster::head(raza, sprite_key, dir_idx);
+
+    SDL_Rect dst{px + (ts - head_w) / 2 + adj.dx,
+                 head_bottom - head_h + adj.dy, head_w, head_h};
     SDL_RenderCopy(renderer.Get(), head_tex, &src, &dst);
 }
 
@@ -314,7 +318,8 @@ void WorldRenderer::draw_helmet(const std::string& helmet_key,
     const int head_scale = head_scale_pct(raza);
     SDL_Rect src = registry.get_helmet_rect(helmet_key, dir_idx);
 
-    const int helmet_scale = registry.get_helmet_scale(helmet_key);
+    const int helmet_scale = registry.get_helmet_scale(helmet_key)
+                             * HeadAdjuster::helmet_scale_pct(raza, helmet_key) / 100;
     const int helmet_h = (((ts * 7) / 8) * body_scale / 100)
                          * head_scale / 100 * helmet_scale / 100;
     const int helmet_w = src.h > 0 ? (src.w * helmet_h) / src.h : ts / 2;
@@ -325,8 +330,12 @@ void WorldRenderer::draw_helmet(const std::string& helmet_key,
     const int off_x = registry.get_helmet_off_x(helmet_key, dir_idx);
     const int off_y = registry.get_helmet_off_y(helmet_key, dir_idx);
 
-    SDL_Rect dst{px + (ts - helmet_w) / 2 + off_x,
-                 head_bottom - helmet_h + off_y, helmet_w, helmet_h};
+    const HeadAdjust adj = HeadAdjuster::head(raza, sprite_key, dir_idx);
+    const HeadAdjust hadj = HeadAdjuster::helmet(raza, helmet_key, dir_idx);
+
+    SDL_Rect dst{px + (ts - helmet_w) / 2 + off_x + adj.dx + hadj.dx,
+                 head_bottom - helmet_h + off_y + adj.dy + hadj.dy,
+                 helmet_w, helmet_h};
     SDL_RenderCopy(renderer.Get(), helmet_tex, &src, &dst);
 }
 
