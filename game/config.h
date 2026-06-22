@@ -37,6 +37,9 @@ public:
     double getFormulaOroMaxCoeficiente() const;
     double getFormulaOroMaxExponente() const;
     int getFormulaOroDropNPCDivisor() const;
+    double getFormulaEsquiveUmbral() const;
+    int getFormulaExpNivelOffset() const;
+    double getFormulaExpMatarFactor() const;
 
     struct ConfigTile {
         int x;

@@ -88,7 +88,10 @@ exp_coeficiente         = 1000.0  # LimiteExp = coef * nivel^exp
 exp_exponente           = 1.8
 oro_max_coeficiente     = 100.0   # OroMax = coef * nivel^exp
 oro_max_exponente       = 1.1
-oro_drop_npc_divisor    = 10      # OroDropNPC = vidaMaxNPC / divisor
+oro_drop_npc_divisor    = 10      # OroDropNPC = rand(0,1) * vidaMaxNPC / divisor
+esquive_umbral          = 0.001   # umbral para calcularEsquive: pow(r, agi) < umbral
+exp_nivel_offset        = 10      # offset en factor de exp: max(nivelOtro - nivelPropio + offset, 0)
+exp_matar_factor        = 0.1     # factor aleatorio de exp al matar: rand(0,1) * factor * vidaMax * nivelFactor
 
 # -----------------------------------------------------------------------------
 # IA de criaturas
