@@ -1,7 +1,13 @@
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <iostream>
+#include <random>
+
+static std::mt19937& rng() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    return gen;
+}
 
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
@@ -42,7 +48,8 @@ static std::unique_ptr<Item> crearArma() {
         []() -> std::unique_ptr<Item> { return ItemFactory::crearHacha(); },
         []() -> std::unique_ptr<Item> { return ItemFactory::crearMartillo(); },
     };
-    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    int idx = std::uniform_int_distribution<int>(
+        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
     return items[idx]();
 }
 
@@ -56,7 +63,8 @@ static std::unique_ptr<Item> crearEscudo() {
             return ItemFactory::crearEscudoDeHierro();
         },
     };
-    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    int idx = std::uniform_int_distribution<int>(
+        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
     return items[idx]();
 }
 
@@ -104,14 +112,15 @@ static std::unique_ptr<Item> crearItemAleatorio() {
             return ItemFactory::crearEscudoDeHierro();
         },
     };
-    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    int idx = std::uniform_int_distribution<int>(
+        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
     return items[idx]();
 }
 
 void Game::procesarDropCriatura(const std::string& criaturaId,
                                 Jugador* /*atacante*/, Criatura* criatura,
                                 std::vector<OutgoingSnapshot>& snapshots) {
-    double r = static_cast<double>(rand()) / RAND_MAX;
+    double r = std::uniform_real_distribution<double>(0.0, 1.0)(rng());
 
     if (r < 0.80) return;
 
@@ -140,7 +149,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
     // 0.88: poción (1%)
     if (r < 0.89) {
-        bool esVida = rand() % 2 == 0;
+        bool esVida = std::uniform_int_distribution<int>(0, 1)(rng()) == 0;
         auto pocion = esVida ? ItemFactory::crearPocionDeVida()
                              : ItemFactory::crearPocionDeMana();
 

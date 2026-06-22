@@ -1,7 +1,13 @@
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <iostream>
+#include <random>
+
+static std::mt19937& rng() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    return gen;
+}
 #include <limits>
 #include <set>
 
@@ -33,11 +39,14 @@ void Game::spawnCriaturas(std::vector<OutgoingSnapshot>& snapshots) {
         if (mapa->esZonaSegura()) continue;
 
         const std::string& tipo =
-            info.criaturasPosibles[rand() % info.criaturasPosibles.size()];
+            info.criaturasPosibles[std::uniform_int_distribution<size_t>(
+                0, info.criaturasPosibles.size() - 1)(rng())];
 
         for (int intento = 0; intento < 20; intento++) {
-            int x = rand() % mapa->getAncho();
-            int y = rand() % mapa->getAlto();
+            int x = std::uniform_int_distribution<int>(
+                0, mapa->getAncho() - 1)(rng());
+            int y = std::uniform_int_distribution<int>(
+                0, mapa->getAlto() - 1)(rng());
 
             if (mapa->esTransitable(x, y) && !mapa->estaOcupada(x, y)) {
                 std::string id = agregarCriatura(tipo, mapaId, x, y);
