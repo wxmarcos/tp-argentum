@@ -11,7 +11,7 @@ void ClanSaver::save_all(const std::string& path,
     std::ofstream file(path, std::ios::binary | std::ios::trunc);
 
     if (!file.is_open()) {
-        std::cout << "[ClanSaver] no se pudo abrir " << path << "\n";
+        std::cerr << "Failed to open file: " << path << std::endl;
         return;
     }
 
@@ -21,6 +21,4 @@ void ClanSaver::save_all(const std::string& path,
         file.write(reinterpret_cast<const char*>(&record),
                    sizeof(ClanRecord));
     }
-
-    std::cout << "[ClanSaver] clanes guardados=" << clanes.size() << "\n";
 }
