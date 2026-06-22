@@ -1,5 +1,6 @@
 #include "game/client_game_state.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstddef>
 #include <string_view>
@@ -460,7 +461,8 @@ std::string ClientGameState::format_chat_sender(
     static const std::unordered_set<std::string_view> CREATURE_TYPES = {
         keys::GOBLIN, keys::ESQUELETO, keys::ZOMBIE, keys::ARANA,
         keys::ORCO, keys::GOLEM, keys::BANQUERO, keys::COMERCIANTE,
-        keys::SACERDOTE};
+        keys::SACERDOTE, keys::ESQUELETO_HACHA, keys::ARANA_BLANCA,
+        keys::GOBLIN_JOROBADO, keys::GOLEM_DEMONIACO};
 
     const auto sep = nick.rfind('_');
     if (sep == std::string::npos || sep == 0) {
@@ -475,7 +477,9 @@ std::string ClientGameState::format_chat_sender(
     if (CREATURE_TYPES.find(prefix) == CREATURE_TYPES.end()) {
         return nick;
     }
-    return prefix;
+    std::string name = prefix;
+    std::replace(name.begin(), name.end(), '_', ' ');
+    return name;
 }
 
 void ClientGameState::apply_chat_message(const Snapshot& snapshot) {
