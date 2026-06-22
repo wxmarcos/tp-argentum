@@ -3,7 +3,7 @@
 #include "config/client_config.h"
 #include "ui/client_app.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char* argv[]) {
     ClientConfig config = ClientConfig::load();
     if (argc > 1) config.character_nick = argv[1];
     if (argc > 2) config.character_raza = argv[2];
