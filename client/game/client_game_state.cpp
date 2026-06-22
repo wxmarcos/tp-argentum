@@ -117,6 +117,7 @@ void ClientGameState::apply_entity_position(const Snapshot& snapshot) {
             current_map_id = snapshot.get_mapa_id();
             others.clear();
             creatures.clear();
+            floor_items.clear();
             local_moved = false;
         }
 
@@ -489,6 +490,7 @@ const std::vector<ChatMessage>& ClientGameState::get_chat_messages() const {
 }
 
 void ClientGameState::apply_item_event(const Snapshot& snapshot) {
+    if (snapshot.get_mapa_id() != current_map_id) return;
     const uint16_t x = snapshot.get_x();
     const uint16_t y = snapshot.get_y();
     const uint32_t key = (static_cast<uint32_t>(x) << 16) | y;

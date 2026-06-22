@@ -185,6 +185,18 @@ int Config::getFormulaOroDropNPCDivisor() const {
     return impl->get<int64_t>("formulas.oro_drop_npc_divisor", 10);
 }
 
+double Config::getFormulaEsquiveUmbral() const {
+    return impl->get<double>("formulas.esquive_umbral", 0.001);
+}
+
+int Config::getFormulaExpNivelOffset() const {
+    return impl->get<int64_t>("formulas.exp_nivel_offset", 10);
+}
+
+double Config::getFormulaExpMatarFactor() const {
+    return impl->get<double>("formulas.exp_matar_factor", 0.1);
+}
+
 // ----------------- IA de criaturas -----------------
 
 int Config::getCriaturaRangoDeteccion() const {
