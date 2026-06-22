@@ -17,6 +17,8 @@ static constexpr int ANIM_MS_FRAME = 150;
 static constexpr Uint32 DEATH_ANIM_MS = 900;
 
 static constexpr int PLACEHOLDER_PAD = 3;
+static constexpr int NAME_LIFT_TALL = 11;
+static constexpr int NAME_LIFT_SHORT = 1;
 static constexpr uint32_t FLOATING_TEXT_LIFETIME_MS = 1000;
 static constexpr float FLOATING_TEXT_RISE_PX = 24.0f;
 static constexpr float EFFECT_HEIGHT_TILES = 2.6f;
@@ -454,13 +456,18 @@ void WorldRenderer::draw_creature(int world_x, int world_y,
 }
 
 void WorldRenderer::draw_name(const std::string& nick, int world_x,
-                              int world_y, int cam_offset_x, int cam_offset_y) {
+                              int world_y, int cam_offset_x, int cam_offset_y,
+                              const std::string& raza) {
     if (!text.ok() || nick.empty()) {
         return;
     }
     const int ts = config.tile_size;
+    const int lift = (raza == keys::ENANO || raza == keys::GNOMO)
+                         ? NAME_LIFT_SHORT
+                         : NAME_LIFT_TALL;
     const int center_x = cam_offset_x + world_x * ts + ts / 2;
-    const int top_y = cam_offset_y + world_y * ts - ts - text.line_height();
+    const int top_y =
+        cam_offset_y + world_y * ts - ts - text.line_height() - lift;
 
     text.draw_centered(nick, center_x + 1, top_y + 1, colors::BLACK);
     text.draw_centered(nick, center_x, top_y, colors::WHITE);
@@ -601,7 +608,7 @@ void WorldRenderer::draw_local(const ClientGameState& state, uint32_t delta_ms,
     }
 
     draw_name(nick, state.get_local_x(), state.get_local_y(), cam_offset_x,
-              cam_offset_y);
+              cam_offset_y, local_raza);
 }
 
 void WorldRenderer::draw_others(const ClientGameState& state,
@@ -628,7 +635,7 @@ void WorldRenderer::draw_others(const ClientGameState& state,
             draw_meditation_effect(pv.x, pv.y, cam_offset_x, cam_offset_y);
         }
 
-        draw_name(pv.nick, pv.x, pv.y, cam_offset_x, cam_offset_y);
+        draw_name(pv.nick, pv.x, pv.y, cam_offset_x, cam_offset_y, raza);
     }
 
     for (auto it = other_anims.begin(); it != other_anims.end();) {
