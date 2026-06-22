@@ -150,10 +150,13 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
                             static_cast<uint16_t>(objetivo->getMapaId()),
                             static_cast<uint16_t>(tx),
                             static_cast<uint16_t>(ty), cantidad));
-                    push_unicast(snapshots,
-                                 SnapshotFactory::player_inventory_from_player(
-                                     *objetivo),
-                                 itObjetivoId->second);
+                    if (itObjetivoId != nick_to_player_id.end()) {
+                        push_unicast(
+                            snapshots,
+                            SnapshotFactory::player_inventory_from_player(
+                                *objetivo),
+                            itObjetivoId->second);
+                    }
                 }
 
                 int oroExceso = Formulas::calcularOroExceso(
