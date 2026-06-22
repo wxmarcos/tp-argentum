@@ -16,10 +16,7 @@
 #include "game/characters/criaturas/golemDemoniaco.h"
 #include "game/characters/criaturas/orco.h"
 #include "game/characters/criaturas/zombie.h"
-#include "game/clases/clerigo.h"
-#include "game/clases/guerrero.h"
-#include "game/clases/mago.h"
-#include "game/clases/paladin.h"
+#include "game/clases/charClase.h"
 #include "game/formulas.h"
 #include "game/items/arma.h"
 #include "game/items/armadura.h"
@@ -29,10 +26,7 @@
 #include "game/items/itemFactory.h"
 #include "game/items/item_defs.h"
 #include "game/items/oro.h"
-#include "game/razas/elfo.h"
-#include "game/razas/enano.h"
-#include "game/razas/gnomo.h"
-#include "game/razas/humano.h"
+#include "game/razas/raza.h"
 #include "game/snapshot_factory.h"
 #include "game/tmx_loader.h"
 #include "server/persistence/clan/clan_loader.h"
@@ -81,17 +75,20 @@ void Game::cargarMundo() {
 }
 
 void Game::inicializarRazas() {
-    razas["humano"] = std::make_unique<Humano>(config);
-    razas["elfo"] = std::make_unique<Elfo>(config);
-    razas["enano"] = std::make_unique<Enano>(config);
-    razas["gnomo"] = std::make_unique<Gnomo>(config);
+    razas["humano"] = std::make_unique<Raza>("humano", config);
+    razas["elfo"] = std::make_unique<Raza>("elfo", config);
+    razas["enano"] = std::make_unique<Raza>("enano", config);
+    razas["gnomo"] = std::make_unique<Raza>("gnomo", config);
 }
 
 void Game::inicializarClases() {
-    clases["guerrero"] = std::make_unique<Guerrero>(config);
-    clases["mago"] = std::make_unique<Mago>(config);
-    clases["clerigo"] = std::make_unique<Clerigo>(config);
-    clases["paladin"] = std::make_unique<Paladin>(config);
+    clases["guerrero"] =
+        std::make_unique<charClase>("guerrero", config, false, false);
+    clases["mago"] = std::make_unique<charClase>("mago", config, true, true);
+    clases["clerigo"] =
+        std::make_unique<charClase>("clerigo", config, true, true);
+    clases["paladin"] =
+        std::make_unique<charClase>("paladin", config, true, true);
 }
 
 // ----------------- Persistencia -----------------

@@ -7,17 +7,9 @@ target_sources(taller_game PRIVATE
 
     # Razas
     razas/raza.cpp
-    razas/humano.cpp
-    razas/elfo.cpp
-    razas/enano.cpp
-    razas/gnomo.cpp
 
     # Clases
     clases/charClase.cpp
-    clases/mago.cpp
-    clases/clerigo.cpp
-    clases/paladin.cpp
-    clases/guerrero.cpp
 
     # Characters
     characters/character.cpp
