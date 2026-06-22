@@ -211,10 +211,8 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
             static_cast<uint16_t>(py), 1));
 }
 
-ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
-    ResultadoAtaque resultado{false, 0, false, false, false};
-
-    if (!atacante->estaVivo() || !objetivo->estaVivo()) return resultado;
+DanioCalculado Game::prepararAtaque(Jugador* atacante, Character* objetivo) {
+    DanioCalculado resultado;
 
     int fuerza = atacante->getFuerza();
     const Arma* arma = atacante->getInventario().getArmaEquipada();
@@ -226,7 +224,9 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
         int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
                                                baculo->getEfectoMax());
         atacante->curar(curacion);
-        resultado.danioAplicado = curacion;
+        resultado.exito = true;
+        resultado.esCuracionPropia = true;
+        resultado.valor = curacion;
         return resultado;
     }
 
@@ -242,9 +242,8 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
 
     if (!arma && !baculo) return resultado;
 
-    if (baculo && !atacante->gastarMana(baculo->getCostoMana())) {
+    if (baculo && !atacante->gastarMana(baculo->getCostoMana()))
         return resultado;
-    }
 
     resultado.exito = true;
 
@@ -257,16 +256,35 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
-    // Bonus grupal de clan del atacante
-    int compAtacante = contarCompanerosClanEnMapa(atacante);
-    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
+    int comp = contarCompanerosClanEnMapa(atacante);
+    danio = static_cast<int>(danio * (1.0 + comp * 0.05));
 
-    int danioFinal = danio;
-    resultado.danioAplicado = danioFinal;
-    objetivo->recibirDanio(danioFinal);
+    resultado.valor = danio;
+    return resultado;
+}
+
+ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
+    ResultadoAtaque resultado{false, 0, false, false, false};
+
+    if (!atacante->estaVivo() || !objetivo->estaVivo()) return resultado;
+
+    DanioCalculado d = prepararAtaque(atacante, objetivo);
+    if (d.esCuracionPropia) {
+        resultado.danioAplicado = d.valor;
+        return resultado;
+    }
+    if (!d.exito) {
+        resultado.fueraDeRango = d.fueraDeRango;
+        return resultado;
+    }
+
+    resultado.exito = true;
+    resultado.fueCritico = d.fueCritico;
+    resultado.danioAplicado = d.valor;
+    objetivo->recibirDanio(d.valor);
 
     atacante->ganarExperiencia(Formulas::calcularExpAtaque(
-        danioFinal, objetivo->getNivel(), atacante->getNivel(),
+        d.valor, objetivo->getNivel(), atacante->getNivel(),
         config.getFormulaExpNivelOffset()));
 
     resultado.objetivoMurio = !objetivo->estaVivo();
@@ -302,49 +320,18 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
     // Fair Play
     if (!puedeAtacarJugador(atacante, objetivo)) return resultado;
 
-    int fuerza = atacante->getFuerza();
-    const Arma* arma = atacante->getInventario().getArmaEquipada();
-    const Baculo* baculo = atacante->getInventario().getBaculoEquipado();
-
-    // Flauta elfica - se cura a si mismo, ignora objetivo
-    if (baculo && baculo->getTipoHechizo() == TipoHechizo::CURACION) {
-        if (!atacante->gastarMana(baculo->getCostoMana())) return resultado;
-        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                               baculo->getEfectoMax());
-        atacante->curar(curacion);
-        resultado.danioAplicado = curacion;
+    DanioCalculado d = prepararAtaque(atacante, objetivo);
+    if (d.esCuracionPropia) {
+        resultado.danioAplicado = d.valor;
+        return resultado;
+    }
+    if (!d.exito) {
+        resultado.fueraDeRango = d.fueraDeRango;
         return resultado;
     }
 
-    bool esAtaqueDeRango = (arma && arma->esDeRango()) || (baculo != nullptr);
-    if (!esAtaqueDeRango) {
-        int dx = std::abs(atacante->getPosX() - objetivo->getPosX());
-        int dy = std::abs(atacante->getPosY() - objetivo->getPosY());
-        if (dx + dy != 1) {
-            resultado.fueraDeRango = true;
-            return resultado;
-        }  // no adyacente
-    }
-
-    if (!arma && !baculo) return resultado;
-
-    if (baculo && !atacante->gastarMana(baculo->getCostoMana())) {
-        return resultado;
-    }
     resultado.exito = true;
-
-    int danio = arma ? Formulas::calcularDanio(fuerza, arma->getDanioMin(),
-                                               arma->getDanioMax())
-                     : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                               baculo->getEfectoMax());
-
-    resultado.fueCritico =
-        Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
-    if (resultado.fueCritico) danio *= 2;
-
-    // Bonus grupal de clan del atacante
-    int compAtacante = contarCompanerosClanEnMapa(atacante);
-    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
+    resultado.fueCritico = d.fueCritico;
 
     if (!resultado.fueCritico)
         resultado.fueEsquivado = Formulas::calcularEsquive(
@@ -366,11 +353,10 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         escudo ? escudo->getDefensaMax() : 0,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
-    // Bonus grupal de clan del defensor
     int compDefensor = contarCompanerosClanEnMapa(objetivo);
     defensa = static_cast<int>(defensa * (1.0 + compDefensor * 0.05));
 
-    int danioFinal = std::max(0, danio - defensa);
+    int danioFinal = std::max(0, d.valor - defensa);
     resultado.danioAplicado = danioFinal;
     objetivo->recibirDanio(danioFinal);
 

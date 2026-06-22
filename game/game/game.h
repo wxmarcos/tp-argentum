@@ -30,6 +30,14 @@ struct ResultadoAtaque {
     bool fueraDeRango = false;
 };
 
+struct DanioCalculado {
+    bool exito = false;
+    bool fueraDeRango = false;
+    bool fueCritico = false;
+    bool esCuracionPropia = false;
+    int valor = 0;
+};
+
 struct ResultadoTomarItem {
     bool exito = false;
     int slotInventario = -2;  // -1 oro, >=0 slot, -2 error
@@ -122,6 +130,7 @@ private:
 
     // ---- Combate (game_combat.cpp) ----
     bool puedeAtacarJugador(Jugador* atacante, Jugador* objetivo);
+    DanioCalculado prepararAtaque(Jugador* atacante, Character* objetivo);
     ResultadoAtaque atacarCriatura(Jugador* atacante, Criatura* objetivo);
     void procesarDropCriatura(const std::string& criaturaId, Jugador* atacante,
                               Criatura* criatura,
