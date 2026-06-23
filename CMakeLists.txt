@@ -74,52 +74,28 @@ target_link_libraries(taller_game taller_common tomlplusplus::tomlplusplus)
 # Install libSDL2 and libSDL2pp (for client or editor)
 # HEY!! TODO XXX: add more dependendies (either for client, server or editor)
 if(TALLER_CLIENT OR TALLER_EDITOR)
+    find_package(PkgConfig REQUIRED)
+
+    pkg_check_modules(SDL2 REQUIRED sdl2)
+    pkg_check_modules(SDL2_IMAGE REQUIRED SDL2_image)
+    pkg_check_modules(SDL2_MIXER REQUIRED SDL2_mixer)
+    pkg_check_modules(SDL2_TTF REQUIRED SDL2_ttf)
+
+    if(NOT TARGET SDL2::SDL2)
+        add_library(SDL2::SDL2 INTERFACE IMPORTED)
+        set_target_properties(SDL2::SDL2 PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIRS}"
+            INTERFACE_LINK_LIBRARIES "${SDL2_LIBRARIES}"
+            INTERFACE_COMPILE_OPTIONS "${SDL2_CFLAGS_OTHER}"
+        )
+    endif()
+
     include(FetchContent)
     FetchContent_Declare(
-        SDL2
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-        GIT_TAG release-2.30.8
-        GIT_SHALLOW TRUE
-        GIT_PROGRESS TRUE
-        OVERRIDE_FIND_PACKAGE
-    )
-
-    FetchContent_Declare(
-        SDL2_image
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL_image.git
-        GIT_TAG release-2.8.2
-        GIT_SHALLOW TRUE
-        GIT_PROGRESS TRUE
-        OVERRIDE_FIND_PACKAGE
-    )
-
-    FetchContent_Declare(
-        SDL2_mixer
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-        GIT_TAG release-2.8.0
-        GIT_SHALLOW TRUE
-        GIT_PROGRESS TRUE
-        OVERRIDE_FIND_PACKAGE
-    )
-
-    FetchContent_Declare(
-        SDL2_ttf
-        GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
-        GIT_TAG release-2.22.0
-        GIT_SHALLOW TRUE
-        GIT_PROGRESS TRUE
-        OVERRIDE_FIND_PACKAGE
-    )
-
-    FetchContent_Declare(
         libSDL2pp
-        OVERRIDE_FIND_PACKAGE
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
-
-    set(SDL2IMAGE_VENDORED OFF CACHE BOOL "" FORCE)
-    set(SDL2IMAGE_PNG ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
+    FetchContent_MakeAvailable(libSDL2pp)
 endif()
 
 # Program section
@@ -138,17 +114,23 @@ if(TALLER_CLIENT)
     set_project_warnings(taller_client ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # add libSDL2pp's headers
-    target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
+    target_include_directories(taller_client PRIVATE
+        ${libSDL2pp_SOURCE_DIR}
+        ${SDL2_INCLUDE_DIRS}
+        ${SDL2_IMAGE_INCLUDE_DIRS}
+        ${SDL2_MIXER_INCLUDE_DIRS}
+        ${SDL2_TTF_INCLUDE_DIRS}
+    )
 
-    # Link the taller_common lib target
     target_link_libraries(taller_client
-       taller_common
-       SDL2pp::SDL2pp
-       SDL2_image::SDL2_image
-       SDL2_mixer::SDL2_mixer
-       SDL2_ttf::SDL2_ttf
-       tomlplusplus::tomlplusplus
-   )
+    taller_common
+    SDL2pp::SDL2pp
+    ${SDL2_LIBRARIES}
+    ${SDL2_IMAGE_LIBRARIES}
+    ${SDL2_MIXER_LIBRARIES}
+    ${SDL2_TTF_LIBRARIES}
+    tomlplusplus::tomlplusplus
+    )
 endif()
 
 if(TALLER_SERVER)
@@ -189,10 +171,16 @@ if(TALLER_EDITOR)
     set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # add libSDL2pp's headers
-    target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
+    target_include_directories(taller_editor PRIVATE
+        ${libSDL2pp_SOURCE_DIR}
+        ${SDL2_INCLUDE_DIRS}
+    )
 
-    # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_editor
+        taller_common
+        SDL2pp::SDL2pp
+        ${SDL2_LIBRARIES}
+    )
 endif()
 
 
@@ -211,6 +199,7 @@ if(TALLER_TESTS)
     # (borrowed from https://google.github.io/googletest/quickstart-cmake.html)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
+    enable_testing()
     include(GoogleTest)
 
     # target for testing
@@ -246,4 +235,5 @@ if(TALLER_TESTS)
         taller_game
         GTest::gtest_main
     )
+    gtest_discover_tests(taller_tests)
 endif()

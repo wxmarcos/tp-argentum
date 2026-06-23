@@ -1,16 +1,12 @@
 #include "render/map/map_data.h"
 
 MapData::MapData(int width, int height, int layer_count):
-        width(width),
-        height(height),
-        layer_count(layer_count),
-        cells(layer_count,
-              std::vector<TileId>(
-                  static_cast<size_t>(width * height), 0)),
-        flips(layer_count,
-              std::vector<uint8_t>(
-                  static_cast<size_t>(width * height), 0)),
-        collision(static_cast<size_t>(width * height), false) {}
+    width(width), height(height), layer_count(layer_count),
+    cells(layer_count,
+          std::vector<TileId>(static_cast<size_t>(width * height), 0)),
+    flips(layer_count,
+          std::vector<uint8_t>(static_cast<size_t>(width * height), 0)),
+    collision(static_cast<size_t>(width * height), false) {}
 
 void MapData::set(int x, int y, int layer, TileId id) {
     if (x < 0 || x >= width || y < 0 || y >= height) return;

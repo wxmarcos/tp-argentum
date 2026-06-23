@@ -37,6 +37,9 @@ public:
     double getFormulaOroMaxCoeficiente() const;
     double getFormulaOroMaxExponente() const;
     int getFormulaOroDropNPCDivisor() const;
+    double getFormulaEsquiveUmbral() const;
+    int getFormulaExpNivelOffset() const;
+    double getFormulaExpMatarFactor() const;
 
     struct ConfigTile {
         int x;
@@ -49,6 +52,7 @@ public:
     float getCriaturaCooldownMovimiento() const;
     float getCriaturaCooldownAtaque() const;
     float getSpawnIntervalo() const;
+    float getPersistenciaIntervalo() const;
     float getVelocidadResurreccion() const;
 
     // Criaturas
@@ -94,13 +98,33 @@ public:
 
     std::vector<ConfigMapa> getMapas() const;
 
+    // PvP
+    int getPvpNivelMinimo() const;
+    int getPvpDiferenciaNivelMax() const;
+    double getPvpBonusClaPorComp() const;
+
+    // Drops de criaturas
+    double getDropUmbralNada() const;
+    double getDropUmbralOro() const;
+    double getDropUmbralPocion() const;
+    double getDropUmbralItem() const;
+    double getDropUmbralArma() const;
+
+    // Clan
+    int getClanMaxMiembros() const;
+
+    // Mundo
+    int getMoveCooldownMs() const;
+    int getMaxRadioDrop() const;
+    float getPenalizacionMapaDistinto() const;
+
     // Precio de items
     int getPrecioItem(const std::string& nombre) const;
 
     // Rutas de Persistencia
     std::string getRutaJugadores() const;
     std::string getRutaIndiceJugadores() const;
-    std::string getRutaNPCsCriaturas() const;
+    std::string getRutaClanes() const;
     ~Config();
 
 private:

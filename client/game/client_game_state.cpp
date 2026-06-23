@@ -1,5 +1,6 @@
 #include "game/client_game_state.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstddef>
 #include <string_view>
@@ -23,9 +24,11 @@ ClientGameState::ClientGameState(const std::string& local_nick, int map_width,
 bool ClientGameState::classify_creature(const std::string& nick,
                                         std::string& type) const {
     static const std::unordered_set<std::string_view> KNOWN_TYPES = {
-        keys::GOBLIN, keys::ESQUELETO, keys::ZOMBIE, keys::ARANA,
-        keys::ORCO, keys::GOLEM, keys::BANQUERO, keys::COMERCIANTE,
-        keys::SACERDOTE};
+        keys::GOBLIN,          keys::ESQUELETO,    keys::ZOMBIE,
+        keys::ARANA,           keys::ORCO,         keys::GOLEM,
+        keys::BANQUERO,        keys::COMERCIANTE,  keys::SACERDOTE,
+        keys::ESQUELETO_HACHA, keys::ARANA_BLANCA, keys::GOBLIN_JOROBADO,
+        keys::GOLEM_DEMONIACO};
 
     const auto sep = nick.rfind('_');
     if (sep == std::string::npos || sep == 0 || sep + 1 >= nick.size()) {
@@ -116,6 +119,7 @@ void ClientGameState::apply_entity_position(const Snapshot& snapshot) {
             current_map_id = snapshot.get_mapa_id();
             others.clear();
             creatures.clear();
+            floor_items.clear();
             local_moved = false;
         }
 
@@ -123,7 +127,7 @@ void ClientGameState::apply_entity_position(const Snapshot& snapshot) {
         const uint16_t new_y = snapshot.get_y();
 
         local_moved = has_local_pos && !snapshot.is_map_change() &&
-                    (new_x != local_x || new_y != local_y);
+                      (new_x != local_x || new_y != local_y);
 
         local_x = new_x;
         local_y = new_y;
@@ -211,6 +215,10 @@ void ClientGameState::apply_player_stats(const Snapshot& snapshot) {
         }
     }
 
+    if (snapshot.get_vida() == 0) {
+        dead_entities.insert(nick);
+    }
+
     if (nick == local_nick) {
         local_stats.raza = to_lower(snapshot.get_raza());
         local_stats.clase = to_lower(snapshot.get_clase());
@@ -275,27 +283,39 @@ bool ClientGameState::resolve_entity_pos(const std::string& nick, uint16_t& x,
 }
 
 void ClientGameState::apply_inventory_update(const Snapshot& snapshot) {
-    if (snapshot.get_nick() != local_nick) return;
-
+    const std::string& nick = snapshot.get_nick();
     const auto& items = snapshot.get_inventory_items();
-    if (items.empty()) return;
+    if (items.empty()) {
+        return;
+    }
+
+    std::vector<InventorySlotView>* target = nullptr;
+    if (nick == local_nick) {
+        target = &inventory;
+    } else {
+        std::string type;
+        if (classify_creature(nick, type)) {
+            return;
+        }
+        target = &others[nick].inventory;
+    }
 
     if (items.size() > 1) {
-        inventory.resize(items.size());
+        target->resize(items.size());
         for (const auto& item : items) {
-            if (item.slot_id < inventory.size()) {
-                inventory[item.slot_id] =
-                    {item.item, item.cantidad, item.equipado};
+            if (item.slot_id < target->size()) {
+                (*target)[item.slot_id] = {item.item, item.cantidad,
+                                           item.equipado};
             }
         }
         return;
     }
 
     const auto& item = items[0];
-    if (item.slot_id >= inventory.size()) {
-        inventory.resize(item.slot_id + 1);
+    if (item.slot_id >= target->size()) {
+        target->resize(item.slot_id + 1);
     }
-    inventory[item.slot_id] = {item.item, item.cantidad, item.equipado};
+    (*target)[item.slot_id] = {item.item, item.cantidad, item.equipado};
 }
 
 bool ClientGameState::entity_at(uint16_t x, uint16_t y,
@@ -346,6 +366,8 @@ void ClientGameState::apply_damage_event(const Snapshot& snapshot) {
 
     if (snapshot.is_critical()) {
         atk_kind = EffectKind::AtaqueComunDorado;
+    } else if (attacker == local_nick) {
+        atk_kind = local_attack_effect();
     } else if (classify_creature(attacker, creature_type)) {
         atk_kind = EffectKind::AtaqueComunRojo;
     } else {
@@ -356,12 +378,33 @@ void ClientGameState::apply_damage_event(const Snapshot& snapshot) {
     const std::string dmg_str = std::to_string(snapshot.get_damage());
 
     if (attacker == local_nick) {
-        push_chat("Combate", "Le hiciste " + dmg_str +
-                  " de daño a " + format_chat_sender(target));
+        push_chat("Combate", "Le hiciste " + dmg_str + " de daño a " +
+                                 format_chat_sender(target));
     } else if (target == local_nick) {
-        push_chat("Combate", format_chat_sender(attacker) +
-                  " te hizo " + dmg_str + " de daño");
+        push_chat("Combate", format_chat_sender(attacker) + " te hizo " +
+                                 dmg_str + " de daño");
     }
+}
+
+EffectKind ClientGameState::local_attack_effect() const {
+    for (const auto& slot : inventory) {
+        if (!slot.equipado) {
+            continue;
+        }
+        if (slot.item == std::string(items::BACULO_NUDOSO) ||
+            slot.item == std::string(items::BACULO_ENGARZADO)) {
+            return EffectKind::AtaqueBaculoDorado;
+        }
+        if (slot.item == std::string(items::VARA_DE_FRESNO) ||
+            slot.item == std::string(items::FLAUTA_ELFICA)) {
+            return EffectKind::AtaqueBaculoComun;
+        }
+        if (slot.item == std::string(items::ARCO_SIMPLE) ||
+            slot.item == std::string(items::ARCO_COMPUESTO)) {
+            return EffectKind::AtaqueFlechas;
+        }
+    }
+    return EffectKind::AtaqueComunGris;
 }
 
 void ClientGameState::apply_dodge_event(const Snapshot& snapshot) {
@@ -378,6 +421,7 @@ void ClientGameState::apply_dodge_event(const Snapshot& snapshot) {
     } else {
         push_chat("Combate", format_chat_sender(target) + " esquivó tu ataque");
     }
+    pending_dodge_sound = true;
 }
 
 void ClientGameState::apply_death_event(const Snapshot& snapshot) {
@@ -406,19 +450,20 @@ bool ClientGameState::is_meditating(const std::string& nick) const {
 }
 
 void ClientGameState::push_chat(const std::string& from,
-                                 const std::string& text) {
+                                const std::string& text) {
     chat_messages.push_back({from, text});
     if (chat_messages.size() > MAX_CHAT_MESSAGES) {
         chat_messages.erase(chat_messages.begin());
     }
 }
 
-std::string ClientGameState::format_chat_sender(
-        const std::string& nick) const {
+std::string ClientGameState::format_chat_sender(const std::string& nick) const {
     static const std::unordered_set<std::string_view> CREATURE_TYPES = {
-        keys::GOBLIN, keys::ESQUELETO, keys::ZOMBIE, keys::ARANA,
-        keys::ORCO, keys::GOLEM, keys::BANQUERO, keys::COMERCIANTE,
-        keys::SACERDOTE};
+        keys::GOBLIN,          keys::ESQUELETO,    keys::ZOMBIE,
+        keys::ARANA,           keys::ORCO,         keys::GOLEM,
+        keys::BANQUERO,        keys::COMERCIANTE,  keys::SACERDOTE,
+        keys::ESQUELETO_HACHA, keys::ARANA_BLANCA, keys::GOBLIN_JOROBADO,
+        keys::GOLEM_DEMONIACO};
 
     const auto sep = nick.rfind('_');
     if (sep == std::string::npos || sep == 0) {
@@ -433,11 +478,16 @@ std::string ClientGameState::format_chat_sender(
     if (CREATURE_TYPES.find(prefix) == CREATURE_TYPES.end()) {
         return nick;
     }
-    return prefix;
+    std::string name = prefix;
+    std::replace(name.begin(), name.end(), '_', ' ');
+    return name;
 }
 
 void ClientGameState::apply_chat_message(const Snapshot& snapshot) {
     push_chat(snapshot.get_nick(), snapshot.get_text());
+    if (snapshot.get_target() == local_nick && !snapshot.get_nick().empty()) {
+        pending_private_msg_sound = true;
+    }
 }
 
 const std::vector<ChatMessage>& ClientGameState::get_chat_messages() const {
@@ -445,6 +495,7 @@ const std::vector<ChatMessage>& ClientGameState::get_chat_messages() const {
 }
 
 void ClientGameState::apply_item_event(const Snapshot& snapshot) {
+    if (snapshot.get_mapa_id() != current_map_id) return;
     const uint16_t x = snapshot.get_x();
     const uint16_t y = snapshot.get_y();
     const uint32_t key = (static_cast<uint32_t>(x) << 16) | y;
@@ -504,24 +555,23 @@ const std::vector<InventorySlotView>& ClientGameState::get_inventory() const {
     return inventory;
 }
 
-const std::unordered_map<std::string, PlayerView>&
-                    ClientGameState::get_others() const {
-                        return others;
-                    }
+const std::unordered_map<std::string, PlayerView>& ClientGameState::get_others()
+    const {
+    return others;
+}
 
-const std::vector<FloatingEvent>&
-                    ClientGameState::get_floating_events() const {
-                        return floating_events;
-                    }
+const std::vector<FloatingEvent>& ClientGameState::get_floating_events() const {
+    return floating_events;
+}
 
 const std::vector<EffectSpawn>& ClientGameState::get_effect_spawns() const {
     return effect_spawns;
 }
 
 const std::unordered_map<std::string, CreatureView>&
-                    ClientGameState::get_creatures() const {
-                        return creatures;
-                    }
+ClientGameState::get_creatures() const {
+    return creatures;
+}
 
 bool ClientGameState::is_dead(const std::string& nick) const {
     return dead_entities.count(nick) > 0;
@@ -530,3 +580,15 @@ bool ClientGameState::is_dead(const std::string& nick) const {
 int ClientGameState::get_map_width() const { return map_width; }
 
 int ClientGameState::get_map_height() const { return map_height; }
+
+bool ClientGameState::consume_dodge_sound() {
+    const bool v = pending_dodge_sound;
+    pending_dodge_sound = false;
+    return v;
+}
+
+bool ClientGameState::consume_private_msg_sound() {
+    const bool v = pending_private_msg_sound;
+    pending_private_msg_sound = false;
+    return v;
+}

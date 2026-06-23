@@ -1,14 +1,15 @@
 #include "render/sprites/item_sprite_registry.h"
 
-#include <filesystem>
-
 #include <SDL2/SDL_image.h>
+
+#include <filesystem>
 
 const SDL_Rect arma_icono{0, 224, 32, 32};
 
 ItemSpriteRegistry::ItemSpriteRegistry(SDL2pp::Renderer& renderer,
                                        const ClientConfig& config):
-        renderer(renderer), config(config) {
+    renderer(renderer),
+    config(config) {
     load_defs();
 }
 
@@ -46,19 +47,19 @@ void ItemSpriteRegistry::load_defs() {
     register_item("Escudo de hierro", "objetos/armas/escudoHierro.png",
                   arma_icono);
 
-    register_item("Armadura de cuero",
-              "objetos/armaduras/armaduraCuero.png", {8, 225, 24, 31}, 5);
-    register_item("Armadura de placas",
-                "objetos/armaduras/armaduraPlacas.png", {0, 224, 24, 32}, 5);
-    register_item("Tunica azul",
-                "objetos/armaduras/tunicaAzul.png", {0, 224, 31, 32}, 5);
+    register_item("Armadura de cuero", "objetos/armaduras/armaduraCuero.png",
+                  {7, 228, 17, 24}, 5);
+    register_item("Armadura de placas", "objetos/armaduras/armaduraPlacas.png",
+                  {5, 227, 23, 26}, 5);
+    register_item("Tunica azul", "objetos/armaduras/tunicaAzul.png",
+                  {8, 226, 16, 28}, 5);
 
-    register_item("Capucha",
-                  "objetos/armaduras/capucha.png", {6, 8, 14, 20}, 5);
-    register_item("Casco de hierro",
-                  "objetos/armaduras/cascoHierro.png", {6, 3, 16, 28}, 5);
-    register_item("Sombrero magico",
-                  "objetos/armaduras/sombreroMagico.png", {1, 8, 23, 21}, 5);
+    register_item("Capucha", "objetos/armaduras/capucha.png", {6, 8, 14, 20},
+                  5);
+    register_item("Casco de hierro", "objetos/armaduras/cascoHierro.png",
+                  {6, 3, 16, 28}, 5);
+    register_item("Sombrero magico", "objetos/armaduras/sombreroMagico.png",
+                  {1, 8, 23, 21}, 5);
 }
 
 SDL_Texture* ItemSpriteRegistry::load_texture(const std::string& rel_path) {

@@ -5,7 +5,7 @@
 #include <thread>
 
 GameLoop::GameLoop(Queue<Command>& commands_queue,
-                   Queue<PersistenceTask>& persistence_queue,
+                   Queue<PersistenceJob>& persistence_queue,
                    MonitorClients& clients, Config& config):
     commands_queue(commands_queue),
     persistence_queue(persistence_queue), clients(clients), config(config),
@@ -21,6 +21,9 @@ void GameLoop::run() {
 
     const float dt = 1.0f / static_cast<float>(ticks_per_second);
 
+    const float intervalo_persistencia = config.getPersistenciaIntervalo();
+    float tiempo_desde_persist = 0.0f;
+
     while (should_keep_running()) {
         auto tick_start = std::chrono::steady_clock::now();
 
@@ -33,12 +36,18 @@ void GameLoop::run() {
                           << " type=" << static_cast<int>(cmd.get_type())
                           << "\n";
 
-                std::vector<Snapshot> snapshots = game.process(cmd);
+                std::vector<OutgoingSnapshot> snapshots;
 
-                enqueue_persistence_tasks(cmd);
+                if (cmd.is_disconnect()) {
+                    enqueue_persistence_tasks(cmd);
+                    snapshots = game.process(cmd);
+                } else {
+                    snapshots = game.process(cmd);
+                    enqueue_persistence_tasks(cmd);
+                }
 
-                for (const Snapshot& snapshot : snapshots) {
-                    broadcast_snapshot(snapshot);
+                for (const OutgoingSnapshot& out : snapshots) {
+                    dispatch_snapshot(out);
                 }
             }
 
@@ -46,10 +55,16 @@ void GameLoop::run() {
             break;
         }
 
-        std::vector<Snapshot> tick_snapshots = game.tick(dt);
+        std::vector<OutgoingSnapshot> tick_snapshots = game.tick(dt);
 
-        for (const Snapshot& snapshot : tick_snapshots) {
-            broadcast_snapshot(snapshot);
+        for (const OutgoingSnapshot& out : tick_snapshots) {
+            dispatch_snapshot(out);
+        }
+
+        tiempo_desde_persist += dt;
+        if (tiempo_desde_persist >= intervalo_persistencia) {
+            enqueue_all_persistence_tasks();
+            tiempo_desde_persist = 0.0f;
         }
 
         auto tick_end = std::chrono::steady_clock::now();
@@ -68,58 +83,51 @@ void GameLoop::enqueue_persistence_tasks(const Command& cmd) {
         game.build_persistence_tasks_for_command(cmd);
 
     for (const PersistenceTask& task : tasks) {
-        persistence_queue.push(task);
+        persistence_queue.push(PersistenceJob::player_job(task));
+    }
+
+    if (game.command_changes_clans(cmd)) {
+        persistence_queue.push(PersistenceJob::clans_job(game.getClanes()));
     }
 }
 
-void GameLoop::debug_snapshot(const Snapshot& snapshot) const {
-    if (snapshot.is_entity_created()) {
-        std::cout << "[GameLoop] Broadcast ENTITY_CREATED "
-                  << "nick=" << snapshot.get_nick() << " mapa_id=" << snapshot.get_mapa_id()<<" x=" << snapshot.get_x()
-                  << " y=" << snapshot.get_y()
-                  << " dir=" << static_cast<int>(snapshot.get_direction())
-                  << "\n";
+void GameLoop::enqueue_all_persistence_tasks() {
+    std::vector<PersistenceTask> tasks = game.build_all_players_tasks();
 
-    } else if (snapshot.is_entity_login()) {
-        std::cout << "[GameLoop] Broadcast ENTITY_LOGIN "
-                  << "nick=" << snapshot.get_nick() << " mapa_id=" << snapshot.get_mapa_id()<<" x=" << snapshot.get_x()
-                  << " y=" << snapshot.get_y()
-                  << " dir=" << static_cast<int>(snapshot.get_direction())
-                  << "\n";
+    for (const PersistenceTask& task : tasks) {
+        persistence_queue.push(PersistenceJob::player_job(task));
+    }
 
-    } else if (snapshot.is_entity_move()) {
-        std::cout << "[GameLoop] Broadcast ENTITY_MOVE "
-                  << "nick=" << snapshot.get_nick() << " mapa_id=" << snapshot.get_mapa_id()<<" x=" << snapshot.get_x()
-                  << " y=" << snapshot.get_y()
-                  << " dir=" << static_cast<int>(snapshot.get_direction())
-                  << "\n";
+    persistence_queue.push(PersistenceJob::clans_job(game.getClanes()));
+}
 
-    } else if (snapshot.is_entity_remove()) {
-        std::cout << "[GameLoop] Broadcast ENTITY_REMOVE "
-                  << "nick=" << snapshot.get_nick() << "\n";
+void GameLoop::dispatch_snapshot(const OutgoingSnapshot& out) {
+    switch (out.delivery) {
+        case DeliveryType::BROADCAST:
+            broadcast_snapshot(out.snapshot);
+            break;
 
-    } else if (snapshot.is_damage_event()) {
-        std::cout << "[GameLoop] Broadcast DAMAGE_EVENT "
-                  << snapshot.get_attacker() << " -> " << snapshot.get_target()
-                  << " damage=" << snapshot.get_damage()
-                  << " critical=" << snapshot.is_critical() << "\n";
+        case DeliveryType::UNICAST:
+            if (!out.recipients.empty()) {
+                unicast_snapshot(out.recipients[0], out.snapshot);
+            }
+            break;
 
-    } else if (snapshot.is_dodge_event()) {
-        std::cout << "[GameLoop] Broadcast DODGE_EVENT "
-                  << snapshot.get_attacker() << " -> " << snapshot.get_target()
-                  << "\n";
-
-    } else if (snapshot.is_death_event()) {
-        std::cout << "[GameLoop] Broadcast DEATH_EVENT "
-                  << "target=" << snapshot.get_target() << "\n";
-
-    } else {
-        std::cout << "[GameLoop] Broadcast opcode="
-                  << static_cast<int>(snapshot.get_opcode()) << "\n";
+        case DeliveryType::MULTICAST:
+            multicast_snapshot(out.recipients, out.snapshot);
+            break;
     }
 }
 
 void GameLoop::broadcast_snapshot(const Snapshot& snapshot) {
-    debug_snapshot(snapshot);
     clients.broadcast(snapshot);
+}
+
+void GameLoop::unicast_snapshot(uint16_t player_id, const Snapshot& snapshot) {
+    clients.send_to(player_id, snapshot);
+}
+
+void GameLoop::multicast_snapshot(const std::vector<uint16_t>& player_ids,
+                                  const Snapshot& snapshot) {
+    clients.send_to_many(player_ids, snapshot);
 }

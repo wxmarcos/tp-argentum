@@ -1,12 +1,10 @@
-#include "game/game.h"
-
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
-#include <iostream>
+#include <random>
 
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
+#include "game/game.h"
 #include "game/items/arma.h"
 #include "game/items/armadura.h"
 #include "game/items/casco.h"
@@ -17,11 +15,20 @@
 #include "game/items/oro.h"
 #include "game/snapshot_factory.h"
 
+static std::mt19937& rng() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    return gen;
+}
+
 // ----------------- Combate PvP/PvE -----------------
 
 bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
-    if (atacante->getNivel() <= 12 || objetivo->getNivel() <= 12) return false;
-    if (std::abs(atacante->getNivel() - objetivo->getNivel()) > 10)
+    int nivelMin = config.getPvpNivelMinimo();
+    if (atacante->getNivel() <= nivelMin || objetivo->getNivel() <= nivelMin)
+        return false;
+    if (std::abs(atacante->getNivel() - objetivo->getNivel()) >
+        config.getPvpDiferenciaNivelMax())
         return false;
 
     // Zona segura
@@ -43,17 +50,23 @@ static std::unique_ptr<Item> crearArma() {
         []() -> std::unique_ptr<Item> { return ItemFactory::crearHacha(); },
         []() -> std::unique_ptr<Item> { return ItemFactory::crearMartillo(); },
     };
-    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    int idx = std::uniform_int_distribution<int>(
+        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
     return items[idx]();
 }
 
 static std::unique_ptr<Item> crearEscudo() {
     using Fn = std::unique_ptr<Item> (*)();
     static const Fn items[] = {
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeTortuga(); },
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearEscudoDeHierro(); },
+        []() -> std::unique_ptr<Item> {
+            return ItemFactory::crearEscudoDeTortuga();
+        },
+        []() -> std::unique_ptr<Item> {
+            return ItemFactory::crearEscudoDeHierro();
+        },
     };
-    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    int idx = std::uniform_int_distribution<int>(
+        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
     return items[idx]();
 }
 
@@ -101,40 +114,42 @@ static std::unique_ptr<Item> crearItemAleatorio() {
             return ItemFactory::crearEscudoDeHierro();
         },
     };
-    int idx = rand() % (sizeof(items) / sizeof(items[0]));
+    int idx = std::uniform_int_distribution<int>(
+        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
     return items[idx]();
 }
 
 void Game::procesarDropCriatura(const std::string& criaturaId,
                                 Jugador* /*atacante*/, Criatura* criatura,
-                                std::vector<Snapshot>& snapshots) {
-    double r = static_cast<double>(rand()) / RAND_MAX;
+                                std::vector<OutgoingSnapshot>& snapshots) {
+    double r = std::uniform_real_distribution<double>(0.0, 1.0)(rng());
 
-    if (r < 0.80) return;
+    if (r < config.getDropUmbralNada()) return;
 
     int mx = criatura->getMapaId();
     int px = criatura->getPosX();
     int py = criatura->getPosY();
 
-    // 0.80–0.87: oro (8%)
-    if (r < 0.88) {
-        int cantidad = Formulas::calcularOroDropNPC(criatura->getVidaMax());
+    if (r < config.getDropUmbralOro()) {
+        int cantidad = Formulas::calcularOroDropNPC(
+            criatura->getVidaMax(), config.getFormulaOroDropNPCDivisor());
         std::string nombreItem = item_defs::ORO;
 
         mundo.tirarItem(mx, px, py,
                         SlotInventario(ItemFactory::crearOro(cantidad)));
 
-        snapshots.push_back(Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), static_cast<uint16_t>(cantidad)));
-
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py),
+                static_cast<uint16_t>(cantidad)));
         return;
     }
 
-    // 0.88: poción (1%)
-    if (r < 0.89) {
-        bool esVida = rand() % 2 == 0;
+    if (r < config.getDropUmbralPocion()) {
+        bool esVida = std::uniform_int_distribution<int>(0, 1)(rng()) == 0;
         auto pocion = esVida ? ItemFactory::crearPocionDeVida()
                              : ItemFactory::crearPocionDeMana();
 
@@ -142,61 +157,63 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(pocion)));
 
-        snapshots.push_back(Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), 1));
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py), 1));
 
         return;
     }
 
-    // 0.89: item aleatorio (1%)
-    if (r < 0.90) {
+    if (r < config.getDropUmbralItem()) {
         auto item = crearItemAleatorio();
         std::string nombreItem = item->getNombre();
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
 
-        snapshots.push_back(Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), 1));
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py), 1));
 
         return;
     }
 
-    // 0.90–0.94: arma (5%)
-    if (r < 0.95) {
+    if (r < config.getDropUmbralArma()) {
         auto item = crearArma();
         std::string nombreItem = item->getNombre();
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
 
-        snapshots.push_back(Snapshot::item_event(
-            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-            static_cast<uint16_t>(py), 1));
+        push_broadcast(
+            snapshots,
+            Snapshot::item_event(
+                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                criaturaId, nombreItem, static_cast<uint16_t>(mx),
+                static_cast<uint16_t>(px), static_cast<uint16_t>(py), 1));
 
         return;
     }
 
-    // 0.95–1.00: escudo (5%)
     auto item = crearEscudo();
     std::string nombreItem = item->getNombre();
 
     mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
 
-    snapshots.push_back(Snapshot::item_event(
-        static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
-        nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
-        static_cast<uint16_t>(py), 1));
+    push_broadcast(
+        snapshots,
+        Snapshot::item_event(
+            static_cast<uint8_t>(protocol::ItemEventAction::DROP), criaturaId,
+            nombreItem, static_cast<uint16_t>(mx), static_cast<uint16_t>(px),
+            static_cast<uint16_t>(py), 1));
 }
 
-ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
-    ResultadoAtaque resultado{false, 0, false, false, false};
-
-    if (!atacante->estaVivo() || !objetivo->estaVivo()) return resultado;
-    resultado.exito = true;
+DanioCalculado Game::prepararAtaque(Jugador* atacante, Character* objetivo) {
+    DanioCalculado resultado;
 
     int fuerza = atacante->getFuerza();
     const Arma* arma = atacante->getInventario().getArmaEquipada();
@@ -208,7 +225,9 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
         int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
                                                baculo->getEfectoMax());
         atacante->curar(curacion);
-        resultado.danioAplicado = curacion;
+        resultado.exito = true;
+        resultado.esCuracionPropia = true;
+        resultado.valor = curacion;
         return resultado;
     }
 
@@ -216,10 +235,18 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
     if (!esAtaqueDeRango) {
         int dx = std::abs(atacante->getPosX() - objetivo->getPosX());
         int dy = std::abs(atacante->getPosY() - objetivo->getPosY());
-        if (dx + dy != 1) return resultado;
+        if (dx + dy != 1) {
+            resultado.fueraDeRango = true;
+            return resultado;
+        }
     }
 
     if (!arma && !baculo) return resultado;
+
+    if (baculo && !atacante->gastarMana(baculo->getCostoMana()))
+        return resultado;
+
+    resultado.exito = true;
 
     int danio = arma ? Formulas::calcularDanio(fuerza, arma->getDanioMin(),
                                                arma->getDanioMax())
@@ -230,23 +257,44 @@ ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
         Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
     if (resultado.fueCritico) danio *= 2;
 
-    // Bonus grupal de clan del atacante
-    int compAtacante = contarCompañerosClanEnMapa(atacante);
-    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
+    int comp = contarCompanerosClanEnMapa(atacante);
+    danio = static_cast<int>(danio * (1.0 + comp * 0.05));
 
-    int danioFinal = danio;
-    resultado.danioAplicado = danioFinal;
-    objetivo->recibirDanio(danioFinal);
+    resultado.valor = danio;
+    return resultado;
+}
+
+ResultadoAtaque Game::atacarCriatura(Jugador* atacante, Criatura* objetivo) {
+    ResultadoAtaque resultado{false, 0, false, false, false};
+
+    if (!atacante->estaVivo() || !objetivo->estaVivo()) return resultado;
+
+    DanioCalculado d = prepararAtaque(atacante, objetivo);
+    if (d.esCuracionPropia) {
+        resultado.danioAplicado = d.valor;
+        return resultado;
+    }
+    if (!d.exito) {
+        resultado.fueraDeRango = d.fueraDeRango;
+        return resultado;
+    }
+
+    resultado.exito = true;
+    resultado.fueCritico = d.fueCritico;
+    resultado.danioAplicado = d.valor;
+    objetivo->recibirDanio(d.valor);
 
     atacante->ganarExperiencia(Formulas::calcularExpAtaque(
-        danioFinal, objetivo->getNivel(), atacante->getNivel()));
+        d.valor, objetivo->getNivel(), atacante->getNivel(),
+        config.getFormulaExpNivelOffset()));
 
     resultado.objetivoMurio = !objetivo->estaVivo();
 
     if (resultado.objetivoMurio) {
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
-            objetivo->getVidaMax(), objetivo->getNivel(),
-            atacante->getNivel()));
+            objetivo->getVidaMax(), objetivo->getNivel(), atacante->getNivel(),
+            config.getFormulaExpNivelOffset(),
+            config.getFormulaExpMatarFactor()));
     }
 
     return resultado;
@@ -272,47 +320,23 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
 
     // Fair Play
     if (!puedeAtacarJugador(atacante, objetivo)) return resultado;
-    resultado.exito = true;
 
-    int fuerza = atacante->getFuerza();
-    const Arma* arma = atacante->getInventario().getArmaEquipada();
-    const Baculo* baculo = atacante->getInventario().getBaculoEquipado();
-
-    // Flauta elfica - se cura a si mismo, ignora objetivo
-    if (baculo && baculo->getTipoHechizo() == TipoHechizo::CURACION) {
-        if (!atacante->gastarMana(baculo->getCostoMana())) return resultado;
-        int curacion = Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                               baculo->getEfectoMax());
-        atacante->curar(curacion);
-        resultado.danioAplicado = curacion;
+    DanioCalculado d = prepararAtaque(atacante, objetivo);
+    if (d.esCuracionPropia) {
+        resultado.danioAplicado = d.valor;
+        return resultado;
+    }
+    if (!d.exito) {
+        resultado.fueraDeRango = d.fueraDeRango;
         return resultado;
     }
 
-    bool esAtaqueDeRango = (arma && arma->esDeRango()) || (baculo != nullptr);
-    if (!esAtaqueDeRango) {
-        int dx = std::abs(atacante->getPosX() - objetivo->getPosX());
-        int dy = std::abs(atacante->getPosY() - objetivo->getPosY());
-        if (dx + dy != 1) return resultado;  // no adyacente
-    }
-
-    if (!arma && !baculo) return resultado;
-
-    int danio = arma ? Formulas::calcularDanio(fuerza, arma->getDanioMin(),
-                                               arma->getDanioMax())
-                     : Formulas::calcularDanio(fuerza, baculo->getEfectoMin(),
-                                               baculo->getEfectoMax());
-
-    resultado.fueCritico =
-        Formulas::calcularCritico(config.getFormulaCriticoPorcentaje());
-    if (resultado.fueCritico) danio *= 2;
-
-    // Bonus grupal de clan del atacante
-    int compAtacante = contarCompañerosClanEnMapa(atacante);
-    danio = static_cast<int>(danio * (1.0 + compAtacante * 0.05));
+    resultado.exito = true;
+    resultado.fueCritico = d.fueCritico;
 
     if (!resultado.fueCritico)
-        resultado.fueEsquivado =
-            Formulas::calcularEsquive(objetivo->getAgilidad());
+        resultado.fueEsquivado = Formulas::calcularEsquive(
+            objetivo->getAgilidad(), config.getFormulaEsquiveUmbral());
 
     if (resultado.fueEsquivado) {
         resultado.danioAplicado = 0;
@@ -330,16 +354,17 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
         escudo ? escudo->getDefensaMax() : 0,
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
-    // Bonus grupal de clan del defensor
-    int compDefensor = contarCompañerosClanEnMapa(objetivo);
-    defensa = static_cast<int>(defensa * (1.0 + compDefensor * 0.05));
+    int compDefensor = contarCompanerosClanEnMapa(objetivo);
+    defensa = static_cast<int>(
+        defensa * (1.0 + compDefensor * config.getPvpBonusClaPorComp()));
 
-    int danioFinal = std::max(0, danio - defensa);
+    int danioFinal = std::max(0, d.valor - defensa);
     resultado.danioAplicado = danioFinal;
     objetivo->recibirDanio(danioFinal);
 
     atacante->ganarExperiencia(Formulas::calcularExpAtaque(
-        danioFinal, objetivo->getNivel(), atacante->getNivel()));
+        danioFinal, objetivo->getNivel(), atacante->getNivel(),
+        config.getFormulaExpNivelOffset()));
 
     resultado.objetivoMurio = !objetivo->estaVivo();
     if (resultado.objetivoMurio) {
@@ -347,8 +372,9 @@ ResultadoAtaque Game::atacar(const std::string& nombreAtacante,
             objetivo->getExperiencia(),
             config.getFormulaExpPenalidadPorcentaje()));
         atacante->ganarExperiencia(Formulas::calcularExpMatar(
-            objetivo->getVidaMax(), objetivo->getNivel(),
-            atacante->getNivel()));
+            objetivo->getVidaMax(), objetivo->getNivel(), atacante->getNivel(),
+            config.getFormulaExpNivelOffset(),
+            config.getFormulaExpMatarFactor()));
     }
 
     return resultado;
@@ -360,9 +386,8 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
     if (!atacante || !objetivo) return 0;
     if (!atacante->estaVivo() || !objetivo->estaVivo()) return 0;
 
-    if (Formulas::calcularEsquive(objetivo->getAgilidad())) {
-        std::cout << "[ESQUIVE] " << objetivo->getNombre()
-                  << " agi=" << objetivo->getAgilidad() << "\n";
+    if (Formulas::calcularEsquive(objetivo->getAgilidad(),
+                                  config.getFormulaEsquiveUmbral())) {
         return 0;
     }
 
@@ -382,8 +407,9 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
         casco ? casco->getDefensaMin() : 0, casco ? casco->getDefensaMax() : 0);
 
     // Bonus grupal de clan del defensor
-    int comp = contarCompañerosClanEnMapa(objetivo);
-    defensa = static_cast<int>(defensa * (1.0 + comp * 0.05));
+    int comp = contarCompanerosClanEnMapa(objetivo);
+    defensa = static_cast<int>(defensa *
+                               (1.0 + comp * config.getPvpBonusClaPorComp()));
 
     int danioFinal = std::max(0, danio - defensa);
 
@@ -394,7 +420,7 @@ int Game::criaturaAtacaJugador(Criatura* atacante, Jugador* objetivo) {
 
 // ----------------- Bonus grupal de clan -----------------
 
-int Game::contarCompañerosClanEnMapa(const Jugador* jugador) const {
+int Game::contarCompanerosClanEnMapa(const Jugador* jugador) const {
     if (!jugador->estaEnClan()) return 0;
     int count = 0;
     for (const auto& [nick, j] : jugadores) {

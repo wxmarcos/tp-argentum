@@ -7,12 +7,13 @@ namespace assets {
 
 // UI
 inline constexpr std::string_view UI_INICIO = "ui/inicio.png";
-inline constexpr std::string_view UI_LOGIN  = "ui/login.png";
+inline constexpr std::string_view UI_LOGIN = "ui/login.png";
 inline constexpr std::string_view UI_CREATE = "ui/create_character.png";
-inline constexpr std::string_view UI_ICON   = "ui/icon.png";
-inline constexpr std::string_view UI_MARCO  = "ui/marco.png";
+inline constexpr std::string_view UI_ICON = "ui/icon.png";
+inline constexpr std::string_view UI_MARCO = "ui/marco.png";
 inline constexpr std::string_view HUD_BG = "ui/hudFondo.png";
 inline constexpr std::string_view INV_SLOT_FRAME = "ui/bordeInv.png";
+inline constexpr std::string_view UI_CURSOR = "ui/cursor.png";
 
 // Cuerpos por raza
 inline constexpr std::string_view BODY_HUMANO =
@@ -38,6 +39,14 @@ inline constexpr std::string_view CRE_ZOMBIE = "criaturas/zombie.png";
 inline constexpr std::string_view CRE_ORCO = "criaturas/orco.png";
 inline constexpr std::string_view CRE_ARANA = "criaturas/arana.png";
 inline constexpr std::string_view CRE_GOLEM = "criaturas/golem.png";
+inline constexpr std::string_view CRE_ESQUELETO_HACHA =
+    "criaturas/esqueletoHacha.png";
+inline constexpr std::string_view CRE_ARANA_BLANCA =
+    "criaturas/aranaBlanca.png";
+inline constexpr std::string_view CRE_GOBLIN_JOROBADO =
+    "criaturas/goblinJorobado.png";
+inline constexpr std::string_view CRE_GOLEM_DEMONIACO =
+    "criaturas/golemDemoniaco.png";
 
 // NPCs
 inline constexpr std::string_view NPC_BANQUERO = "characters/banquero.png";
@@ -60,26 +69,38 @@ inline constexpr std::string_view TUNICA_AZUL =
     "objetos/armaduras/tunicaAzul.png";
 
 // Cascos
-inline constexpr std::string_view CASCO_CAPUCHA = "objetos/armaduras/capucha.png";
-inline constexpr std::string_view CASCO_HIERRO = "objetos/armaduras/cascoHierro.png";
-inline constexpr std::string_view CASCO_SOMBRERO_MAGICO = "objetos/armaduras/sombreroMagico.png";
+inline constexpr std::string_view CASCO_CAPUCHA =
+    "objetos/armaduras/capucha.png";
+inline constexpr std::string_view CASCO_HIERRO =
+    "objetos/armaduras/cascoHierro.png";
+inline constexpr std::string_view CASCO_SOMBRERO_MAGICO =
+    "objetos/armaduras/sombreroMagico.png";
 
-// Armas
-inline constexpr std::string_view ESPADA = "objetos/armas/espada.png";
-inline constexpr std::string_view HACHA = "objetos/armas/hacha.png";
-inline constexpr std::string_view MARTILLO = "objetos/armas/martillo.png";
-inline constexpr std::string_view VARADEFRESNO = "objetos/armas/varaDeFresno.png";
-inline constexpr std::string_view FLAUTAELFICA = "objetos/armas/flautaElfica.png";
-inline constexpr std::string_view BACULONUDOSO = "objetos/armas/baculoNudoso.png";
-inline constexpr std::string_view BACULOENGARZADO =
-    "objetos/armas/baculoEngarzado.png";
-inline constexpr std::string_view ARCOSIMPLE = "objetos/armas/arcoSimple.png";
-inline constexpr std::string_view ARCOCOMPUESTO =
-    "objetos/armas/arcoCompuesto.png";
-inline constexpr std::string_view ESCUDOTORTUGA =
-    "objetos/armas/escudoTortuga.png";
-inline constexpr std::string_view ESCUDOHIERRO = "objetos/armas/escudoHierro.png";
+// Armas (animacion de caminata)
 
-}
+inline constexpr std::string_view ESPADA_ANIM =
+    "objetos/armas/espadaMovimiento.png";
+inline constexpr std::string_view HACHA_ANIM =
+    "objetos/armas/hachaMovimiento.png";
+inline constexpr std::string_view MARTILLO_ANIM =
+    "objetos/armas/martilloMovimiento.png";
+inline constexpr std::string_view VARADEFRESNO_ANIM =
+    "objetos/armas/varaDeFresnoMovimiento.png";
+inline constexpr std::string_view FLAUTAELFICA_ANIM =
+    "objetos/armas/flautaElficaMovimiento.png";
+inline constexpr std::string_view BACULONUDOSO_ANIM =
+    "objetos/armas/baculoNudosoMovimiento.png";
+inline constexpr std::string_view BACULOENGARZADO_ANIM =
+    "objetos/armas/baculoEngarzadoMovimiento.png";
+inline constexpr std::string_view ARCOSIMPLE_ANIM =
+    "objetos/armas/arcoSimpleMovimiento.png";
+inline constexpr std::string_view ARCOCOMPUESTO_ANIM =
+    "objetos/armas/arcoCompuestoMovimiento.png";
+inline constexpr std::string_view ESCUDOTORTUGA_ANIM =
+    "objetos/armas/escudoTortugaMovimiento.png";
+inline constexpr std::string_view ESCUDOHIERRO_ANIM =
+    "objetos/armas/escudoHierroMovimiento.png";
+
+}  // namespace assets
 
 #endif

@@ -39,6 +39,7 @@ EffectData make_ataqueBaculoDorado_effect_data();
 EffectData make_ataqueComunRojo_effect_data();
 EffectData make_ataqueComunGris_effect_data();
 EffectData make_ataqueComunDorado_effect_data();
+EffectData make_ataqueFlechas_effect_data();
 
 std::vector<EffectDef> all_effect_defs();
 

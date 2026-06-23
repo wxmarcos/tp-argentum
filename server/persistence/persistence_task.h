@@ -38,4 +38,6 @@ struct PersistenceTask {
     std::string clan_nombre;
 
     std::vector<PersistenceInventoryItem> inventario;
+    uint32_t banco_oro = 0;
+    std::vector<PersistenceInventoryItem> banco_items;
 };

@@ -9,7 +9,7 @@
 
 SpriteRegistry::SpriteRegistry(SDL_Renderer* renderer,
                                const std::filesystem::path& assets_root):
-        textures(renderer, assets_root) {
+    textures(renderer, assets_root) {
     load_all();
 }
 
@@ -69,6 +69,14 @@ void SpriteRegistry::load_creatures() {
     register_sprite(keys::ORCO, assets::CRE_ORCO, make_orco_sprite_data());
     register_sprite(keys::ARANA, assets::CRE_ARANA, make_arana_sprite_data());
     register_sprite(keys::GOLEM, assets::CRE_GOLEM, make_golem_sprite_data());
+    register_sprite(keys::ESQUELETO_HACHA, assets::CRE_ESQUELETO_HACHA,
+                    make_esqueleto_hacha_sprite_data());
+    register_sprite(keys::ARANA_BLANCA, assets::CRE_ARANA_BLANCA,
+                    make_arana_blanca_sprite_data());
+    register_sprite(keys::GOBLIN_JOROBADO, assets::CRE_GOBLIN_JOROBADO,
+                    make_goblin_jorobado_sprite_data());
+    register_sprite(keys::GOLEM_DEMONIACO, assets::CRE_GOLEM_DEMONIACO,
+                    make_golem_demoniaco_sprite_data());
     register_sprite(keys::BANQUERO, assets::NPC_BANQUERO,
                     make_banquero_sprite_data());
     register_sprite(keys::COMERCIANTE, assets::NPC_COMERCIANTE,
@@ -152,12 +160,12 @@ bool SpriteRegistry::has_head(const std::string& raza) const {
 }
 
 SDL_Texture* SpriteRegistry::get_helmet_texture(
-        const std::string& helmet_key) const {
+    const std::string& helmet_key) const {
     return textures.get_or_null("head_" + helmet_key);
 }
 
 SDL_Rect SpriteRegistry::get_helmet_rect(const std::string& helmet_key,
-                                        int dir_idx) const {
+                                         int dir_idx) const {
     auto it = head_data.find(helmet_key);
     if (it == head_data.end()) return SDL_Rect{0, 0, 8, 8};
     return it->second.head_rects[dir_idx % 4];

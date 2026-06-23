@@ -1,14 +1,14 @@
 #ifndef CLIENT_WORLD_RENDERER_H
 #define CLIENT_WORLD_RENDERER_H
 
+#include <SDL2/SDL.h>
+
+#include <SDL2pp/SDL2pp.hh>
 #include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include <SDL2/SDL.h>
-#include <SDL2pp/SDL2pp.hh>
 
 #include "config/client_config.h"
 #include "game/client_game_state.h"
@@ -17,8 +17,8 @@
 #include "render/map/tile_catalog.h"
 #include "render/map/tmx_loader.h"
 #include "render/sprites/character_animator.h"
-#include "render/sprites/sprite_registry.h"
 #include "render/sprites/item_sprite_registry.h"
+#include "render/sprites/sprite_registry.h"
 #include "render/sprites/weapon_sprite_registry.h"
 #include "render/text_renderer.h"
 
@@ -31,7 +31,7 @@ struct FloatingText {
 };
 
 class WorldRenderer {
-    private:
+private:
     SDL2pp::Renderer& renderer;
     const ClientConfig& config;
 
@@ -60,7 +60,6 @@ class WorldRenderer {
 
     void load_map_by_id(uint16_t map_id);
     void update_loaded_map(const ClientGameState& state);
-
 
     void compute_camera(const ClientGameState& state, int& cam_offset_x,
                         int& cam_offset_y) const;
@@ -98,36 +97,35 @@ class WorldRenderer {
 
     void draw_head(const std::string& sprite_key, const std::string& raza,
                    int dir_idx, int px, int body_top, int body_scale);
-    
+
     void draw_helmet(const std::string& helmet_key, const std::string& raza,
-                    const std::string& sprite_key, int dir_idx, int px,
-                    int body_top, int body_scale);
+                     const std::string& sprite_key, int dir_idx, int px,
+                     int body_top, int body_scale);
 
     void draw_ghost(int world_x, int world_y, protocol::Direction dir,
                     int frame, int cam_offset_x, int cam_offset_y);
 
     void draw_player(const std::string& nick, bool dead, int world_x,
-                    int world_y, protocol::Direction dir,
-                    const std::string& sprite_key, const std::string& raza,
-                    int frame, int cam_offset_x, int cam_offset_y,
-                    const std::string& weapon_name = "",
-                    const std::string& helmet_key = "",
-                    const std::string& shield_name = "");
+                     int world_y, protocol::Direction dir,
+                     const std::string& sprite_key, const std::string& raza,
+                     int frame, int cam_offset_x, int cam_offset_y,
+                     const std::string& weapon_name = "",
+                     const std::string& helmet_key = "",
+                     const std::string& shield_name = "");
 
     void draw_creature(int world_x, int world_y, protocol::Direction dir,
                        const std::string& type, int frame, int cam_offset_x,
                        int cam_offset_y);
 
     void draw_name(const std::string& nick, int world_x, int world_y,
-                   int cam_offset_x, int cam_offset_y);
-    
+                   int cam_offset_x, int cam_offset_y,
+                   const std::string& raza = "");
+
     void draw_floor_items(const ClientGameState& state, int cam_offset_x,
                           int cam_offset_y);
 
-    void draw_weapon(const std::string& weapon_name, int dir_idx, int px,
-                     int body_top, int body_h);
-
-    std::string local_weapon_name(const ClientGameState& state) const;
+    void draw_weapon(const std::string& weapon_name, int dir_idx, int frame,
+                     int px, int body_top, int body_h);
 
     void draw_meditation_effect(int world_x, int world_y, int cam_offset_x,
                                 int cam_offset_y);
@@ -143,22 +141,29 @@ class WorldRenderer {
     int body_scale_pct(const std::string& raza) const;
 
     int head_scale_pct(const std::string& raza) const;
-    
+
     int creature_scale_pct(const std::string& type) const;
 
     static int dir_to_idx(protocol::Direction dir);
 
-    std::string local_body_key(const ClientGameState& state,
-                               const std::string& clase_key) const;
+    std::string weapon_name_for(
+        const std::vector<InventorySlotView>& inv) const;
 
-    std::string local_helmet_key(const ClientGameState& state) const;
+    std::string body_key_for(const std::vector<InventorySlotView>& inv,
+                             const std::string& clase_key) const;
 
-    std::string local_shield_name(const ClientGameState& state) const;
-    
+    std::string helmet_key_for(const std::vector<InventorySlotView>& inv) const;
+
+    std::string shield_name_for(
+        const std::vector<InventorySlotView>& inv) const;
+
     bool is_shield(const std::string& item) const;
 
-    public:
+public:
     WorldRenderer(SDL2pp::Renderer& renderer, const ClientConfig& config);
+
+    bool screen_to_tile(const ClientGameState& state, int mouse_x, int mouse_y,
+                        uint16_t& tile_x, uint16_t& tile_y) const;
 
     void render(const ClientGameState& state, uint32_t delta_ms);
 

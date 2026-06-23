@@ -37,10 +37,10 @@ struct ClientConfig {
     int hud_panel_width() const;
 
     int game_area_width() const;
-    
+
     static ClientConfig load();
 
-    private:
+private:
     static std::string find_config_file();
 
     template <typename T, typename Table>

@@ -9,14 +9,14 @@
 
 Jugador::Jugador(const std::string& nombre, int posX, int posY,
                  const Raza* raza, const charClase* clase,
-                 int capacidadInventario,
-                 double formulaExpCoef, double formulaExpExp,
-                 double formulaOroCoef, double formulaOroExp):
+                 int capacidadInventario, double formulaExpCoef,
+                 double formulaExpExp, double formulaOroCoef,
+                 double formulaOroExp):
     Character(nombre, posX, posY, 1),
     raza(raza), clase(clase), constitucion(raza->getConstitucionBase()),
     inteligencia(raza->getInteligenciaBase()), fuerza(raza->getFuerzaBase()),
     agilidad(raza->getAgilidadBase()), manaActual(0), manaMax(0), nivel(1),
-    experiencia(0), oro(0), vidaAcumulada(0.0f), manaAcumulado(0.0f),
+    experiencia(0), oro(50), vidaAcumulada(0.0f), manaAcumulado(0.0f),
     meditando(false), inventario(capacidadInventario), resucitando(false),
     tiempoResucitando(0.0f), destinoMapaId(0), destinoPosX(0), destinoPosY(0),
     formulaExpCoef(formulaExpCoef), formulaExpExp(formulaExpExp),
@@ -117,7 +117,9 @@ void Jugador::perderExperiencia(int cantidad) {
 
 // ----------------------- Oro -----------------------
 int Jugador::getOro() const { return oro; }
-int Jugador::getOroMax() const { return Formulas::calcularOroMax(nivel, formulaOroCoef, formulaOroExp); }
+int Jugador::getOroMax() const {
+    return Formulas::calcularOroMax(nivel, formulaOroCoef, formulaOroExp);
+}
 
 void Jugador::agregarOro(int cantidad) {
     if (cantidad <= 0) return;

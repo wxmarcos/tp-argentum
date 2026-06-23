@@ -1,16 +1,15 @@
 #pragma once
+#include <set>
 #include <string>
 #include <vector>
 
 class Clan {
-public:
-    static constexpr int MAX_MIEMBROS = 16;
-
 private:
     std::string nombre;
     std::string fundador;
     std::vector<std::string> miembros;
-    std::vector<std::string> solicitudes;  // solicitudes de ingreso pendientes
+    std::vector<std::string> solicitudes;
+    std::set<std::string> baneados;
 
 public:
     Clan(const std::string& nombre, const std::string& fundador);
@@ -27,4 +26,9 @@ public:
     bool aprobarSolicitud(const std::string& nombre);
     bool rechazarSolicitud(const std::string& nombre);
     const std::vector<std::string>& getSolicitudes() const;
+
+    // Ban
+    void banear(const std::string& nombre);
+    bool esBaneado(const std::string& nombre) const;
+    const std::set<std::string>& getBaneados() const;
 };

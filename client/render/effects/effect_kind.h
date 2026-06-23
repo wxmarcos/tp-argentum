@@ -12,7 +12,8 @@ enum class EffectKind {
     AtaqueBaculoDorado,
     AtaqueComunRojo,
     AtaqueComunGris,
-    AtaqueComunDorado
+    AtaqueComunDorado,
+    AtaqueFlechas
 };
 
 #endif

@@ -92,6 +92,8 @@ std::vector<std::string> PersistenceTaskFactory::get_affected_players(
         case protocol::ClientOpcode::SELL_ITEM:
         case protocol::ClientOpcode::DEPOSIT_ITEM:
         case protocol::ClientOpcode::WITHDRAW_ITEM:
+        case protocol::ClientOpcode::DEPOSIT_GOLD:
+        case protocol::ClientOpcode::WITHDRAW_GOLD:
         case protocol::ClientOpcode::MEDITATE:
         case protocol::ClientOpcode::RESURRECT:
         case protocol::ClientOpcode::HEAL:

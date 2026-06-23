@@ -9,11 +9,19 @@
 capacidad_max = 30
 
 # -----------------------------------------------------------------------------
+# Rutas de persisteencia
+# -----------------------------------------------------------------------------
+[rutas]
+ruta_jugadores = "data/players.bin"
+ruta_index_jugadores = "data/index.bin"
+ruta_clanes = "data/clanes.bin"
+
+# -----------------------------------------------------------------------------
 # Razas
 # -----------------------------------------------------------------------------
 [razas.humano]
-constitucion_base  = 100
-inteligencia_base  = 100
+constitucion_base  = 25
+inteligencia_base  = 25
 fuerza_base        = 5
 agilidad_base      = 3
 f_raza_vida        = 1.0
@@ -21,8 +29,8 @@ f_raza_mana        = 1.0
 f_recuperacion     = 1.0
 
 [razas.elfo]
-constitucion_base  = 67
-inteligencia_base  = 150
+constitucion_base  = 18
+inteligencia_base  = 35
 fuerza_base        = 4
 agilidad_base      = 5
 f_raza_vida        = 0.8
@@ -30,8 +38,8 @@ f_raza_mana        = 1.3
 f_recuperacion     = 1.2
 
 [razas.enano]
-constitucion_base  = 150
-inteligencia_base  = 50
+constitucion_base  = 35
+inteligencia_base  = 15
 fuerza_base        = 7
 agilidad_base      = 1
 f_raza_vida        = 1.3
@@ -39,8 +47,8 @@ f_raza_mana        = 0.7
 f_recuperacion     = 0.8
 
 [razas.gnomo]
-constitucion_base  = 83
-inteligencia_base  = 133
+constitucion_base  = 22
+inteligencia_base  = 30
 fuerza_base        = 3
 agilidad_base      = 4
 f_raza_vida        = 0.9
@@ -80,7 +88,42 @@ exp_coeficiente         = 1000.0  # LimiteExp = coef * nivel^exp
 exp_exponente           = 1.8
 oro_max_coeficiente     = 100.0   # OroMax = coef * nivel^exp
 oro_max_exponente       = 1.1
-oro_drop_npc_divisor    = 10      # OroDropNPC = vidaMaxNPC / divisor
+oro_drop_npc_divisor    = 10      # OroDropNPC = rand(0,1) * vidaMaxNPC / divisor
+esquive_umbral          = 0.001   # umbral para calcularEsquive: pow(r, agi) < umbral
+exp_nivel_offset        = 10      # offset en factor de exp: max(nivelOtro - nivelPropio + offset, 0)
+exp_matar_factor        = 0.1     # factor aleatorio de exp al matar: rand(0,1) * factor * vidaMax * nivelFactor
+
+# -----------------------------------------------------------------------------
+# Combate PvP
+# -----------------------------------------------------------------------------
+[pvp]
+nivel_minimo        = 12
+diferencia_nivel_max = 10
+bonus_clan_por_comp = 0.05
+
+# -----------------------------------------------------------------------------
+# Drops de criaturas (umbrales acumulativos sobre r ∈ [0,1))
+# -----------------------------------------------------------------------------
+[drops]
+umbral_nada   = 0.80
+umbral_oro    = 0.88
+umbral_pocion = 0.89
+umbral_item   = 0.90
+umbral_arma   = 0.95
+
+# -----------------------------------------------------------------------------
+# Clan
+# -----------------------------------------------------------------------------
+[clan]
+max_miembros = 16
+
+# -----------------------------------------------------------------------------
+# Mundo
+# -----------------------------------------------------------------------------
+[mundo]
+movimiento_cooldown_ms   = 150
+max_radio_drop           = 8
+penalizacion_mapa_distinto = 50.0
 
 # -----------------------------------------------------------------------------
 # IA de criaturas
@@ -90,41 +133,63 @@ rango_deteccion_criaturas = 15
 cooldown_movimiento_criatura = 2.0  # segundos entre movimientos de criaturas
 cooldown_ataque_criatura = 2.0      # segundos entre ataques de criaturas
 intervalo_spawn = 30.0  # segundos entre spawns de criaturas
-velocidad_resurreccion = 0.5
+intervalo_persistencia = 60.0  # segundos entre persistencias periódicas
+velocidad_resurreccion = 5
 
 # -----------------------------------------------------------------------------
 # Criaturas
 # -----------------------------------------------------------------------------
 [criaturas.goblin]
-vida_max  = 50
+vida_max  = 25
 nivel     = 1
 danio_min = 2
-danio_max = 5
+danio_max = 4
 fuerza    = 1
- 
-[criaturas.esqueleto]
+
+[criaturas.goblin_jorobado]
 vida_max  = 60
 nivel     = 2
 danio_min = 3
 danio_max = 7
 fuerza    = 1
  
+[criaturas.esqueleto]
+vida_max  = 70
+nivel     = 2
+danio_min = 3
+danio_max = 7
+fuerza    = 1
+
+[criaturas.esqueleto_hacha]
+vida_max  = 100
+nivel     = 3
+danio_min = 5
+danio_max = 10
+fuerza    = 2
+ 
 [criaturas.zombie]
-vida_max  = 80
+vida_max  = 35
 nivel     = 1
+danio_min = 2
+danio_max = 5
+fuerza    = 1
+ 
+[criaturas.arana]
+vida_max  = 15
+nivel     = 1
+danio_min = 1
+danio_max = 3
+fuerza    = 1
+
+[criaturas.arana_blanca]
+vida_max  = 50
+nivel     = 2
 danio_min = 2
 danio_max = 6
 fuerza    = 1
  
-[criaturas.arana]
-vida_max  = 40
-nivel     = 1
-danio_min = 1
-danio_max = 4
-fuerza    = 1
- 
 [criaturas.orco]
-vida_max  = 150
+vida_max  = 140
 nivel     = 3
 danio_min = 5
 danio_max = 12
@@ -137,30 +202,37 @@ danio_min = 8
 danio_max = 20
 fuerza    = 3
 
+[criaturas.golem_demoniaco]
+vida_max  = 350
+nivel     = 7
+danio_min = 12
+danio_max = 28
+fuerza    = 4
+
 # -----------------------------------------------------------------------------
 # Comercio — precios de compra (lo que paga el jugador)
 # El precio de venta (lo que recibe el jugador) es la mitad
 # -----------------------------------------------------------------------------
 [precios]
-espada             = 100
-hacha              = 120
+espada             = 40
+hacha              = 70
 martillo           = 90
-arco_simple        = 150
-arco_compuesto     = 400
-vara_de_fresno     = 200
-flauta_elfica      = 800
-baculo_nudoso      = 350
+arco_simple        = 80
+arco_compuesto     = 350
+vara_de_fresno     = 120
+flauta_elfica      = 300
+baculo_nudoso      = 250
 baculo_engarzado   = 600
-armadura_de_cuero  = 80
-armadura_de_placas = 500
-tunica_azul        = 200
+armadura_de_cuero  = 120
+armadura_de_placas = 800
+tunica_azul        = 220
 capucha            = 40
-casco_de_hierro    = 150
+casco_de_hierro    = 120
 sombrero_magico    = 300
-escudo_de_tortuga  = 60
-escudo_de_hierro   = 120
-pocion_de_vida     = 50
-pocion_de_mana     = 50
+escudo_de_tortuga  = 30
+escudo_de_hierro   = 80
+pocion_de_vida     = 25
+pocion_de_mana     = 40
 
 # -----------------------------------------------------------------------------
 # Servidor
@@ -179,8 +251,8 @@ archivo_tmx = "assets/mapa/bosque.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = 3
-vecino_sur         = -1
-vecino_este        = 4
+vecino_sur         = 6
+vecino_este        = -1
 vecino_oeste       = -1
 es_zona_segura     = false
 poblacion_max      = 10
@@ -195,16 +267,23 @@ archivo_tmx = "assets/mapa/mazmorra.tmx"
 ancho              = 100
 alto               = 100
 vecino_norte       = -1
-vecino_sur         = 4
+vecino_sur         = -1
 vecino_este        = -1
 vecino_oeste       = 3
 es_zona_segura     = false
 poblacion_max      = 8
-criaturas_posibles = ["orco", "golem", "esqueleto"]
+criaturas_posibles = ["orco", "golem", "esqueleto", "esqueleto_hacha", 
+                      "arana_blanca", "goblin_jorobado"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
-portales           = []
+portales           = [
+    { x = 92, y = 11, mapa_destino = 5, destino_x = 50, destino_y = 48 },
+    { x = 66, y = 64, mapa_destino = 2, destino_x = 9,  destino_y = 32 },
+    { x = 7,  y = 32, mapa_destino = 2, destino_x = 68, destino_y = 64 },
+    { x = 18, y = 61, mapa_destino = 2, destino_x = 85, destino_y = 37 },
+    { x = 87, y = 37, mapa_destino = 2, destino_x = 20, destino_y = 61 }
+]
 
 [mapas.3]
 archivo_tmx = "assets/mapa/ciudad.tmx"
@@ -226,17 +305,78 @@ portales           = []
 archivo_tmx = "assets/mapa/bosqueOscuro.tmx"
 ancho              = 100
 alto               = 100
-vecino_norte       = 2
+vecino_norte       = 7
 vecino_sur         = -1
 vecino_este        = -1
-vecino_oeste       = 1
+vecino_oeste       = -1
 es_zona_segura     = false
-poblacion_max      = 5
-criaturas_posibles = ["orco", "golem"]
+poblacion_max      = 40
+criaturas_posibles = ["orco", "golem", "esqueleto_hacha", "goblin_jorobado", 
+                      "golem_demoniaco"]
 sacerdotes         = []
 comerciantes       = []
 banqueros          = []
-portales           = []
+portales           = [ 
+    { x = 98, y = 16, mapa_destino = 4, destino_x = 89, destino_y = 66 },
+    { x = 91, y = 66, mapa_destino = 4, destino_x = 96, destino_y = 16 }
+]
+
+[mapas.5]
+archivo_tmx = "assets/mapa/mazmorraInfinita.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco", "golem",
+                      "esqueleto_hacha", "arana_blanca", "goblin_jorobado", 
+                      "golem_demoniaco"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 89, y = 11, mapa_destino = 2, destino_x = 90, destino_y = 11 }
+]
+
+[mapas.6]
+archivo_tmx = "assets/mapa/orillaBosque.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = 1
+vecino_sur         = -1
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana_blanca", "goblin_jorobado",]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 79, y = 42, mapa_destino = 7, destino_x = 78, destino_y = 17 }
+]
+
+[mapas.7]
+archivo_tmx = "assets/mapa/orillaBosqueOscuro.tmx"
+ancho              = 100
+alto               = 100
+vecino_norte       = -1
+vecino_sur         = 4
+vecino_este        = -1
+vecino_oeste       = -1
+es_zona_segura     = false
+poblacion_max      = 100
+criaturas_posibles = ["goblin", "esqueleto", "zombie", "arana", "orco"]
+sacerdotes         = []
+comerciantes       = []
+banqueros          = []
+portales           = [ 
+    { x = 78, y = 16, mapa_destino = 6, destino_x = 78, destino_y = 42 },
+    { x = 77, y = 74, mapa_destino = 4, destino_x = 93, destino_y = 9 }
+]
 
 [spawn]
 mapa_id = 3

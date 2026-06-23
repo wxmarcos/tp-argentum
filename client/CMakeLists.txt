@@ -21,6 +21,7 @@ target_sources(taller_client
     render/sprites/character_animator.cpp
     render/sprites/sprite_registry.cpp
     render/sprites/sprite_data.cpp
+    render/sprites/head_adjuster.cpp
     render/sprites/item_sprite_registry.cpp
     render/sprites/weapon_sprite_registry.cpp
     render/effects/effect_data.cpp
@@ -55,6 +56,7 @@ target_sources(taller_client
     render/sprites/sprite_data.h
     render/sprites/sprite_constants.h
     render/sprites/sprite_registry.h
+    render/sprites/head_adjuster.h
     render/sprites/animation.h
     render/sprites/character_animator.h
     render/sprites/item_sprite_registry.h

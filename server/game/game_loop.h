@@ -8,14 +8,15 @@
 #include "common/command/command.h"
 #include "common/queue.h"
 #include "common/snapshot/snapshot.h"
+#include "common/snapshot/snapshot_outgoing.h"
 #include "common/thread.h"
 #include "game/game.h"
-#include "persistence/persistence_task.h"
+#include "persistence/persistence_job.h"
 
 class GameLoop: public Thread {
 private:
     Queue<Command>& commands_queue;
-    Queue<PersistenceTask>& persistence_queue;
+    Queue<PersistenceJob>& persistence_queue;
 
     MonitorClients& clients;
 
@@ -24,16 +25,22 @@ private:
     Game game;
 
     void enqueue_persistence_tasks(const Command& cmd);
-    void debug_snapshot(const Snapshot& snapshot) const;
+    void enqueue_all_persistence_tasks();
+    void dispatch_snapshot(const OutgoingSnapshot& out);
+
+    void broadcast_snapshot(const Snapshot& snapshot);
+
+    void unicast_snapshot(uint16_t player_id, const Snapshot& snapshot);
+
+    void multicast_snapshot(const std::vector<uint16_t>& player_ids,
+                            const Snapshot& snapshot);
 
 public:
     GameLoop(Queue<Command>& commands_queue,
-             Queue<PersistenceTask>& persistence_queue, MonitorClients& clients,
+             Queue<PersistenceJob>& persistence_queue, MonitorClients& clients,
              Config& config);
 
     void run() override;
-
-    void broadcast_snapshot(const Snapshot& snapshot);
 };
 
 #endif

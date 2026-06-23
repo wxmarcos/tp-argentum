@@ -15,15 +15,15 @@
 #include "common/queue.h"
 #include "game/config.h"
 #include "game/game_loop.h"
+#include "persistence/persistence_job.h"
 #include "persistence/persistence_task.h"
 #include "persistence/persistence_worker.h"
-
 class Server {
 private:
     MonitorClients clients;
 
     Queue<Command> commands_queue;
-    Queue<PersistenceTask> persistence_queue;
+    Queue<PersistenceJob> persistence_queue;
 
     Acceptor acceptor;
     GameLoop gameloop;
@@ -38,7 +38,7 @@ public:
 
         gameloop(commands_queue, persistence_queue, clients, game_config),
 
-        persistence_worker(persistence_queue, game_config.getRutaJugadores()) {}
+        persistence_worker(persistence_queue, game_config) {}
 
     void start() {
         persistence_worker.start();

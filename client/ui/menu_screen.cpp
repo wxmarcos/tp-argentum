@@ -9,12 +9,12 @@
 #include <string_view>
 
 #include "game/entity_keys.h"
-#include "render/colors.h"
 #include "render/asset_paths.h"
+#include "render/colors.h"
 
 static constexpr int OPTION_COUNT = 4;
 static constexpr size_t MAX_NICK_LEN = 16;
-static constexpr int NICK_TEXT_PAD = 12;
+static constexpr int NICK_TEXT_PAD = 24;
 static constexpr int FRAME_DELAY_MS = 16;
 static constexpr int ERROR_MSG_GAP = 16;
 
@@ -24,33 +24,29 @@ static constexpr std::array<std::string_view, 4> CLASES = {
     keys::MAGO, keys::CLERIGO, keys::GUERRERO, keys::PALADIN};
 
 // inicio.png
-static constexpr float COMENZAR[4] = {0.43f, 0.84f, 0.19f, 0.11f};
+static constexpr float COMENZAR[4] = {0.34f, 0.835f, 0.33f, 0.1f};
 
 // login.png
 static constexpr float L_NICK[4] = {0.31f, 0.521f, 0.375f, 0.062f};
-static constexpr float L_JUGAR[4] = {0.36f, 0.72f, 0.28f, 0.10f};
-static constexpr float L_VOLVER[4] = {0.045f, 0.875f, 0.15f, 0.062f};
+static constexpr float L_JUGAR[4] = {0.375f, 0.74f, 0.25f, 0.10f};
+static constexpr float L_VOLVER[4] = {0.045f, 0.87f, 0.15f, 0.062f};
 
 // create_character.png
 static constexpr float C_RAZA_Y = 0.505f, C_RAZA_H = 0.055f;
 static constexpr float C_CLASE_Y = 0.611f, C_CLASE_H = 0.055f;
-static constexpr float C_OPT_X0 = 0.22f, C_OPT_PITCH = 0.147f, C_OPT_W = 0.123f;
-static constexpr float C_JUGAR[4] = {0.36f, 0.705f, 0.28f, 0.10f};
-static constexpr float C_VOLVER[4] = {0.045f, 0.86f, 0.15f, 0.062f};
-
+static constexpr float C_OPT_X[4] = {0.225f, 0.374f, 0.51f, 0.65f};
+static constexpr float C_OPT_W[4] = {0.133f, 0.123f, 0.125f, 0.126f};
+static constexpr float C_JUGAR[4] = {0.375f, 0.725f, 0.25f, 0.10f};
+static constexpr float C_VOLVER[4] = {0.045f, 0.87f, 0.15f, 0.062f};
 
 MenuScreen::MenuScreen(SDL2pp::Renderer& renderer, const ClientConfig& config):
-        renderer(renderer),
-        config(config),
-        text(renderer.Get(),
-             (std::filesystem::current_path() / config.font_path)
-                 .lexically_normal(),
-             config.font_size),
-        tex_inicio(nullptr),
-        tex_login(nullptr),
-        tex_create(nullptr),
-        win_w(config.window_width),
-        win_h(config.window_height) {
+    renderer(renderer), config(config),
+    text(
+        renderer.Get(),
+        (std::filesystem::current_path() / config.font_path).lexically_normal(),
+        config.font_size),
+    tex_inicio(nullptr), tex_login(nullptr), tex_create(nullptr),
+    win_w(config.window_width), win_h(config.window_height) {
     tex_inicio = load_texture(assets::UI_INICIO);
     tex_login = load_texture(assets::UI_LOGIN);
     tex_create = load_texture(assets::UI_CREATE);
@@ -73,15 +69,13 @@ SDL_Texture* MenuScreen::load_texture(std::string_view rel_path) {
 }
 
 void MenuScreen::compute_layout() {
-    const SDL2pp::Point out = renderer.GetOutputSize();
-    win_w = out.x;
-    win_h = out.y;
+    win_w = config.window_width;
+    win_h = config.window_height;
 
     auto frac = [&](const float f[4]) {
-        return SDL_Rect{static_cast<int>(f[0] * win_w),
-                        static_cast<int>(f[1] * win_h),
-                        static_cast<int>(f[2] * win_w),
-                        static_cast<int>(f[3] * win_h)};
+        return SDL_Rect{
+            static_cast<int>(f[0] * win_w), static_cast<int>(f[1] * win_h),
+            static_cast<int>(f[2] * win_w), static_cast<int>(f[3] * win_h)};
     };
 
     comenzar_rect = frac(COMENZAR);
@@ -92,14 +86,13 @@ void MenuScreen::compute_layout() {
     create_volver = frac(C_VOLVER);
 
     for (int i = 0; i < OPTION_COUNT; ++i) {
-        const float x = C_OPT_X0 + i * C_OPT_PITCH;
-        raza_rects[i] = {static_cast<int>(x * win_w),
+        raza_rects[i] = {static_cast<int>(C_OPT_X[i] * win_w),
                          static_cast<int>(C_RAZA_Y * win_h),
-                         static_cast<int>(C_OPT_W * win_w),
+                         static_cast<int>(C_OPT_W[i] * win_w),
                          static_cast<int>(C_RAZA_H * win_h)};
-        clase_rects[i] = {static_cast<int>(x * win_w),
+        clase_rects[i] = {static_cast<int>(C_OPT_X[i] * win_w),
                           static_cast<int>(C_CLASE_Y * win_h),
-                          static_cast<int>(C_OPT_W * win_w),
+                          static_cast<int>(C_OPT_W[i] * win_w),
                           static_cast<int>(C_CLASE_H * win_h)};
     }
 }

@@ -5,7 +5,7 @@ port = "8080"
 [window]
 width = 1024
 height = 640
-fullscreen = false
+fullscreen = true
 hud_panel_fraction = 0.30
 
 [render]
@@ -22,6 +22,9 @@ map_name = "ciudad"
 2 = "mazmorra"
 3 = "ciudad"
 4 = "bosqueOscuro"
+5 = "mazmorraInfinita"
+6 = "orillaBosque"
+7 = "orillaBosqueOscuro"
 
 [audio]
 music_volume = 64

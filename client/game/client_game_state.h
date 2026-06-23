@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "common/protocol_defs.h"
-#include "protocol/game_update.h"
 #include "game/floating_kind.h"
+#include "protocol/game_update.h"
 #include "render/effects/effect_spawn.h"
 
 struct PlayerStats {
@@ -29,6 +29,13 @@ struct PlayerStats {
     uint16_t agilidad = 0;
 };
 
+struct InventorySlotView {
+    std::string item;
+    uint16_t cantidad = 0;
+    bool equipado = false;
+    bool empty() const;
+};
+
 struct PlayerView {
     std::string nick;
     std::string raza;
@@ -37,6 +44,7 @@ struct PlayerView {
     uint16_t y = 0;
     protocol::Direction direction = protocol::Direction::SOUTH;
     bool moved = false;
+    std::vector<InventorySlotView> inventory;
 };
 
 struct FloorItem {
@@ -53,13 +61,6 @@ struct CreatureView {
     uint16_t y = 0;
     protocol::Direction direction = protocol::Direction::SOUTH;
     bool moved = false;
-};
-
-struct InventorySlotView {
-    std::string item;
-    uint16_t cantidad = 0;
-    bool equipado = false;
-    bool empty() const;
 };
 
 struct ChatMessage {
@@ -108,6 +109,9 @@ private:
 
     std::vector<ChatMessage> chat_messages;
 
+    bool pending_dodge_sound = false;
+    bool pending_private_msg_sound = false;
+
     bool resolve_entity_pos(const std::string& nick, uint16_t& x,
                             uint16_t& y) const;
 
@@ -124,6 +128,7 @@ private:
     void apply_player_stats(const Snapshot& snapshot);
     void apply_inventory_update(const Snapshot& snapshot);
     void apply_damage_event(const Snapshot& snapshot);
+    EffectKind local_attack_effect() const;
     void apply_dodge_event(const Snapshot& snapshot);
     void apply_death_event(const Snapshot& snapshot);
     void apply_meditation_status(const Snapshot& snapshot);
@@ -172,6 +177,9 @@ public:
     int get_map_height() const;
 
     const std::vector<ChatMessage>& get_chat_messages() const;
+
+    bool consume_dodge_sound();
+    bool consume_private_msg_sound();
 };
 
 #endif

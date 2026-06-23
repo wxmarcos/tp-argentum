@@ -1,7 +1,7 @@
 #pragma once
 #include "game/items/item.h"
 
-class Oro : public Item {
+class Oro: public Item {
 private:
     int cantidad;
 

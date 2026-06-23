@@ -164,6 +164,7 @@ Command parse_command_payload(const std::vector<uint8_t>& payload,
         case protocol::ClientOpcode::RESURRECT:
         case protocol::ClientOpcode::HEAL:
         case protocol::ClientOpcode::PICK_ITEM:
+        case protocol::ClientOpcode::LIST_ITEMS:
         case protocol::ClientOpcode::CLAN_REVIEW:
         case protocol::ClientOpcode::CLAN_LEAVE:
         case protocol::ClientOpcode::DISCONNECT:
@@ -288,6 +289,7 @@ std::vector<uint8_t> build_command_payload(const Command& command) {
         case protocol::ClientOpcode::RESURRECT:
         case protocol::ClientOpcode::HEAL:
         case protocol::ClientOpcode::PICK_ITEM:
+        case protocol::ClientOpcode::LIST_ITEMS:
         case protocol::ClientOpcode::CLAN_REVIEW:
         case protocol::ClientOpcode::CLAN_LEAVE:
         case protocol::ClientOpcode::DISCONNECT:

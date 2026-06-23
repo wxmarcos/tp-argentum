@@ -9,7 +9,7 @@
 #include "common/command/command.h"
 
 class CommandParser {
-    private:
+private:
     std::string trim(const std::string& s) const;
 
     std::string to_lower(const std::string& s) const;
@@ -29,7 +29,7 @@ class CommandParser {
 
     std::optional<Command> parse_withdraw(const std::string& rest) const;
 
-    public:
+public:
     std::optional<Command> parse(const std::string& line) const;
 };
 

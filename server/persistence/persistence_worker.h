@@ -1,20 +1,17 @@
 #pragma once
 
-#include <string>
-
 #include "common/queue.h"
 #include "common/thread.h"
-#include "server/persistence/persistence_task.h"
+#include "game/config.h"
+#include "server/persistence/persistence_job.h"
 
 class PersistenceWorker: public Thread {
 private:
-    Queue<PersistenceTask>& queue;
-
-    std::string save_file_path;
+    Queue<PersistenceJob>& queue;
+    Config& config;
 
 public:
-    PersistenceWorker(Queue<PersistenceTask>& queue,
-                      const std::string& save_file_path);
+    PersistenceWorker(Queue<PersistenceJob>& queue, Config& config);
 
     void run() override;
 };

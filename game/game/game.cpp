@@ -6,16 +6,17 @@
 #include <iostream>
 
 #include "common/protocol_defs.h"
-#include "game/clases/clerigo.h"
-#include "game/clases/guerrero.h"
-#include "game/clases/mago.h"
-#include "game/clases/paladin.h"
-#include "game/criaturas/arana.h"
-#include "game/criaturas/esqueleto.h"
-#include "game/criaturas/goblin.h"
-#include "game/criaturas/golem.h"
-#include "game/criaturas/orco.h"
-#include "game/criaturas/zombie.h"
+#include "game/characters/criaturas/arana.h"
+#include "game/characters/criaturas/aranaBlanca.h"
+#include "game/characters/criaturas/esqueleto.h"
+#include "game/characters/criaturas/esqueletoHacha.h"
+#include "game/characters/criaturas/goblin.h"
+#include "game/characters/criaturas/goblinJorobado.h"
+#include "game/characters/criaturas/golem.h"
+#include "game/characters/criaturas/golemDemoniaco.h"
+#include "game/characters/criaturas/orco.h"
+#include "game/characters/criaturas/zombie.h"
+#include "game/clases/charClase.h"
 #include "game/formulas.h"
 #include "game/items/arma.h"
 #include "game/items/armadura.h"
@@ -25,13 +26,11 @@
 #include "game/items/itemFactory.h"
 #include "game/items/item_defs.h"
 #include "game/items/oro.h"
-#include "game/razas/elfo.h"
-#include "game/razas/enano.h"
-#include "game/razas/gnomo.h"
-#include "game/razas/humano.h"
+#include "game/razas/raza.h"
 #include "game/snapshot_factory.h"
 #include "game/tmx_loader.h"
-#include "server/persistence/persistence_loader.h"
+#include "server/persistence/clan/clan_loader.h"
+#include "server/persistence/players/persistence_loader.h"
 
 // ----------------- Constructor -----------------
 Game::Game(Config& config):
@@ -40,7 +39,7 @@ Game::Game(Config& config):
     inicializarRazas();
     inicializarClases();
     cargarMundo();
-
+    clanes = ClanLoader::load_all(config.getRutaClanes());
     for (const auto& cm : config.getMapas()) {
         infoSpawn[cm.id] = {cm.poblacionMax, cm.criaturasPosibles};
     }
@@ -76,17 +75,20 @@ void Game::cargarMundo() {
 }
 
 void Game::inicializarRazas() {
-    razas["humano"] = std::make_unique<Humano>(config);
-    razas["elfo"] = std::make_unique<Elfo>(config);
-    razas["enano"] = std::make_unique<Enano>(config);
-    razas["gnomo"] = std::make_unique<Gnomo>(config);
+    razas["humano"] = std::make_unique<Raza>("humano", config);
+    razas["elfo"] = std::make_unique<Raza>("elfo", config);
+    razas["enano"] = std::make_unique<Raza>("enano", config);
+    razas["gnomo"] = std::make_unique<Raza>("gnomo", config);
 }
 
 void Game::inicializarClases() {
-    clases["guerrero"] = std::make_unique<Guerrero>(config);
-    clases["mago"] = std::make_unique<Mago>(config);
-    clases["clerigo"] = std::make_unique<Clerigo>(config);
-    clases["paladin"] = std::make_unique<Paladin>(config);
+    clases["guerrero"] =
+        std::make_unique<charClase>("guerrero", config, false, false);
+    clases["mago"] = std::make_unique<charClase>("mago", config, true, true);
+    clases["clerigo"] =
+        std::make_unique<charClase>("clerigo", config, true, true);
+    clases["paladin"] =
+        std::make_unique<charClase>("paladin", config, true, true);
 }
 
 // ----------------- Persistencia -----------------
@@ -101,7 +103,7 @@ std::string Game::to_lower(const std::string& str) const {
     return text;
 }
 bool Game::puedeMoverAhora(const std::string& nombre) {
-    static constexpr int MOVE_COOLDOWN_MS = 150;
+    const int moveCooldownMs = config.getMoveCooldownMs();
 
     const auto now = std::chrono::steady_clock::now();
 
@@ -112,7 +114,7 @@ bool Game::puedeMoverAhora(const std::string& nombre) {
             std::chrono::duration_cast<std::chrono::milliseconds>(now -
                                                                   it->second);
 
-        if (elapsed.count() < MOVE_COOLDOWN_MS) {
+        if (elapsed.count() < moveCooldownMs) {
             return false;
         }
     }
@@ -140,10 +142,6 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
                              p.experiencia, p.oro, p.constitucion,
                              p.inteligencia, p.fuerza, p.agilidad);
 
-    if (!p.clan_nombre.empty()) {
-        jugador->setClanNombre(p.clan_nombre);
-    }
-
     auto inventario = p.inventario;
 
     std::sort(
@@ -165,6 +163,7 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
         if (!slot_agregado.has_value()) {
             continue;
         }
+
         int slot = item_persistido.slot_id;
 
         if (!item_persistido.equipado) {
@@ -205,13 +204,45 @@ bool Game::restaurarJugadorPersistido(const PersistenceTask& p) {
             default:
                 break;
         }
-        std::cout << "[Game] cargando item " << item_persistido.item
-                  << " slot_persistido=" << item_persistido.slot_id
-                  << " cantidad=" << item_persistido.cantidad
-                  << " equipado=" << item_persistido.equipado << "\n";
     }
 
+    auto& cuenta = cuentasBancarias.try_emplace(p.nick, p.nick).first->second;
+    cuenta.setOro(static_cast<int>(p.banco_oro));
+    cuenta.limpiarItems();
+
+    auto banco_items = p.banco_items;
+
+    std::sort(
+        banco_items.begin(), banco_items.end(),
+        [](const auto& a, const auto& b) { return a.slot_id < b.slot_id; });
+
+    for (const auto& item_banco : banco_items) {
+        auto item = crear_item_por_nombre(item_banco.item);
+
+        if (!item) {
+            std::cout << "[Game] item desconocido en banco persistido: "
+                      << item_banco.item << "\n";
+            continue;
+        }
+
+        cuenta.depositarItem(
+            SlotInventario(std::move(item), item_banco.cantidad));
+    }
+    restaurarClanDeJugador(jugador);
     return true;
+}
+
+void Game::restaurarClanDeJugador(Jugador* jugador) {
+    if (!jugador) return;
+
+    for (const auto& [nombreClan, clan] : clanes) {
+        if (clan.esMiembro(jugador->getNombre())) {
+            jugador->setClanNombre(nombreClan);
+            return;
+        }
+    }
+
+    jugador->setClanNombre("");
 }
 
 void Game::cargarNPCs() {
@@ -235,9 +266,9 @@ std::string Game::getNombreJugadorPorComando(const Command& cmd) const {
     return (it != player_id_to_nick.end()) ? it->second : "";
 }
 
-void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
-                                    const std::string& nickQueEntra,
-                                    int mapaId) const {
+void Game::agregarReplayDeJugadores(std::vector<OutgoingSnapshot>& snapshots,
+                                    const std::string& nickQueEntra, int mapaId,
+                                    uint16_t playerId) const {
     for (const auto& [nombre, otro] : jugadores) {
         if (nombre == nickQueEntra) {
             continue;
@@ -247,82 +278,123 @@ void Game::agregarReplayDeJugadores(std::vector<Snapshot>& snapshots,
             continue;
         }
 
-        snapshots.push_back(Snapshot::entity_created(
-            nombre, mapaId, static_cast<uint16_t>(otro->getPosX()),
-            static_cast<uint16_t>(otro->getPosY()),
-            static_cast<uint8_t>(otro->getDireccion())));
+        push_unicast(snapshots,
+                     Snapshot::entity_created(
+                         nombre, mapaId, static_cast<uint16_t>(otro->getPosX()),
+                         static_cast<uint16_t>(otro->getPosY()),
+                         static_cast<uint8_t>(otro->getDireccion())),
+                     playerId);
+
+        push_unicast(snapshots,
+                     SnapshotFactory::player_stats_from_player(*otro),
+                     playerId);
+        push_unicast(snapshots,
+                     SnapshotFactory::player_inventory_from_player(*otro),
+                     playerId);
+        const auto& slots = otro->getInventario().getSlots();
+
+        for (size_t i = 0; i < slots.size(); ++i) {
+            if (!slots[i].has_value()) {
+                continue;
+            }
+
+            const SlotInventario& slot = *slots[i];
+
+            if (!otro->getInventario().estaEquipado(slot.item.get())) {
+                continue;
+            }
+
+            push_unicast(snapshots,
+                         SnapshotFactory::player_inventory_slot_from_player(
+                             *otro, static_cast<int>(i)),
+                         playerId);
+        }
     }
 }
 
-void Game::agregarReplayNpcs(std::vector<Snapshot>& snapshots,
-                             int mapaId) const {
+void Game::agregarReplayNpcs(std::vector<OutgoingSnapshot>& snapshots,
+                             int mapaId, uint16_t playerId) const {
     int id = 0;
 
     for (const auto& npc : sacerdotes) {
         if (npc.mapaId != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
-            "npc_sacerdote_" + std::to_string(id++), mapaId,
-            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
+        push_unicast(
+            snapshots,
+            Snapshot::entity_created("npc_sacerdote_" + std::to_string(id++),
+                                     mapaId, static_cast<uint16_t>(npc.x),
+                                     static_cast<uint16_t>(npc.y), 2),
+            playerId);
     }
 
     for (const auto& npc : comerciantes) {
         if (npc.mapaId != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
-            "npc_comerciante_" + std::to_string(id++), mapaId,
-            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
+        push_unicast(
+            snapshots,
+            Snapshot::entity_created("npc_comerciante_" + std::to_string(id++),
+                                     mapaId, static_cast<uint16_t>(npc.x),
+                                     static_cast<uint16_t>(npc.y), 2),
+            playerId);
     }
 
     for (const auto& npc : banqueros) {
         if (npc.mapaId != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
-            "npc_banquero_" + std::to_string(id++), mapaId,
-            static_cast<uint16_t>(npc.x), static_cast<uint16_t>(npc.y), 2));
+        push_unicast(
+            snapshots,
+            Snapshot::entity_created("npc_banquero_" + std::to_string(id++),
+                                     mapaId, static_cast<uint16_t>(npc.x),
+                                     static_cast<uint16_t>(npc.y), 2),
+            playerId);
     }
 }
 
-void Game::agregarReplayCriaturas(std::vector<Snapshot>& snapshots,
-                                  int mapaId) const {
+void Game::agregarReplayCriaturas(std::vector<OutgoingSnapshot>& snapshots,
+                                  int mapaId, uint16_t playerId) const {
     for (const auto& [id, criatura] : criaturas) {
         if (criatura->getMapaId() != mapaId) continue;
 
-        snapshots.push_back(Snapshot::entity_created(
-            id, mapaId, static_cast<uint16_t>(criatura->getPosX()),
-            static_cast<uint16_t>(criatura->getPosY()),
-            static_cast<uint8_t>(criatura->getDireccion())));
+        push_unicast(snapshots,
+                     Snapshot::entity_created(
+                         id, mapaId, static_cast<uint16_t>(criatura->getPosX()),
+                         static_cast<uint16_t>(criatura->getPosY()),
+                         static_cast<uint8_t>(criatura->getDireccion())),
+                     playerId);
     }
 }
 
-void Game::agregarReplayItems(std::vector<Snapshot>& snapshots,
-                              int mapaId) const {
+void Game::agregarReplayItems(std::vector<OutgoingSnapshot>& snapshots,
+                              int mapaId, uint16_t playerId) const {
     const Mapa* mapa = mundo.getMapa(mapaId);
     if (!mapa) return;
 
     for (const auto& [pos, slots] : mapa->getItemsEnPiso()) {
         for (const auto& slot : slots) {
             if (!slot.item) continue;
-            snapshots.push_back(Snapshot::item_event(
-                static_cast<uint8_t>(protocol::ItemEventAction::DROP),
-                "",  // sin entidad emisora
-                slot.item->getNombre(),
-                static_cast<uint16_t>(mapaId),
-                static_cast<uint16_t>(pos.first),
-                static_cast<uint16_t>(pos.second),
-                static_cast<uint16_t>(slot.cantidad)));
+            push_unicast(
+                snapshots,
+                Snapshot::item_event(
+                    static_cast<uint8_t>(protocol::ItemEventAction::DROP),
+                    "",  // sin entidad emisora
+                    slot.item->getNombre(), static_cast<uint16_t>(mapaId),
+                    static_cast<uint16_t>(pos.first),
+                    static_cast<uint16_t>(pos.second),
+                    static_cast<uint16_t>(slot.cantidad)),
+                playerId);
         }
     }
 }
 
-bool Game::handle_meditation_interruption(Jugador* jugador,
-                                          std::vector<Snapshot>& snapshots,
-                                          const std::string& nombre) {
+bool Game::handle_meditation_interruption(
+    Jugador* jugador, std::vector<OutgoingSnapshot>& snapshots,
+    const std::string& nombre) {
     if (!jugador || !jugador->estaMeditando()) return false;
 
     jugador->interrumpirMeditacion();
-    snapshots.push_back(Snapshot::meditation_status(nombre, false));
-    snapshots.push_back(SnapshotFactory::player_stats_from_player(*jugador));
+    push_broadcast(snapshots, Snapshot::meditation_status(nombre, false));
+    push_broadcast(snapshots,
+                   SnapshotFactory::player_stats_from_player(*jugador));
     return true;
 }
 
@@ -426,12 +498,20 @@ std::string Game::agregarCriatura(const std::string& tipo, int mapaId, int posX,
     std::unique_ptr<Criatura> criatura;
     if (tipo == "goblin")
         criatura = std::make_unique<Goblin>(config, posX, posY);
+    else if (tipo == "goblin_jorobado")
+        criatura = std::make_unique<GoblinJorobado>(config, posX, posY);
     else if (tipo == "esqueleto")
         criatura = std::make_unique<Esqueleto>(config, posX, posY);
+    else if (tipo == "esqueleto_hacha")
+        criatura = std::make_unique<EsqueletoHacha>(config, posX, posY);
     else if (tipo == "arana")
         criatura = std::make_unique<Arana>(config, posX, posY);
+    else if (tipo == "arana_blanca")
+        criatura = std::make_unique<AranaBlanca>(config, posX, posY);
     else if (tipo == "golem")
         criatura = std::make_unique<Golem>(config, posX, posY);
+    else if (tipo == "golem_demoniaco")
+        criatura = std::make_unique<GolemDemoniaco>(config, posX, posY);
     else if (tipo == "orco")
         criatura = std::make_unique<Orco>(config, posX, posY);
     else if (tipo == "zombie")
@@ -459,8 +539,8 @@ Criatura* Game::getCriatura(const std::string& id) {
 
 // ----------------- Tick -----------------
 
-std::vector<Snapshot> Game::tick(float dt) {
-    std::vector<Snapshot> snapshots;
+std::vector<OutgoingSnapshot> Game::tick(float dt) {
+    std::vector<OutgoingSnapshot> snapshots;
 
     for (auto& [nombre, jugador] : jugadores) {
         int oldVida = jugador->getVidaActual();
@@ -472,8 +552,8 @@ std::vector<Snapshot> Game::tick(float dt) {
         int nuevaMana = jugador->getManaActual();
 
         if (oldVida != nuevaVida || oldMana != nuevaMana) {
-            snapshots.push_back(
-                SnapshotFactory::player_stats_from_player(*jugador));
+            push_broadcast(snapshots,
+                           SnapshotFactory::player_stats_from_player(*jugador));
         }
     }
 
@@ -492,23 +572,76 @@ std::vector<Snapshot> Game::tick(float dt) {
 // ----------------- Resto de metodos -----------------
 
 const Mundo& Game::getMundo() const { return mundo; }
+PersistenceTask Game::buildPlayerTask(const std::string& nombre,
+                                      const Jugador& jugador) const {
+    PersistenceTask task = PersistenceTaskFactory::from_player(jugador);
+
+    auto itCuenta = cuentasBancarias.find(nombre);
+    if (itCuenta == cuentasBancarias.end()) {
+        return task;
+    }
+
+    const CuentaBanco& cuenta = itCuenta->second;
+    task.banco_oro = static_cast<uint32_t>(cuenta.getOro());
+
+    const auto& itemsBanco = cuenta.getItems();
+    for (size_t i = 0; i < itemsBanco.size(); ++i) {
+        const SlotInventario& slot = itemsBanco[i];
+
+        if (!slot.item) continue;
+
+        PersistenceInventoryItem item;
+        item.slot_id = static_cast<int>(i);
+        item.item = slot.item->getNombre();
+        item.cantidad = slot.cantidad;
+        item.equipado = false;
+
+        task.banco_items.push_back(item);
+    }
+
+    return task;
+}
+
+bool Game::command_changes_clans(const Command& cmd) const {
+    switch (cmd.get_type()) {
+        case protocol::ClientOpcode::CLAN_CREATE:
+        case protocol::ClientOpcode::CLAN_JOIN:
+        case protocol::ClientOpcode::CLAN_ACCEPT:
+        case protocol::ClientOpcode::CLAN_REJECT:
+        case protocol::ClientOpcode::CLAN_BAN:
+        case protocol::ClientOpcode::CLAN_KICK:
+        case protocol::ClientOpcode::CLAN_LEAVE:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+std::map<std::string, Clan> Game::getClanes() const { return clanes; }
 
 std::vector<PersistenceTask> Game::build_persistence_tasks_for_command(
     const Command& cmd) const {
     std::vector<PersistenceTask> tasks;
     const std::string actor = getNombreJugadorPorComando(cmd);
+
     for (const std::string& name :
          PersistenceTaskFactory::get_affected_players(cmd, actor)) {
         const Jugador* j = getJugador(name);
-        if (j) tasks.push_back(PersistenceTaskFactory::from_player(*j));
+        if (j) {
+            tasks.push_back(buildPlayerTask(name, *j));
+        }
     }
+
     return tasks;
 }
 
 std::vector<PersistenceTask> Game::build_all_players_tasks() const {
     std::vector<PersistenceTask> tasks;
+
     for (const auto& [nombre, jugador] : jugadores) {
-        tasks.push_back(PersistenceTaskFactory::from_player(*jugador));
+        tasks.push_back(buildPlayerTask(nombre, *jugador));
     }
+
     return tasks;
 }
