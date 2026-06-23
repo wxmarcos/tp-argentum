@@ -55,6 +55,15 @@ public:
     float getPersistenciaIntervalo() const;
     float getVelocidadResurreccion() const;
 
+    // Items
+    int getItemDanioMin(const std::string& clave) const;
+    int getItemDanioMax(const std::string& clave) const;
+    int getItemDefensaMin(const std::string& clave) const;
+    int getItemDefensaMax(const std::string& clave) const;
+    int getItemEfectoMin(const std::string& clave) const;
+    int getItemEfectoMax(const std::string& clave) const;
+    int getItemCostoMana(const std::string& clave) const;
+    int getItemCantidad(const std::string& clave) const;
     // Criaturas
     bool existeCriatura(const std::string& tipo) const;
     int getCriaturaVidaMax(const std::string& tipo) const;

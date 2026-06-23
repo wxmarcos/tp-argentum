@@ -293,6 +293,33 @@ int Config::getPrecioItem(const std::string& nombre) const {
     return impl->get<int64_t>(clave, 0);
 }
 
+// ----------------- Items -----------------
+
+int Config::getItemDanioMin(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".danio_min", 1);
+}
+int Config::getItemDanioMax(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".danio_max", 1);
+}
+int Config::getItemDefensaMin(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".defensa_min", 0);
+}
+int Config::getItemDefensaMax(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".defensa_max", 0);
+}
+int Config::getItemEfectoMin(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".efecto_min", 1);
+}
+int Config::getItemEfectoMax(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".efecto_max", 1);
+}
+int Config::getItemCostoMana(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".costo_mana", 0);
+}
+int Config::getItemCantidad(const std::string& clave) const {
+    return impl->get<int64_t>("items." + clave + ".cantidad", 100);
+}
+
 // ----------------- Criaturas -----------------
 
 bool Config::existeCriatura(const std::string& tipo) const {

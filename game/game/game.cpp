@@ -389,46 +389,7 @@ bool Game::handle_meditation_interruption(
 }
 
 std::unique_ptr<Item> Game::crear_item_por_nombre(const std::string& nombre) {
-    if (nombre == item_defs::ESPADA) return ItemFactory::crearEspada();
-    if (nombre == item_defs::HACHA) return ItemFactory::crearHacha();
-    if (nombre == item_defs::MARTILLO) return ItemFactory::crearMartillo();
-
-    if (nombre == item_defs::VARA_DE_FRESNO)
-        return ItemFactory::crearVaraDeFresno();
-    if (nombre == item_defs::FLAUTA_ELFICA)
-        return ItemFactory::crearFlautaElfica();
-    if (nombre == item_defs::BACULO_NUDOSO)
-        return ItemFactory::crearBaculoNudoso();
-    if (nombre == item_defs::BACULO_ENGARZADO)
-        return ItemFactory::crearBaculoEngarzado();
-
-    if (nombre == item_defs::ARCO_SIMPLE) return ItemFactory::crearArcoSimple();
-    if (nombre == item_defs::ARCO_COMPUESTO)
-        return ItemFactory::crearArcoCompuesto();
-
-    if (nombre == item_defs::ARMADURA_DE_CUERO)
-        return ItemFactory::crearArmaduraDeCuero();
-    if (nombre == item_defs::ARMADURA_DE_PLACAS)
-        return ItemFactory::crearArmaduraDePlacas();
-    if (nombre == item_defs::TUNICA_AZUL) return ItemFactory::crearTunicaAzul();
-
-    if (nombre == item_defs::CAPUCHA) return ItemFactory::crearCapucha();
-    if (nombre == item_defs::CASCO_DE_HIERRO)
-        return ItemFactory::crearCascoDeHierro();
-    if (nombre == item_defs::SOMBRERO_MAGICO)
-        return ItemFactory::crearSombreroMagico();
-
-    if (nombre == item_defs::ESCUDO_DE_TORTUGA)
-        return ItemFactory::crearEscudoDeTortuga();
-    if (nombre == item_defs::ESCUDO_DE_HIERRO)
-        return ItemFactory::crearEscudoDeHierro();
-
-    if (nombre == item_defs::POCION_DE_VIDA)
-        return ItemFactory::crearPocionDeVida();
-    if (nombre == item_defs::POCION_DE_MANA)
-        return ItemFactory::crearPocionDeMana();
-
-    return nullptr;
+    return ItemFactory::crear(nombre, config);
 }
 
 // ----------------- Gestion de jugadores -----------------
