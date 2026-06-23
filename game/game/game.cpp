@@ -6,16 +6,6 @@
 #include <iostream>
 
 #include "common/protocol_defs.h"
-#include "game/characters/criaturas/arana.h"
-#include "game/characters/criaturas/aranaBlanca.h"
-#include "game/characters/criaturas/esqueleto.h"
-#include "game/characters/criaturas/esqueletoHacha.h"
-#include "game/characters/criaturas/goblin.h"
-#include "game/characters/criaturas/goblinJorobado.h"
-#include "game/characters/criaturas/golem.h"
-#include "game/characters/criaturas/golemDemoniaco.h"
-#include "game/characters/criaturas/orco.h"
-#include "game/characters/criaturas/zombie.h"
 #include "game/clases/charClase.h"
 #include "game/formulas.h"
 #include "game/items/arma.h"
@@ -399,46 +389,7 @@ bool Game::handle_meditation_interruption(
 }
 
 std::unique_ptr<Item> Game::crear_item_por_nombre(const std::string& nombre) {
-    if (nombre == item_defs::ESPADA) return ItemFactory::crearEspada();
-    if (nombre == item_defs::HACHA) return ItemFactory::crearHacha();
-    if (nombre == item_defs::MARTILLO) return ItemFactory::crearMartillo();
-
-    if (nombre == item_defs::VARA_DE_FRESNO)
-        return ItemFactory::crearVaraDeFresno();
-    if (nombre == item_defs::FLAUTA_ELFICA)
-        return ItemFactory::crearFlautaElfica();
-    if (nombre == item_defs::BACULO_NUDOSO)
-        return ItemFactory::crearBaculoNudoso();
-    if (nombre == item_defs::BACULO_ENGARZADO)
-        return ItemFactory::crearBaculoEngarzado();
-
-    if (nombre == item_defs::ARCO_SIMPLE) return ItemFactory::crearArcoSimple();
-    if (nombre == item_defs::ARCO_COMPUESTO)
-        return ItemFactory::crearArcoCompuesto();
-
-    if (nombre == item_defs::ARMADURA_DE_CUERO)
-        return ItemFactory::crearArmaduraDeCuero();
-    if (nombre == item_defs::ARMADURA_DE_PLACAS)
-        return ItemFactory::crearArmaduraDePlacas();
-    if (nombre == item_defs::TUNICA_AZUL) return ItemFactory::crearTunicaAzul();
-
-    if (nombre == item_defs::CAPUCHA) return ItemFactory::crearCapucha();
-    if (nombre == item_defs::CASCO_DE_HIERRO)
-        return ItemFactory::crearCascoDeHierro();
-    if (nombre == item_defs::SOMBRERO_MAGICO)
-        return ItemFactory::crearSombreroMagico();
-
-    if (nombre == item_defs::ESCUDO_DE_TORTUGA)
-        return ItemFactory::crearEscudoDeTortuga();
-    if (nombre == item_defs::ESCUDO_DE_HIERRO)
-        return ItemFactory::crearEscudoDeHierro();
-
-    if (nombre == item_defs::POCION_DE_VIDA)
-        return ItemFactory::crearPocionDeVida();
-    if (nombre == item_defs::POCION_DE_MANA)
-        return ItemFactory::crearPocionDeMana();
-
-    return nullptr;
+    return ItemFactory::crear(nombre, config);
 }
 
 // ----------------- Gestion de jugadores -----------------
@@ -495,29 +446,8 @@ std::string Game::agregarCriatura(const std::string& tipo, int mapaId, int posX,
                                   int posY) {
     std::string id = tipo + "_" + std::to_string(nextCriaturaId++);
 
-    std::unique_ptr<Criatura> criatura;
-    if (tipo == "goblin")
-        criatura = std::make_unique<Goblin>(config, posX, posY);
-    else if (tipo == "goblin_jorobado")
-        criatura = std::make_unique<GoblinJorobado>(config, posX, posY);
-    else if (tipo == "esqueleto")
-        criatura = std::make_unique<Esqueleto>(config, posX, posY);
-    else if (tipo == "esqueleto_hacha")
-        criatura = std::make_unique<EsqueletoHacha>(config, posX, posY);
-    else if (tipo == "arana")
-        criatura = std::make_unique<Arana>(config, posX, posY);
-    else if (tipo == "arana_blanca")
-        criatura = std::make_unique<AranaBlanca>(config, posX, posY);
-    else if (tipo == "golem")
-        criatura = std::make_unique<Golem>(config, posX, posY);
-    else if (tipo == "golem_demoniaco")
-        criatura = std::make_unique<GolemDemoniaco>(config, posX, posY);
-    else if (tipo == "orco")
-        criatura = std::make_unique<Orco>(config, posX, posY);
-    else if (tipo == "zombie")
-        criatura = std::make_unique<Zombie>(config, posX, posY);
-    else
-        return "";
+    if (!config.existeCriatura(tipo)) return "";
+    auto criatura = std::make_unique<Criatura>(tipo, config, posX, posY);
 
     criatura->setMapaId(mapaId);
     mundo.agregarPersonaje(criatura.get());

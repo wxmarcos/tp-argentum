@@ -3,8 +3,10 @@
 
 #include "game/characters/character.h"
 
+class Config;
+
 class Criatura: public Character {
-protected:
+    std::string tipo_;
     int nivel;
     int danioMin;
     int danioMax;
@@ -13,11 +15,8 @@ protected:
     float tiempoDesdeUltimoMovimiento;
 
 public:
-    Criatura(const std::string& nombre, int posX, int posY, int vidaMax,
-             int nivel, int danioMin, int danioMax, int fuerza,
-             float cooldownAtaque, float cooldownMovimiento);
-    virtual ~Criatura() = default;
-    virtual std::string getTipo() const = 0;
+    Criatura(const std::string& tipo, const Config& config, int posX, int posY);
+    std::string getTipo() const;
     bool esCriatura() const override { return true; }
 
     int getNivel() const;

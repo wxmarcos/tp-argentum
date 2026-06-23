@@ -11,7 +11,7 @@
 #include "common/snapshot/snapshot.h"
 #include "common/snapshot/snapshot_outgoing.h"
 #include "game/banco/cuentaBanco.h"
-#include "game/characters/criaturas/criatura.h"
+#include "game/characters/criatura.h"
 #include "game/characters/jugador.h"
 #include "game/clan.h"
 #include "game/clases/charClase.h"

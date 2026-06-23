@@ -1,12 +1,18 @@
-#include "game/characters/criaturas/criatura.h"
+#include "game/characters/criatura.h"
 
-Criatura::Criatura(const std::string& nombre, int posX, int posY, int vidaMax,
-                   int nivel, int danioMin, int danioMax, int fuerza,
-                   float cooldownAtaque, float cooldownMovimiento):
-    Character(nombre, posX, posY, vidaMax),
-    nivel(nivel), danioMin(danioMin), danioMax(danioMax), fuerza(fuerza),
-    tiempoDesdeUltimoAtaque(cooldownAtaque),
-    tiempoDesdeUltimoMovimiento(cooldownMovimiento) {}
+#include "game/config.h"
+
+Criatura::Criatura(const std::string& tipo, const Config& config, int posX,
+                   int posY):
+    Character(tipo, posX, posY, config.getCriaturaVidaMax(tipo)),
+    tipo_(tipo), nivel(config.getCriaturaNivel(tipo)),
+    danioMin(config.getCriaturaDanioMin(tipo)),
+    danioMax(config.getCriaturaDanioMax(tipo)),
+    fuerza(config.getCriaturaFuerza(tipo)),
+    tiempoDesdeUltimoAtaque(config.getCriaturaCooldownAtaque()),
+    tiempoDesdeUltimoMovimiento(config.getCriaturaCooldownMovimiento()) {}
+
+std::string Criatura::getTipo() const { return tipo_; }
 
 int Criatura::getNivel() const { return nivel; }
 int Criatura::getDanioMin() const { return danioMin; }

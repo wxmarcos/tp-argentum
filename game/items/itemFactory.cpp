@@ -1,93 +1,112 @@
 #include "itemFactory.h"
 
-// Armas cuerpo a cuerpo
-std::unique_ptr<Arma> ItemFactory::crearEspada() {
-    return std::make_unique<Arma>(item_defs::ESPADA, 2, 5);
+#include "game/items/arma.h"
+#include "game/items/armadura.h"
+#include "game/items/baculo.h"
+#include "game/items/casco.h"
+#include "game/items/escudo.h"
+#include "game/items/item_defs.h"
+#include "game/items/pocion.h"
+
+std::unique_ptr<Item> ItemFactory::crear(const std::string& nombre,
+                                         const Config& config) {
+    // Armas cuerpo a cuerpo
+    if (nombre == item_defs::ESPADA)
+        return std::make_unique<Arma>(nombre, config.getItemDanioMin("espada"),
+                                      config.getItemDanioMax("espada"));
+    if (nombre == item_defs::HACHA)
+        return std::make_unique<Arma>(nombre, config.getItemDanioMin("hacha"),
+                                      config.getItemDanioMax("hacha"));
+    if (nombre == item_defs::MARTILLO)
+        return std::make_unique<Arma>(nombre,
+                                      config.getItemDanioMin("martillo"),
+                                      config.getItemDanioMax("martillo"));
+
+    // Armas a distancia
+    if (nombre == item_defs::ARCO_SIMPLE)
+        return std::make_unique<Arma>(
+            nombre, config.getItemDanioMin("arco_simple"),
+            config.getItemDanioMax("arco_simple"), true);
+    if (nombre == item_defs::ARCO_COMPUESTO)
+        return std::make_unique<Arma>(
+            nombre, config.getItemDanioMin("arco_compuesto"),
+            config.getItemDanioMax("arco_compuesto"), true);
+
+    // Baculos
+    if (nombre == item_defs::VARA_DE_FRESNO)
+        return std::make_unique<Baculo>(
+            nombre, "Flecha magica", TipoHechizo::DANIO,
+            config.getItemEfectoMin("vara_de_fresno"),
+            config.getItemEfectoMax("vara_de_fresno"),
+            config.getItemCostoMana("vara_de_fresno"));
+    if (nombre == item_defs::FLAUTA_ELFICA)
+        return std::make_unique<Baculo>(
+            nombre, "Curar", TipoHechizo::CURACION,
+            config.getItemEfectoMin("flauta_elfica"),
+            config.getItemEfectoMax("flauta_elfica"),
+            config.getItemCostoMana("flauta_elfica"));
+    if (nombre == item_defs::BACULO_NUDOSO)
+        return std::make_unique<Baculo>(
+            nombre, "Misil", TipoHechizo::DANIO,
+            config.getItemEfectoMin("baculo_nudoso"),
+            config.getItemEfectoMax("baculo_nudoso"),
+            config.getItemCostoMana("baculo_nudoso"));
+    if (nombre == item_defs::BACULO_ENGARZADO)
+        return std::make_unique<Baculo>(
+            nombre, "Explosion", TipoHechizo::DANIO,
+            config.getItemEfectoMin("baculo_engarzado"),
+            config.getItemEfectoMax("baculo_engarzado"),
+            config.getItemCostoMana("baculo_engarzado"));
+
+    // Armaduras
+    if (nombre == item_defs::ARMADURA_DE_CUERO)
+        return std::make_unique<Armadura>(
+            nombre, config.getItemDefensaMin("armadura_de_cuero"),
+            config.getItemDefensaMax("armadura_de_cuero"));
+    if (nombre == item_defs::ARMADURA_DE_PLACAS)
+        return std::make_unique<Armadura>(
+            nombre, config.getItemDefensaMin("armadura_de_placas"),
+            config.getItemDefensaMax("armadura_de_placas"));
+    if (nombre == item_defs::TUNICA_AZUL)
+        return std::make_unique<Armadura>(
+            nombre, config.getItemDefensaMin("tunica_azul"),
+            config.getItemDefensaMax("tunica_azul"));
+
+    // Cascos
+    if (nombre == item_defs::CAPUCHA)
+        return std::make_unique<Casco>(nombre,
+                                       config.getItemDefensaMin("capucha"),
+                                       config.getItemDefensaMax("capucha"));
+    if (nombre == item_defs::CASCO_DE_HIERRO)
+        return std::make_unique<Casco>(
+            nombre, config.getItemDefensaMin("casco_de_hierro"),
+            config.getItemDefensaMax("casco_de_hierro"));
+    if (nombre == item_defs::SOMBRERO_MAGICO)
+        return std::make_unique<Casco>(
+            nombre, config.getItemDefensaMin("sombrero_magico"),
+            config.getItemDefensaMax("sombrero_magico"));
+
+    // Escudos
+    if (nombre == item_defs::ESCUDO_DE_TORTUGA)
+        return std::make_unique<Escudo>(
+            nombre, config.getItemDefensaMin("escudo_de_tortuga"),
+            config.getItemDefensaMax("escudo_de_tortuga"));
+    if (nombre == item_defs::ESCUDO_DE_HIERRO)
+        return std::make_unique<Escudo>(
+            nombre, config.getItemDefensaMin("escudo_de_hierro"),
+            config.getItemDefensaMax("escudo_de_hierro"));
+
+    // Pociones
+    if (nombre == item_defs::POCION_DE_VIDA)
+        return std::make_unique<Pocion>(
+            TipoPocion::VIDA, config.getItemCantidad("pocion_de_vida"));
+    if (nombre == item_defs::POCION_DE_MANA)
+        return std::make_unique<Pocion>(
+            TipoPocion::MANA, config.getItemCantidad("pocion_de_mana"));
+
+    return nullptr;
 }
 
-std::unique_ptr<Arma> ItemFactory::crearHacha() {
-    return std::make_unique<Arma>(item_defs::HACHA, 4, 5);
-}
-
-std::unique_ptr<Arma> ItemFactory::crearMartillo() {
-    return std::make_unique<Arma>(item_defs::MARTILLO, 1, 9);
-}
-
-// Baculos
-std::unique_ptr<Baculo> ItemFactory::crearVaraDeFresno() {
-    return std::make_unique<Baculo>(item_defs::VARA_DE_FRESNO, "Flecha magica",
-                                    TipoHechizo::DANIO, 2, 4, 5);
-}
-
-std::unique_ptr<Baculo> ItemFactory::crearFlautaElfica() {
-    return std::make_unique<Baculo>(item_defs::FLAUTA_ELFICA, "Curar",
-                                    TipoHechizo::CURACION, 50, 100, 100);
-}
-
-std::unique_ptr<Baculo> ItemFactory::crearBaculoNudoso() {
-    return std::make_unique<Baculo>(item_defs::BACULO_NUDOSO, "Misil",
-                                    TipoHechizo::DANIO, 4, 8, 15);
-}
-
-std::unique_ptr<Baculo> ItemFactory::crearBaculoEngarzado() {
-    return std::make_unique<Baculo>(item_defs::BACULO_ENGARZADO, "Explosion",
-                                    TipoHechizo::DANIO, 8, 20, 30);
-}
-
-// Armas a distancia
-std::unique_ptr<Arma> ItemFactory::crearArcoSimple() {
-    return std::make_unique<Arma>(item_defs::ARCO_SIMPLE, 1, 4, true);
-}
-
-std::unique_ptr<Arma> ItemFactory::crearArcoCompuesto() {
-    return std::make_unique<Arma>(item_defs::ARCO_COMPUESTO, 4, 16, true);
-}
-
-// Armaduras
-std::unique_ptr<Armadura> ItemFactory::crearArmaduraDeCuero() {
-    return std::make_unique<Armadura>(item_defs::ARMADURA_DE_CUERO, 2, 6);
-}
-
-std::unique_ptr<Armadura> ItemFactory::crearArmaduraDePlacas() {
-    return std::make_unique<Armadura>(item_defs::ARMADURA_DE_PLACAS, 15, 30);
-}
-
-std::unique_ptr<Armadura> ItemFactory::crearTunicaAzul() {
-    return std::make_unique<Armadura>(item_defs::TUNICA_AZUL, 6, 10);
-}
-
-// Cascos
-std::unique_ptr<Casco> ItemFactory::crearCapucha() {
-    return std::make_unique<Casco>(item_defs::CAPUCHA, 1, 4);
-}
-
-std::unique_ptr<Casco> ItemFactory::crearCascoDeHierro() {
-    return std::make_unique<Casco>(item_defs::CASCO_DE_HIERRO, 4, 8);
-}
-
-std::unique_ptr<Casco> ItemFactory::crearSombreroMagico() {
-    return std::make_unique<Casco>(item_defs::SOMBRERO_MAGICO, 4, 12);
-}
-
-// Escudos
-std::unique_ptr<Escudo> ItemFactory::crearEscudoDeTortuga() {
-    return std::make_unique<Escudo>(item_defs::ESCUDO_DE_TORTUGA, 1, 2);
-}
-
-std::unique_ptr<Escudo> ItemFactory::crearEscudoDeHierro() {
-    return std::make_unique<Escudo>(item_defs::ESCUDO_DE_HIERRO, 1, 4);
-}
-
-// Pociones
-std::unique_ptr<Pocion> ItemFactory::crearPocionDeVida() {
-    return std::make_unique<Pocion>(TipoPocion::VIDA, 100);
-}
-
-std::unique_ptr<Pocion> ItemFactory::crearPocionDeMana() {
-    return std::make_unique<Pocion>(TipoPocion::MANA, 100);
-}
-
-// Oro
 std::unique_ptr<Oro> ItemFactory::crearOro(int cantidad) {
     return std::make_unique<Oro>(cantidad);
 }
