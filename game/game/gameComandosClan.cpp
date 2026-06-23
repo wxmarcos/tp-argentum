@@ -99,7 +99,8 @@ void Game::handleClanJoin(const std::string& nombre, const Command& cmd,
             playerId);
         return;
     }
-    if (static_cast<int>(clan.getMiembros().size()) >= Clan::MAX_MIEMBROS) {
+    if (static_cast<int>(clan.getMiembros().size()) >=
+        config.getClanMaxMiembros()) {
         push_unicast(snapshots,
                      Snapshot::error_message(
                          nombre, "El clan ya tiene el maximo de miembros"),
@@ -209,7 +210,8 @@ void Game::handleClanAccept(const std::string& nombre, const Command& cmd,
                      playerId);
         return;
     }
-    if (static_cast<int>(clan.getMiembros().size()) >= Clan::MAX_MIEMBROS) {
+    if (static_cast<int>(clan.getMiembros().size()) >=
+        config.getClanMaxMiembros()) {
         push_unicast(snapshots,
                      Snapshot::error_message(
                          nombre, "El clan ya tiene el maximo de miembros"),

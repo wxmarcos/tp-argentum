@@ -227,6 +227,58 @@ float Config::getVelocidadResurreccion() const {
         impl->get<double>("ia.velocidad_resurreccion", 0.5));
 }
 
+// ----------------- PvP -----------------
+
+int Config::getPvpNivelMinimo() const {
+    return static_cast<int>(impl->get<int64_t>("pvp.nivel_minimo", 12));
+}
+int Config::getPvpDiferenciaNivelMax() const {
+    return static_cast<int>(impl->get<int64_t>("pvp.diferencia_nivel_max", 10));
+}
+double Config::getPvpBonusClaPorComp() const {
+    return impl->get<double>("pvp.bonus_clan_por_comp", 0.05);
+}
+
+// ----------------- Drops de criaturas -----------------
+
+double Config::getDropUmbralNada() const {
+    return impl->get<double>("drops.umbral_nada", 0.80);
+}
+double Config::getDropUmbralOro() const {
+    return impl->get<double>("drops.umbral_oro", 0.88);
+}
+double Config::getDropUmbralPocion() const {
+    return impl->get<double>("drops.umbral_pocion", 0.89);
+}
+double Config::getDropUmbralItem() const {
+    return impl->get<double>("drops.umbral_item", 0.90);
+}
+double Config::getDropUmbralArma() const {
+    return impl->get<double>("drops.umbral_arma", 0.95);
+}
+
+// ----------------- Clan -----------------
+
+int Config::getClanMaxMiembros() const {
+    return static_cast<int>(impl->get<int64_t>("clan.max_miembros", 16));
+}
+
+// ----------------- Mundo -----------------
+
+int Config::getMoveCooldownMs() const {
+    return static_cast<int>(
+        impl->get<int64_t>("mundo.movimiento_cooldown_ms", 150));
+}
+
+int Config::getMaxRadioDrop() const {
+    return static_cast<int>(impl->get<int64_t>("mundo.max_radio_drop", 8));
+}
+
+float Config::getPenalizacionMapaDistinto() const {
+    return static_cast<float>(
+        impl->get<double>("mundo.penalizacion_mapa_distinto", 50.0));
+}
+
 // ----------------- Precio de items -----------------
 
 int Config::getPrecioItem(const std::string& nombre) const {

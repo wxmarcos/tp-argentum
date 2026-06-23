@@ -124,7 +124,6 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         nick_to_player_id[cmd.get_nick()] = playerId;
 
         jugador->agarrarItem(ItemFactory::crearEspada());
-        jugador->agarrarItem(ItemFactory::crearEscudoDeTortuga());
 
         push_unicast(
             snapshots,
@@ -168,12 +167,12 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
                     if (j->getClanNombre() == clanNom) {
                         auto itId = nick_to_player_id.find(nick);
                         if (itId != nick_to_player_id.end()) {
-                            push_unicast(
-                                snapshots,
-                                Snapshot::chat_message("Sistema", nick,
-                                                       "Tu compañero " + nombre +
-                                                           " salió de Argentum"),
-                                itId->second);
+                            push_unicast(snapshots,
+                                         Snapshot::chat_message(
+                                             "Sistema", nick,
+                                             "Tu compañero " + nombre +
+                                                 " salió de Argentum"),
+                                         itId->second);
                         }
                     }
                 }

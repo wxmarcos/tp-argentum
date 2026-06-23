@@ -98,6 +98,26 @@ public:
 
     std::vector<ConfigMapa> getMapas() const;
 
+    // PvP
+    int getPvpNivelMinimo() const;
+    int getPvpDiferenciaNivelMax() const;
+    double getPvpBonusClaPorComp() const;
+
+    // Drops de criaturas
+    double getDropUmbralNada() const;
+    double getDropUmbralOro() const;
+    double getDropUmbralPocion() const;
+    double getDropUmbralItem() const;
+    double getDropUmbralArma() const;
+
+    // Clan
+    int getClanMaxMiembros() const;
+
+    // Mundo
+    int getMoveCooldownMs() const;
+    int getMaxRadioDrop() const;
+    float getPenalizacionMapaDistinto() const;
+
     // Precio de items
     int getPrecioItem(const std::string& nombre) const;
 

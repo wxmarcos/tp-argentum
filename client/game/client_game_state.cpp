@@ -459,10 +459,11 @@ void ClientGameState::push_chat(const std::string& from,
 
 std::string ClientGameState::format_chat_sender(const std::string& nick) const {
     static const std::unordered_set<std::string_view> CREATURE_TYPES = {
-        keys::GOBLIN, keys::ESQUELETO, keys::ZOMBIE, keys::ARANA,
-        keys::ORCO, keys::GOLEM, keys::BANQUERO, keys::COMERCIANTE,
-        keys::SACERDOTE, keys::ESQUELETO_HACHA, keys::ARANA_BLANCA,
-        keys::GOBLIN_JOROBADO, keys::GOLEM_DEMONIACO};
+        keys::GOBLIN,          keys::ESQUELETO,    keys::ZOMBIE,
+        keys::ARANA,           keys::ORCO,         keys::GOLEM,
+        keys::BANQUERO,        keys::COMERCIANTE,  keys::SACERDOTE,
+        keys::ESQUELETO_HACHA, keys::ARANA_BLANCA, keys::GOBLIN_JOROBADO,
+        keys::GOLEM_DEMONIACO};
 
     const auto sep = nick.rfind('_');
     if (sep == std::string::npos || sep == 0) {

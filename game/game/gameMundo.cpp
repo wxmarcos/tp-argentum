@@ -1,7 +1,13 @@
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
 #include <iostream>
+#include <random>
+
+static std::mt19937& rng() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    return gen;
+}
 #include <limits>
 #include <set>
 
@@ -33,11 +39,14 @@ void Game::spawnCriaturas(std::vector<OutgoingSnapshot>& snapshots) {
         if (mapa->esZonaSegura()) continue;
 
         const std::string& tipo =
-            info.criaturasPosibles[rand() % info.criaturasPosibles.size()];
+            info.criaturasPosibles[std::uniform_int_distribution<size_t>(
+                0, info.criaturasPosibles.size() - 1)(rng())];
 
         for (int intento = 0; intento < 20; intento++) {
-            int x = rand() % mapa->getAncho();
-            int y = rand() % mapa->getAlto();
+            int x = std::uniform_int_distribution<int>(
+                0, mapa->getAncho() - 1)(rng());
+            int y = std::uniform_int_distribution<int>(
+                0, mapa->getAlto() - 1)(rng());
 
             if (mapa->esTransitable(x, y) && !mapa->estaOcupada(x, y)) {
                 std::string id = agregarCriatura(tipo, mapaId, x, y);
@@ -150,10 +159,13 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
                             static_cast<uint16_t>(objetivo->getMapaId()),
                             static_cast<uint16_t>(tx),
                             static_cast<uint16_t>(ty), cantidad));
-                    push_unicast(snapshots,
-                                 SnapshotFactory::player_inventory_from_player(
-                                     *objetivo),
-                                 itObjetivoId->second);
+                    if (itObjetivoId != nick_to_player_id.end()) {
+                        push_unicast(
+                            snapshots,
+                            SnapshotFactory::player_inventory_from_player(
+                                *objetivo),
+                            itObjetivoId->second);
+                    }
                 }
 
                 int oroExceso = Formulas::calcularOroExceso(
@@ -237,13 +249,13 @@ void Game::tickCriaturas(float dt, std::vector<OutgoingSnapshot>& snapshots) {
 }
 
 // ----------------- Sacerdote más cercano -----------------
-static constexpr float PENALIZACION_MAPA_DISTINTO = 50.0f;
 
 bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
                                         InfoNPC& destino,
                                         float& distancia) const {
     bool encontrado = false;
     float distMin = std::numeric_limits<float>::max();
+    const float penalizacion = config.getPenalizacionMapaDistinto();
 
     for (const auto& s : sacerdotes) {
         float dx = static_cast<float>(s.x - fantasma->getPosX());
@@ -251,7 +263,7 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
         float dist = std::sqrt(dx * dx + dy * dy);
 
         if (s.mapaId != fantasma->getMapaId()) {
-            dist += PENALIZACION_MAPA_DISTINTO;
+            dist += penalizacion;
         }
 
         if (dist < distMin) {
@@ -265,14 +277,13 @@ bool Game::encontrarSacerdoteMasCercano(const Jugador* fantasma,
     return encontrado;
 }
 
-static constexpr int MAX_RADIO_DROP = 8;
-
 std::pair<int, int> Game::buscarTileParaItem(
     int mapaId, int cx, int cy, std::set<std::pair<int, int>>& usados) const {
     const Mapa* mapa = mundo.getMapa(mapaId);
     if (!mapa) return {cx, cy};
 
-    for (int r = 0; r <= MAX_RADIO_DROP; ++r) {
+    const int maxRadioDrop = config.getMaxRadioDrop();
+    for (int r = 0; r <= maxRadioDrop; ++r) {
         for (int dx = -r; dx <= r; ++dx) {
             for (int dy = -r; dy <= r; ++dy) {
                 if (std::abs(dx) != r && std::abs(dy) != r) continue;

@@ -1,13 +1,24 @@
 #pragma once
 #include <string>
 
+class Config;
+
 class charClase {
+    std::string nombre_;
+    float fClaseVida_;
+    float fClaseMana_;
+    float fClaseMeditacion_;
+    bool puedeMeditar_;
+    bool puedeUsarMagia_;
+
 public:
-    virtual std::string getNombre() const = 0;
-    virtual float getFClaseVida() const = 0;
-    virtual float getFClaseMana() const = 0;
-    virtual float getFClaseMeditacion() const = 0;
-    virtual bool puedeMeditar() const = 0;
-    virtual bool puedeUsarMagia() const = 0;
-    virtual ~charClase() = default;
+    charClase(const std::string& nombre, const Config& config,
+              bool puedeMeditar, bool puedeUsarMagia);
+
+    std::string getNombre() const;
+    float getFClaseVida() const;
+    float getFClaseMana() const;
+    float getFClaseMeditacion() const;
+    bool puedeMeditar() const;
+    bool puedeUsarMagia() const;
 };
