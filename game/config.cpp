@@ -295,58 +295,34 @@ int Config::getPrecioItem(const std::string& nombre) const {
 
 // ----------------- Criaturas -----------------
 
+bool Config::existeCriatura(const std::string& tipo) const {
+    return impl->tabla.at_path("criaturas." + tipo + ".vida_max")
+        .value<int64_t>()
+        .has_value();
+}
+
 int Config::getCriaturaVidaMax(const std::string& tipo) const {
     std::string clave = "criaturas." + tipo + ".vida_max";
-    if (tipo == "goblin") return impl->get<int64_t>(clave, 50);
-    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 60);
-    if (tipo == "zombie") return impl->get<int64_t>(clave, 80);
-    if (tipo == "arana") return impl->get<int64_t>(clave, 40);
-    if (tipo == "orco") return impl->get<int64_t>(clave, 150);
-    if (tipo == "golem") return impl->get<int64_t>(clave, 250);
     return impl->get<int64_t>(clave, 50);
 }
 
 int Config::getCriaturaNivel(const std::string& tipo) const {
     std::string clave = "criaturas." + tipo + ".nivel";
-    if (tipo == "goblin") return impl->get<int64_t>(clave, 1);
-    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 2);
-    if (tipo == "zombie") return impl->get<int64_t>(clave, 1);
-    if (tipo == "arana") return impl->get<int64_t>(clave, 1);
-    if (tipo == "orco") return impl->get<int64_t>(clave, 3);
-    if (tipo == "golem") return impl->get<int64_t>(clave, 5);
     return impl->get<int64_t>(clave, 1);
 }
 
 int Config::getCriaturaDanioMin(const std::string& tipo) const {
     std::string clave = "criaturas." + tipo + ".danio_min";
-    if (tipo == "goblin") return impl->get<int64_t>(clave, 2);
-    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 3);
-    if (tipo == "zombie") return impl->get<int64_t>(clave, 2);
-    if (tipo == "arana") return impl->get<int64_t>(clave, 1);
-    if (tipo == "orco") return impl->get<int64_t>(clave, 5);
-    if (tipo == "golem") return impl->get<int64_t>(clave, 8);
     return impl->get<int64_t>(clave, 1);
 }
 
 int Config::getCriaturaDanioMax(const std::string& tipo) const {
     std::string clave = "criaturas." + tipo + ".danio_max";
-    if (tipo == "goblin") return impl->get<int64_t>(clave, 5);
-    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 7);
-    if (tipo == "zombie") return impl->get<int64_t>(clave, 6);
-    if (tipo == "arana") return impl->get<int64_t>(clave, 4);
-    if (tipo == "orco") return impl->get<int64_t>(clave, 12);
-    if (tipo == "golem") return impl->get<int64_t>(clave, 20);
     return impl->get<int64_t>(clave, 2);
 }
 
 int Config::getCriaturaFuerza(const std::string& tipo) const {
     std::string clave = "criaturas." + tipo + ".fuerza";
-    if (tipo == "goblin") return impl->get<int64_t>(clave, 1);
-    if (tipo == "esqueleto") return impl->get<int64_t>(clave, 1);
-    if (tipo == "zombie") return impl->get<int64_t>(clave, 1);
-    if (tipo == "arana") return impl->get<int64_t>(clave, 1);
-    if (tipo == "orco") return impl->get<int64_t>(clave, 2);
-    if (tipo == "golem") return impl->get<int64_t>(clave, 3);
     return impl->get<int64_t>(clave, 1);
 }
 

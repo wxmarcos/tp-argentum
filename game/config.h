@@ -56,6 +56,7 @@ public:
     float getVelocidadResurreccion() const;
 
     // Criaturas
+    bool existeCriatura(const std::string& tipo) const;
     int getCriaturaVidaMax(const std::string& tipo) const;
     int getCriaturaNivel(const std::string& tipo) const;
     int getCriaturaDanioMin(const std::string& tipo) const;
