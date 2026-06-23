@@ -2,12 +2,6 @@
 #include <cmath>
 #include <random>
 
-static std::mt19937& rng() {
-    static std::random_device rd;
-    static std::mt19937 gen(rd());
-    return gen;
-}
-
 #include "common/protocol_defs.h"
 #include "game/formulas.h"
 #include "game/game.h"
@@ -20,6 +14,12 @@ static std::mt19937& rng() {
 #include "game/items/item_defs.h"
 #include "game/items/oro.h"
 #include "game/snapshot_factory.h"
+
+static std::mt19937& rng() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    return gen;
+}
 
 // ----------------- Combate PvP/PvE -----------------
 
