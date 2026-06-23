@@ -122,7 +122,6 @@ std::optional<SlotInventario> Inventario::soltar(int indice, int cantidad) {
 
     slot.cantidad -= cantidadASoltar;
 
-    // TODO: necesitamos clone() en Item para poder dividir stacks parciales.
     return std::nullopt;
 }
 

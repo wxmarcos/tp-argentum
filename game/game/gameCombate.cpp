@@ -43,80 +43,49 @@ bool Game::puedeAtacarJugador(Jugador* atacante, Jugador* objetivo) {
     return true;
 }
 
-static std::unique_ptr<Item> crearArma() {
-    using Fn = std::unique_ptr<Item> (*)();
-    static const Fn items[] = {
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearEspada(); },
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearHacha(); },
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearMartillo(); },
+static std::unique_ptr<Item> crearArma(const Config& config) {
+    static const char* const nombres[] = {
+        item_defs::ESPADA,
+        item_defs::HACHA,
+        item_defs::MARTILLO,
     };
     int idx = std::uniform_int_distribution<int>(
-        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
-    return items[idx]();
+        0, static_cast<int>(sizeof(nombres) / sizeof(nombres[0])) - 1)(rng());
+    return ItemFactory::crear(nombres[idx], config);
 }
 
-static std::unique_ptr<Item> crearEscudo() {
-    using Fn = std::unique_ptr<Item> (*)();
-    static const Fn items[] = {
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearEscudoDeTortuga();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearEscudoDeHierro();
-        },
+static std::unique_ptr<Item> crearEscudo(const Config& config) {
+    static const char* const nombres[] = {
+        item_defs::ESCUDO_DE_TORTUGA,
+        item_defs::ESCUDO_DE_HIERRO,
     };
     int idx = std::uniform_int_distribution<int>(
-        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
-    return items[idx]();
+        0, static_cast<int>(sizeof(nombres) / sizeof(nombres[0])) - 1)(rng());
+    return ItemFactory::crear(nombres[idx], config);
 }
 
-static std::unique_ptr<Item> crearItemAleatorio() {
-    using Fn = std::unique_ptr<Item> (*)();
-    static const Fn items[] = {
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearEspada(); },
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearHacha(); },
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearMartillo(); },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearArcoSimple();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearArcoCompuesto();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearVaraDeFresno();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearBaculoNudoso();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearBaculoEngarzado();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearArmaduraDeCuero();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearArmaduraDePlacas();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearTunicaAzul();
-        },
-        []() -> std::unique_ptr<Item> { return ItemFactory::crearCapucha(); },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearCascoDeHierro();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearSombreroMagico();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearEscudoDeTortuga();
-        },
-        []() -> std::unique_ptr<Item> {
-            return ItemFactory::crearEscudoDeHierro();
-        },
+static std::unique_ptr<Item> crearItemAleatorio(const Config& config) {
+    static const char* const nombres[] = {
+        item_defs::ESPADA,
+        item_defs::HACHA,
+        item_defs::MARTILLO,
+        item_defs::ARCO_SIMPLE,
+        item_defs::ARCO_COMPUESTO,
+        item_defs::VARA_DE_FRESNO,
+        item_defs::BACULO_NUDOSO,
+        item_defs::BACULO_ENGARZADO,
+        item_defs::ARMADURA_DE_CUERO,
+        item_defs::ARMADURA_DE_PLACAS,
+        item_defs::TUNICA_AZUL,
+        item_defs::CAPUCHA,
+        item_defs::CASCO_DE_HIERRO,
+        item_defs::SOMBRERO_MAGICO,
+        item_defs::ESCUDO_DE_TORTUGA,
+        item_defs::ESCUDO_DE_HIERRO,
     };
     int idx = std::uniform_int_distribution<int>(
-        0, static_cast<int>(sizeof(items) / sizeof(items[0])) - 1)(rng());
-    return items[idx]();
+        0, static_cast<int>(sizeof(nombres) / sizeof(nombres[0])) - 1)(rng());
+    return ItemFactory::crear(nombres[idx], config);
 }
 
 void Game::procesarDropCriatura(const std::string& criaturaId,
@@ -150,8 +119,9 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
 
     if (r < config.getDropUmbralPocion()) {
         bool esVida = std::uniform_int_distribution<int>(0, 1)(rng()) == 0;
-        auto pocion = esVida ? ItemFactory::crearPocionDeVida()
-                             : ItemFactory::crearPocionDeMana();
+        auto pocion = ItemFactory::crear(
+            esVida ? item_defs::POCION_DE_VIDA : item_defs::POCION_DE_MANA,
+            config);
 
         std::string nombreItem = pocion->getNombre();
 
@@ -168,7 +138,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
     }
 
     if (r < config.getDropUmbralItem()) {
-        auto item = crearItemAleatorio();
+        auto item = crearItemAleatorio(config);
         std::string nombreItem = item->getNombre();
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
@@ -184,7 +154,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
     }
 
     if (r < config.getDropUmbralArma()) {
-        auto item = crearArma();
+        auto item = crearArma(config);
         std::string nombreItem = item->getNombre();
 
         mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));
@@ -199,7 +169,7 @@ void Game::procesarDropCriatura(const std::string& criaturaId,
         return;
     }
 
-    auto item = crearEscudo();
+    auto item = crearEscudo(config);
     std::string nombreItem = item->getNombre();
 
     mundo.tirarItem(mx, px, py, SlotInventario(std::move(item)));

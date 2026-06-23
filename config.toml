@@ -210,6 +210,87 @@ danio_max = 28
 fuerza    = 4
 
 # -----------------------------------------------------------------------------
+# Items — stats de combate
+# -----------------------------------------------------------------------------
+[items.espada]
+danio_min = 2
+danio_max = 5
+
+[items.hacha]
+danio_min = 4
+danio_max = 5
+
+[items.martillo]
+danio_min = 1
+danio_max = 9
+
+[items.arco_simple]
+danio_min = 1
+danio_max = 4
+
+[items.arco_compuesto]
+danio_min = 4
+danio_max = 16
+
+[items.vara_de_fresno]
+efecto_min = 2
+efecto_max = 4
+costo_mana = 5
+
+[items.flauta_elfica]
+efecto_min = 50
+efecto_max = 100
+costo_mana = 100
+
+[items.baculo_nudoso]
+efecto_min = 4
+efecto_max = 8
+costo_mana = 15
+
+[items.baculo_engarzado]
+efecto_min = 8
+efecto_max = 20
+costo_mana = 30
+
+[items.armadura_de_cuero]
+defensa_min = 2
+defensa_max = 6
+
+[items.armadura_de_placas]
+defensa_min = 15
+defensa_max = 30
+
+[items.tunica_azul]
+defensa_min = 6
+defensa_max = 10
+
+[items.capucha]
+defensa_min = 1
+defensa_max = 4
+
+[items.casco_de_hierro]
+defensa_min = 4
+defensa_max = 8
+
+[items.sombrero_magico]
+defensa_min = 4
+defensa_max = 12
+
+[items.escudo_de_tortuga]
+defensa_min = 1
+defensa_max = 2
+
+[items.escudo_de_hierro]
+defensa_min = 1
+defensa_max = 4
+
+[items.pocion_de_vida]
+cantidad = 100
+
+[items.pocion_de_mana]
+cantidad = 100
+
+# -----------------------------------------------------------------------------
 # Comercio — precios de compra (lo que paga el jugador)
 # El precio de venta (lo que recibe el jugador) es la mitad
 # -----------------------------------------------------------------------------

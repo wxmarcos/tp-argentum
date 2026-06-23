@@ -123,7 +123,7 @@ std::vector<OutgoingSnapshot> Game::process(const Command& cmd) {
         player_id_to_nick[playerId] = cmd.get_nick();
         nick_to_player_id[cmd.get_nick()] = playerId;
 
-        jugador->agarrarItem(ItemFactory::crearEspada());
+        jugador->agarrarItem(ItemFactory::crear(item_defs::ESPADA, config));
 
         push_unicast(
             snapshots,
