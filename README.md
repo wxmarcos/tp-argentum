@@ -19,8 +19,7 @@ Correctora:
 
 ## 🎥 Demo
 
-<!-- Próximamente: video demostrativo del juego -->
-*Próximamente.*
+[![Demo](https://img.youtube.com/vi/KbYhpe6Csmk/0.jpg)](https://youtu.be/KbYhpe6Csmk)
 
 ---
 
