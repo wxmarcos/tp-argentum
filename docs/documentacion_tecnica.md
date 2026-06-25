@@ -332,8 +332,30 @@ Almacena:
 * Miembros
 * Solicitudes pendientes
 * Usuarios baneados
+  
+## Métodos principales
 
----
+Las siguientes funciones representan los puntos centrales de la arquitectura del proyecto, tanto del servidor como del cliente.
+
+### Servidor
+
+| Clase               | Método                    | Responsabilidad                                                                                                                                    |
+| ------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GameLoop`          | `run()`                   | Ejecuta el ciclo principal del servidor. Consume los `Command`, invoca `Game::process()`, genera los `Snapshot` correspondientes y los distribuye. |
+| `Game`              | `process(const Command&)` | Interpreta cada comando recibido, valida la acción solicitada, modifica el estado del mundo y genera los `Snapshot`.                               |
+| `World`             | `movePlayer()`            | Gestiona el movimiento de un personaje, verificando colisiones, límites del mapa y cambios entre mapas antes de actualizar su posición.            |
+| `PersistenceWorker` | `run()`                   | Consume los trabajos de persistencia pendientes y actualiza los archivos binarios del juego sin bloquear el `GameLoop`.                            |
+
+### Cliente
+
+| Clase          | Método          | Responsabilidad                                                                                                                                            |
+| -------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ClientGame`   | `run()`         | Ejecuta el ciclo principal del cliente. Procesa los eventos de entrada, actualiza el estado local y coordina el renderizado del juego.                     |
+| `InputHandler` | `handleEvent()` | Captura la entrada del usuario, interpreta sus acciones y genera los `Command` que serán enviados al servidor.                                             |
+| `Receiver`     | `run()`         | Recibe los `Snapshot` enviados por el servidor, los deserializa y actualiza el estado local del juego para mantener la sincronización con el mundo remoto. |
+| `Renderer`     | `render()`      | Renderiza el mapa, las entidades, los efectos visuales y la interfaz gráfica utilizando la información almacenada en el estado local del cliente.          |
+
+
 
 # Justificación de Diseño
 
