@@ -84,48 +84,127 @@ La centralización de la lógica evita race conditions y simplifica el modelo de
 
 # Protocolo de Comunicación
 
-La comunicación entre cliente y servidor utiliza un protocolo binario propio.
+La comunicación entre el cliente y el servidor se realiza mediante un **protocolo binario propio** sobre una conexión TCP persistente. 
 
-Todos los paquetes poseen la siguiente estructura:
+Todos los mensajes, independientemente de su tipo, poseen un encabezado común seguido de un payload cuyo contenido depende del opcode.
 
-* opcode (1 byte)
-* payload_size (2 bytes)
-* payload (N bytes)
+## Estructura de un paquete
 
-## Commands
+Cada paquete transmitido tiene el siguiente formato:
 
-Los Commands representan acciones solicitadas por un cliente.
+```
++------------+----------------+----------------------+
+| Opcode     | Payload Size   | Payload              |
+| 1 byte     | 2 bytes        | N bytes              |
++------------+----------------+----------------------+
+```
 
-Ejemplos:
+donde:
 
-* LOGIN
-* CREATE_CHARACTER
-* MOVE
-* ATTACK
-* PICK_ITEM
-* DROP_ITEM
-* BUY_ITEM
-* PRIVATE_MESSAGE
+* **Opcode**: identifica el tipo de mensaje enviado.
+* **Payload Size**: indica la cantidad de bytes que ocupa el payload.
+* **Payload**: contiene los datos específicos del mensaje.
 
-El Receiver transforma los paquetes recibidos en objetos Command y los inserta en la cola de comandos.
+El encabezado permite al receptor conocer qué operación debe ejecutar y cuántos bytes debe leer para reconstruir correctamente el mensaje.
 
-## Snapshots
+Los valores numéricos se serializan utilizando un tamaño fijo definido por el protocolo. Las cadenas de texto se envían precedidas por su longitud para permitir su reconstrucción sin utilizar caracteres de terminación.
 
-Los Snapshots representan eventos o cambios de estado generados por el servidor.
+---
 
-Ejemplos:
+# Commands
 
-* ENTITY_CREATED
-* ENTITY_MOVE
-* ENTITY_REMOVE
-* PLAYER_STATS
-* INVENTORY_UPDATE
-* DAMAGE_EVENT
-* DEATH_EVENT
-* CHAT_MESSAGE
-* MAP_CHANGE
+Los **Commands** representan acciones solicitadas por un cliente.
 
-Los clientes nunca generan Snapshots.
+Cada vez que el jugador realiza una acción (por ejemplo moverse, atacar o enviar un mensaje), el cliente construye un paquete utilizando el opcode correspondiente y los datos necesarios para dicha operación.
+
+Algunos ejemplos de Commands son:
+
+| Command          | Descripción                                         |
+| ---------------- | --------------------------------------------------- |
+| LOGIN            | Solicita iniciar sesión con un personaje existente. |
+| CREATE_CHARACTER | Crea un nuevo personaje.                            |
+| MOVE             | Solicita mover el personaje en una dirección.       |
+| ATTACK           | Solicita atacar un objetivo.                        |
+| PICK_ITEM        | Solicita recoger un objeto del suelo.               |
+| DROP_ITEM        | Solicita dejar un objeto en el mapa.                |
+| BUY_ITEM         | Solicita comprar un objeto a un NPC comerciante.    |
+| PRIVATE_MESSAGE  | Envía un mensaje privado a otro jugador.            |
+
+Cuando un paquete llega al servidor, el **Receiver** realiza las siguientes etapas:
+
+1. Lee el encabezado del paquete.
+2. Obtiene el opcode y el tamaño del payload.
+3. Deserializa el payload.
+4. Construye un objeto `Command`.
+5. Inserta el comando en la cola compartida de comandos.
+
+Es importante destacar que el Receiver **no modifica el estado del juego**. Su única responsabilidad consiste en transformar los datos binarios recibidos desde la red en objetos de alto nivel que posteriormente serán procesados por el GameLoop.
+
+---
+
+# Snapshots
+
+Los **Snapshots** representan eventos o cambios de estado generados por el servidor luego de procesar uno o más Commands.
+
+A diferencia de los Commands, los Snapshots son enviados exclusivamente por el servidor y permiten mantener sincronizado el estado del mundo entre todos los clientes conectados.
+
+Algunos ejemplos de Snapshots son:
+
+| Snapshot         | Descripción                                       |
+| ---------------- | ------------------------------------------------- |
+| ENTITY_CREATED   | Notifica la creación de una nueva entidad.        |
+| ENTITY_MOVE      | Informa el desplazamiento de una entidad.         |
+| ENTITY_REMOVE    | Indica que una entidad debe eliminarse del mundo. |
+| PLAYER_STATS     | Actualiza las estadísticas del jugador.           |
+| INVENTORY_UPDATE | Actualiza el inventario del personaje.            |
+| DAMAGE_EVENT     | Informa que una entidad recibió daño.             |
+| DEATH_EVENT      | Notifica la muerte de una entidad.                |
+| CHAT_MESSAGE     | Envía un mensaje de chat.                         |
+| MAP_CHANGE       | Indica que el jugador cambió de mapa.             |
+
+Luego de ejecutar `Game::process()`, el servidor genera uno o varios Snapshots representando los cambios producidos sobre el estado del juego.
+
+Estos Snapshots son distribuidos mediante los objetos `OutgoingSnapshot`, que determinan si el mensaje debe enviarse a un único cliente (Unicast), a un conjunto específico de clientes (Multicast) o a todos los jugadores conectados (Broadcast).
+
+---
+
+# Flujo de un mensaje
+
+El siguiente flujo resume el procesamiento de una acción típica del jugador:
+
+```
+Jugador
+    │
+    ▼
+Cliente
+    │
+    ▼
+Construcción del Command
+    │
+    ▼
+Receiver del servidor
+    │
+    ▼
+Queue<Command>
+    │
+    ▼
+GameLoop
+    │
+    ▼
+Game::process()
+    │
+    ▼
+Generación de Snapshots
+    │
+    ▼
+Sender
+    │
+    ▼
+Clientes conectados
+```
+
+Esta separación entre Commands y Snapshots permite desacoplar completamente la comunicación de red de la lógica del juego. Mientras los Receiver únicamente reciben solicitudes y las encolan, el GameLoop centraliza todas las modificaciones sobre el estado del mundo, evitando problemas de concurrencia y garantizando que todos los clientes observen un estado consistente.
+
 
 ---
 
