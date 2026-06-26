@@ -485,20 +485,34 @@ La interfaz contiene:
 
 ---
 
-# Sincronización Cliente-Servidor
+### Sincronización Cliente-Servidor
 
-El cliente nunca modifica el estado real del juego.
+La sincronización entre cliente y servidor se basa en un modelo autoritativo. El cliente únicamente envía comandos al servidor, mientras que el servidor valida las acciones, actualiza el estado del juego y distribuye las actualizaciones correspondientes mediante `Snapshot`. Los siguientes diagramas muestran los flujos más representativos implementados.
 
-Flujo típico:
+#### Login y restauración de personaje
 
-Usuario presiona W
-↓
-Cliente envía MOVE
-↓
-Servidor valida movimiento
-↓
-Servidor genera ENTITY_MOVE
-↓
-Cliente actualiza posición
+<div align="center">
+    <img src="diagrams/login_persistencia.png" width="1000">
+</div>
 
-Esto garantiza que todos los jugadores vean un estado consistente del mundo.
+**Figura 1.** Flujo de autenticación, restauración desde persistencia y sincronización inicial del jugador.
+
+---
+
+#### Cambio de mapa
+
+<div align="center">
+    <img src="diagrams/cambio_mapa.png" width="1000">
+</div>
+
+**Figura 2.** Flujo completo del procesamiento de un movimiento que produce un cambio de mapa y la sincronización de las entidades visibles.
+
+---
+
+#### Combate contra criaturas
+
+<div align="center">
+    <img src="diagrams/ataque_criatura.png" width="1000">
+</div>
+
+**Figura 3.** Flujo del combate PvE, incluyendo validación, aplicación de daño, generación de drops y sincronización del estado del mundo.
